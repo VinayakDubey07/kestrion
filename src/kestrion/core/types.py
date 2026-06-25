@@ -104,6 +104,39 @@ class AgentState:
     total_cost_usd: float = 0.0
     last_event_seq: int = 0  # for incremental replay
 
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Explicit, stable serialization for checkpoint storage. Deliberately
+        NOT pickle: pickle ties the on-disk format to this exact class
+        definition and Python version, which is a liability the moment
+        anyone outside this process depends on reading old checkpoints
+        (e.g. after an engine upgrade). JSON-compatible dicts are boring
+        and durable, which is exactly what a checkpoint format should be.
+        """
+        return {
+            "run_id": self.run_id,
+            "status": self.status.value,
+            "current_node": self.current_node,
+            "scratch": self.scratch,
+            "history": self.history,
+            "total_tokens": self.total_tokens,
+            "total_cost_usd": self.total_cost_usd,
+            "last_event_seq": self.last_event_seq,
+        }
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> "AgentState":
+        return AgentState(
+            run_id=data["run_id"],
+            status=RunStatus(data["status"]),
+            current_node=data.get("current_node"),
+            scratch=data.get("scratch", {}),
+            history=data.get("history", []),
+            total_tokens=data.get("total_tokens", 0),
+            total_cost_usd=data.get("total_cost_usd", 0.0),
+            last_event_seq=data.get("last_event_seq", 0),
+        )
+
 
 # ---------------------------------------------------------------------------
 # Checkpointing — durable execution is a first-class concept, not an add-on

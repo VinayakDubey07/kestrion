@@ -8,11 +8,9 @@ which is the whole point of the Protocol boundary in types.py.
 from __future__ import annotations
 
 import json
-import pickle
 import sqlite3
-from pathlib import Path
 
-from kestrion.core.types import Checkpoint, Event, EventType
+from kestrion.core.types import AgentState, Checkpoint, Event, EventType
 
 
 class SQLiteCheckpointStore:
@@ -103,6 +101,18 @@ class SQLiteCheckpointStore:
 
     async def save(self, checkpoint: Checkpoint) -> None:
         conn = sqlite3.connect(self.path)
+        try:
+            state_json = json.dumps(checkpoint.state.to_dict())
+        except TypeError as exc:
+            # Fail loudly: a non-JSON-serializable value snuck into
+            # AgentState.scratch. Silently falling back to pickle here
+            # would defeat the entire point of making the format explicit.
+            raise ValueError(
+                f"AgentState.scratch for run {checkpoint.run_id} contains a "
+                f"non-JSON-serializable value: {exc}. Only JSON-compatible "
+                f"types (str, int, float, bool, None, list, dict) are "
+                f"allowed in scratch."
+            ) from exc
         conn.execute(
             """INSERT OR REPLACE INTO checkpoints
                (checkpoint_id, run_id, created_at, event_seq, state_blob)
@@ -112,7 +122,7 @@ class SQLiteCheckpointStore:
                 checkpoint.run_id,
                 checkpoint.created_at.isoformat(),
                 checkpoint.event_seq,
-                pickle.dumps(checkpoint.state),
+                state_json,
             ),
         )
         conn.commit()
@@ -133,7 +143,7 @@ class SQLiteCheckpointStore:
         return Checkpoint(
             checkpoint_id=row[0],
             run_id=run_id,
-            state=pickle.loads(row[3]),
+            state=AgentState.from_dict(json.loads(row[3])),
             created_at=datetime.fromisoformat(row[1]),
             event_seq=row[2],
         )
