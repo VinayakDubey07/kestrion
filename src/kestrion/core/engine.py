@@ -196,6 +196,22 @@ class Engine:
         )
         return result
 
+    async def record_event(self, state: AgentState, event: Event) -> None:
+        """
+        Public escape hatch for nodes that need to durably record
+        something that isn't a tool call — the motivating case is
+        Agent's LLM-loop node recording LLM_CALL_COMPLETED events (for
+        token/cost tracking) as they happen, rather than batching them
+        into the eventual NodeResult. Batching would lose them if the
+        node later raises ApprovalRequired and never returns a
+        NodeResult at all. Appends to the store AND folds into state
+        immediately — same durability guarantee as call_tool's internal
+        _emit calls.
+        """
+        seq = await self.store.append_event(event)
+        state.last_event_seq = seq
+        self._fold(state, event)
+
     # ------------------------------------------------------------------
     # Event sourcing plumbing
     # ------------------------------------------------------------------
