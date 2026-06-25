@@ -95,6 +95,11 @@ print(result.status)  # "completed"
 
 - **No MCP integration yet.** Every tool today is a hand-written Python function via `@tool`.
   Connecting to external MCP servers is the next phase of work.
+- **Anthropic and OpenAI providers are implemented against documented API shapes but not yet
+  smoke-tested against a live API call** — no API key has been used to verify them in practice.
+  **Ollama is verified live** — `tests/unit/test_smoke_ollama.py` runs a real agent against a real
+  local Ollama server and passes, confirming the request-building and response-parsing logic
+  actually works against a live model, not just against fakes.
 - **No real concurrency control.** Running many agents at once against a shared rate limit isn't
   implemented.
 - **No CLI or deploy story.** `kestrion deploy --target k8s` doesn't exist yet — you'd containerize
@@ -110,6 +115,9 @@ print(result.status)  # "completed"
 - [`examples/kubectl_agent`](examples/kubectl_agent) — the original worked example, demonstrating
   pause-on-approval and resume-after-restart using the raw `Engine`/`Node` primitives directly
   (useful for understanding what `Agent` builds on top of).
+- [`tests/unit/test_smoke_ollama.py`](tests/unit/test_smoke_ollama.py) — a live, real smoke test
+  against a local Ollama server. Useful as a template if you want to verify your own Ollama setup
+  works with Kestrion. Skips automatically if Ollama isn't running.
 
 ## Development
 
