@@ -84,17 +84,38 @@ class OllamaProvider:
 
         message = data.get("message", {})
         tool_calls = []
+        malformed_calls: list[str] = []
         for i, tc in enumerate(message.get("tool_calls", []) or []):
             fn = tc.get("function", {})
-            args = fn.get("arguments", {})
-            if isinstance(args, str):
-                args = json.loads(args)
-            # Ollama doesn't assign call ids the way Anthropic/OpenAI do —
-            # synthesize a stable one so downstream tool-result linkage works.
-            tool_calls.append(ToolCallRequest(id=f"ollama_call_{i}", name=fn.get("name", ""), arguments=args))
+            raw_args = fn.get("arguments", {})
+            fn_name = fn.get("name", "")
+            if isinstance(raw_args, str):
+                try:
+                    args = json.loads(raw_args)
+                except json.JSONDecodeError:
+                    # Small local models sometimes emit malformed JSON
+                    # arguments. Surfacing this as a synthetic tool call
+                    # with an error lets the agent loop recover (the LLM
+                    # sees the failure and can retry) instead of crashing
+                    # the whole run with an unhandled exception.
+                    malformed_calls.append(fn_name or f"call_{i}")
+                    args = {}
+            else:
+                args = raw_args
+            tool_calls.append(
+                ToolCallRequest(id=f"ollama_call_{i}", name=fn_name, arguments=args)
+            )
+
+        text = message.get("content") or None
+        if malformed_calls:
+            note = (
+                f"[kestrion: malformed tool-call arguments from model for: "
+                f"{', '.join(malformed_calls)} — treated as empty arguments]"
+            )
+            text = f"{text}\n{note}" if text else note
 
         return LLMResponse(
-            text=message.get("content") or None,
+            text=text,
             tool_calls=tool_calls,
             tokens_in=data.get("prompt_eval_count", 0),
             tokens_out=data.get("eval_count", 0),
