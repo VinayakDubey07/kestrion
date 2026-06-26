@@ -41,6 +41,7 @@ class EventType(str, Enum):
     CHECKPOINT_SAVED = "checkpoint_saved"
     RUN_COMPLETED = "run_completed"
     RUN_FAILED = "run_failed"
+    RUN_EXPIRED = "run_expired"   # approval deadline passed before all required roles approved
     HUMAN_INTERVENTION = "human_intervention"  # e.g. approve a kubectl apply
 
 
@@ -83,6 +84,7 @@ class RunStatus(str, Enum):
     WAITING_ON_HUMAN = "waiting_on_human"   # e.g. paused for kubectl approval
     COMPLETED = "completed"
     FAILED = "failed"
+    EXPIRED = "expired"   # approval deadline passed before all required roles approved
 
 
 @dataclass
@@ -180,9 +182,38 @@ class ToolSpec:
     name: str
     description: str
     parameters: dict[str, Any]  # JSON schema, same shape MCP expects
-    # marks tools that mutate external state (kubectl apply, db writes)
-    # so the engine can require human approval before calling them
-    requires_approval: bool = False
+    # Approval requirement. Three shapes, in increasing strictness:
+    #   False           — no approval needed (default)
+    #   True             — any single approval needed (role-agnostic)
+    #   "role_name"      — approval needed from this specific role
+    #   ["role_a", "role_b"] — approval needed from ALL listed roles (a chain)
+    # A bare True/False keeps existing code working unchanged; the str/list
+    # forms are the multi-step approval chain extension.
+    requires_approval: bool | str | list[str] = False
+    # If set, and the run is still WAITING_ON_HUMAN this many seconds
+    # after the approval was first requested, resume() treats the run
+    # as EXPIRED rather than re-raising ApprovalRequired forever. None
+    # (default) means no deadline — the run can wait indefinitely,
+    # exactly like every approval-gated tool before this feature existed.
+    approval_timeout_seconds: float | None = None
+
+    def required_roles(self) -> list[str]:
+        """
+        Normalizes requires_approval into a list of role names that must
+        all appear in an approval record before this tool can run.
+        True normalizes to a single anonymous role ("__any__") so the
+        existing scratch["_approved_tools"][name] = True shape still
+        satisfies it — this is what keeps bool-style approval backward
+        compatible with the new chain mechanism underneath.
+        """
+        ra = self.requires_approval
+        if ra is False:
+            return []
+        if ra is True:
+            return ["__any__"]
+        if isinstance(ra, str):
+            return [ra]
+        return list(ra)
 
 
 @dataclass(frozen=True)

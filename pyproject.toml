@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kestrion"
-version = "0.1.0"
+version = "0.2.0"
 description = "A durable-execution-first framework for building production AI agents"
 readme = "README.md"
 license = "Apache-2.0"
@@ -34,10 +34,14 @@ openai = [
 ollama = [
     "httpx>=0.27.0",
 ]
+mcp = [
+    "mcp>=1.5.0",
+]
 all = [
     "anthropic>=0.40.0",
     "openai>=1.50.0",
     "httpx>=0.27.0",
+    "mcp>=1.5.0",
 ]
 dev = [
     "pytest>=8.0",
@@ -47,6 +51,7 @@ dev = [
     "anthropic>=0.40.0",
     "openai>=1.50.0",
     "httpx>=0.27.0",
+    "mcp>=1.5.0",
 ]
 postgres = [
     "asyncpg>=0.29",
@@ -56,8 +61,10 @@ postgres = [
 kestrion = "kestrion.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/kestrion"
-Repository = "https://github.com/YOUR_USERNAME/kestrion"
+Homepage = "https://www.kestrion.in"
+Repository = "https://github.com/VinayakDubey07/kestrion"
+Issues = "https://github.com/VinayakDubey07/kestrion/issues"
+Changelog = "https://github.com/VinayakDubey07/kestrion/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kestrion"]

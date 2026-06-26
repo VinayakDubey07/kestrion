@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Callable
+from datetime import datetime, timedelta
+from typing import Callable, Literal
 
 from .types import (
     AgentState,
@@ -36,17 +37,44 @@ from .types import (
 logger = logging.getLogger("agentframework.engine")
 
 
+class RunExpiredError(Exception):
+    """
+    Raised by resume(on_expired="raise") when a run's pending approval
+    deadline has passed without all required roles approving. Distinct
+    from ApprovalRequired (which the engine catches internally and never
+    lets escape to the caller) — this one IS meant to surface to whoever
+    called resume(), since "this approval window closed" is a fact about
+    the world the caller needs to react to, not an internal control-flow
+    signal.
+    """
+
+    def __init__(self, run_id: str, tool_name: str, expired_at: str):
+        self.run_id = run_id
+        self.tool_name = tool_name
+        self.expired_at = expired_at
+        super().__init__(
+            f"Run {run_id}'s pending approval for tool {tool_name!r} expired at {expired_at}"
+        )
+
+
 class ApprovalRequired(Exception):
     """
     Raised (and caught by the engine, not the user) when a node wants to
-    call a tool marked requires_approval=True. The engine persists a
-    checkpoint and parks the run in WAITING_ON_HUMAN rather than blocking
-    a thread — this is what makes "1000 agents waiting on approval" cheap.
+    call a tool whose required-approval roles aren't all satisfied yet.
+    The engine persists a checkpoint and parks the run in
+    WAITING_ON_HUMAN rather than blocking a thread — this is what makes
+    "1000 agents waiting on approval" cheap.
     """
 
-    def __init__(self, tool_name: str, kwargs: dict):
+    def __init__(self, tool_name: str, kwargs: dict, missing_roles: list[str]):
         self.tool_name = tool_name
         self.kwargs = kwargs
+        # Which required roles have NOT yet approved. For simple
+        # requires_approval=True tools this is always ["__any__"]. For a
+        # chain like ["engineer", "manager"], this narrows as approvals
+        # come in — e.g. after the engineer approves, a re-raised
+        # ApprovalRequired on retry would show only ["manager"] missing.
+        self.missing_roles = missing_roles
 
 
 class Engine:
@@ -86,11 +114,26 @@ class Engine:
         await self._emit(state, EventType.RUN_STARTED, {"entry_node": self.entry_node})
         return await self._drive(state)
 
-    async def resume(self, run_id: str) -> AgentState:
+    async def resume(
+        self, run_id: str, on_expired: Literal["status", "raise"] = "status"
+    ) -> AgentState:
         """
         Crash recovery / human-approval resume in one code path. Load the
         latest checkpoint, replay any events since it (in case the process
         died between checkpoint and completion), then keep driving.
+
+        on_expired controls what happens if this run's pending approval
+        deadline (set via ToolSpec.approval_timeout_seconds) has passed
+        without all required roles approving:
+          - "status" (default): the run transitions to RunStatus.EXPIRED
+            and is returned normally — consistent with how every other
+            terminal state (COMPLETED, FAILED) already works in this
+            codebase: callers check .status, no exception needed for the
+            common case.
+          - "raise": raises RunExpiredError instead. For callers who want
+            a hard failure if they accidentally try to resume something
+            stale — e.g. a cron job that should alert loudly rather than
+            silently return a status nobody checks.
         """
         checkpoint = await self.store.latest(run_id)
         if checkpoint is None:
@@ -102,6 +145,19 @@ class Engine:
             self._fold(state, evt)
 
         if state.status == RunStatus.WAITING_ON_HUMAN:
+            pending = state.scratch.get("_pending_approval") or {}
+            expires_at = pending.get("expires_at")
+            if expires_at is not None and datetime.fromisoformat(expires_at) < utcnow():
+                state.status = RunStatus.EXPIRED
+                await self._emit(
+                    state,
+                    EventType.RUN_EXPIRED,
+                    {"tool": pending.get("tool"), "expired_at": expires_at},
+                )
+                await self._checkpoint(state)
+                if on_expired == "raise":
+                    raise RunExpiredError(run_id, pending.get("tool", "<unknown>"), expires_at)
+                return state
             state.status = RunStatus.RUNNING
 
         return await self._drive(state)
@@ -114,6 +170,31 @@ class Engine:
         a process restart, same pattern as everything else.)
         """
         raise NotImplementedError("Wire this to your approval persistence layer")
+
+    @staticmethod
+    def record_approval(state: AgentState, tool_name: str, role: str = "__any__") -> None:
+        """
+        Correctly appends a role to state.scratch["_approved_tools"][tool_name]
+        without clobbering any roles already recorded there. This exists
+        specifically to replace the error-prone pattern of hand-writing
+        scratch["_approved_tools"] = {tool: True} — that overwrite pattern
+        silently destroys a partially-satisfied approval chain (e.g. if
+        "engineer" already approved and you then overwrite the whole dict
+        to record "manager" approving, the engineer's approval vanishes).
+
+        Caller is still responsible for persisting a checkpoint (via
+        save() against the store) after calling this and before calling
+        resume() — this only mutates the in-memory AgentState, consistent
+        with every other state-mutating helper in this module.
+        """
+        approved = state.scratch.setdefault("_approved_tools", {})
+        existing = approved.get(tool_name)
+        if existing is True:
+            # Already fully approved under the old bool shape; nothing to add.
+            return
+        roles = set(existing) if isinstance(existing, list) else set()
+        roles.add(role)
+        approved[tool_name] = list(roles)
 
     # ------------------------------------------------------------------
     # Internal: the actual graph-walking loop
@@ -130,15 +211,44 @@ class Engine:
                 # thread waiting for a human. We checkpoint and return
                 # control. Some other process/request resumes us later.
                 state.status = RunStatus.WAITING_ON_HUMAN
+
+                # The deadline is set ONCE, the first time approval is
+                # requested for this tool — not reset on every retry (e.g.
+                # a partial chain still missing one role re-raises this
+                # same exception on each resume() attempt). Re-deriving
+                # "first requested at" from any existing pending-approval
+                # record for this exact tool is what makes that correct.
+                existing_pending = state.scratch.get("_pending_approval")
+                if existing_pending and existing_pending.get("tool") == approval.tool_name:
+                    requested_at = existing_pending.get("requested_at", utcnow().isoformat())
+                else:
+                    requested_at = utcnow().isoformat()
+
+                tool_spec = self.tools[approval.tool_name].spec
+                expires_at = None
+                if tool_spec.approval_timeout_seconds is not None:
+                    requested_dt = datetime.fromisoformat(requested_at)
+                    expires_at = (
+                        requested_dt + timedelta(seconds=tool_spec.approval_timeout_seconds)
+                    ).isoformat()
+
                 state.scratch["_pending_approval"] = {
                     "tool": approval.tool_name,
                     "kwargs": approval.kwargs,
                     "resume_node": state.current_node,
+                    "missing_roles": approval.missing_roles,
+                    "requested_at": requested_at,
+                    "expires_at": expires_at,
                 }
                 await self._emit(
                     state,
                     EventType.HUMAN_INTERVENTION,
-                    {"reason": "approval_required", "tool": approval.tool_name},
+                    {
+                        "reason": "approval_required",
+                        "tool": approval.tool_name,
+                        "missing_roles": approval.missing_roles,
+                        "expires_at": expires_at,
+                    },
                 )
                 await self._checkpoint(state)
                 return state
@@ -180,8 +290,26 @@ class Engine:
         the safety gate for a mutating kubectl/SQL call.
         """
         tool = self.tools[tool_name]
-        if tool.spec.requires_approval and not state.scratch.get("_approved_tools", {}).get(tool_name):
-            raise ApprovalRequired(tool_name, kwargs)
+        required_roles = tool.spec.required_roles()
+        if required_roles:
+            recorded = state.scratch.get("_approved_tools", {}).get(tool_name)
+            # Backward-compat shape: scratch["_approved_tools"][name] = True
+            # (from before chains existed) means "approved, role-agnostic" —
+            # treat it as satisfying any/all required roles. Must check this
+            # BEFORE trying to treat `recorded` as an iterable of role names,
+            # since True is not iterable (caught by the regression test
+            # this exact bug produced — test_resume_from_independent_engine
+            # _after_approval and others, which all pre-date the chain
+            # feature and store the bool shape).
+            if recorded is True:
+                approved_roles = set(required_roles)
+            elif isinstance(recorded, list):
+                approved_roles = set(recorded)
+            else:
+                approved_roles = set()
+            missing = [r for r in required_roles if r not in approved_roles]
+            if missing:
+                raise ApprovalRequired(tool_name, kwargs, missing_roles=missing)
 
         await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
         try:
