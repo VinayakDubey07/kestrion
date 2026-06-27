@@ -23,8 +23,8 @@ import asyncio
 import uuid
 from dataclasses import asdict, dataclass
 
-from kestrion.core.engine import Engine
-from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, Tool
+from kestrion.core.engine import ApprovalRequired, Engine
+from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, Tool, ToolResult, ToolSpec
 from kestrion.llm.base import LLMProvider, LLMResponse, Message, ToolCallRequest
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
@@ -170,6 +170,81 @@ class _AgentLoopNode:
             state.scratch["_messages"] = [_message_to_dict(m) for m in messages]
 
 
+class SubAgentTool(Tool):
+    """
+    Wraps an Agent so it satisfies the Tool contract — making "one agent
+    calls another agent" require zero new engine machinery. From the
+    parent Engine's perspective, calling a sub-agent looks exactly like
+    calling any other tool.
+
+    Design decisions worth being explicit about:
+
+    1. The sub-agent's run gets its OWN run_id and checkpoint history in
+       the same store, not nested inside the parent's event log. This
+       means the sub-agent's run is independently resumable — if the
+       parent crashes after the sub-agent already completed, that work
+       isn't redone. Sharing the same store (rather than a separate one)
+       is what makes resume() work for it using the exact same mechanism
+       as any top-level run.
+
+    2. If the sub-agent's run pauses on WAITING_ON_HUMAN, that must
+       propagate to the PARENT, not be silently swallowed as if the
+       sub-agent just "returned" a paused status as a normal result. This
+       is handled by re-raising ApprovalRequired in the parent's context,
+       tagged with a synthetic role name carrying the sub-agent's run_id
+       (sub_agent:<run_id>) so whoever resolves the parent's pending
+       approval knows exactly which sub-agent run needs resuming
+       separately. This reuses the existing missing_roles mechanism
+       unchanged — no new pause/resume concept was needed.
+    """
+
+    def __init__(self, sub_agent: "Agent", name: str, description: str):
+        self._sub_agent = sub_agent
+        self.spec = ToolSpec(
+            name=name,
+            description=description,
+            parameters={
+                "type": "object",
+                "properties": {"prompt": {"type": "string"}},
+                "required": ["prompt"],
+            },
+            requires_approval=False,
+        )
+
+    async def call(self, **kwargs) -> ToolResult:
+        prompt = kwargs["prompt"]
+        result = await self._sub_agent.run(prompt)
+
+        if result.status == RunStatus.WAITING_ON_HUMAN:
+            # Propagate the pause to the parent. The parent's Engine
+            # catches this exactly like any other ApprovalRequired —
+            # parent pauses too, parent's _pending_approval will show
+            # missing_roles=["sub_agent:<run_id>"], which is the signal
+            # for "go resume THIS sub-agent run separately, then resume
+            # the parent."
+            raise ApprovalRequired(
+                tool_name=self.spec.name,
+                kwargs=kwargs,
+                missing_roles=[f"sub_agent:{result.run_id}"],
+            )
+
+        if result.status == RunStatus.FAILED:
+            return ToolResult(
+                tool_name=self.spec.name,
+                output=None,
+                error=f"Sub-agent run {result.run_id} failed",
+            )
+
+        if result.status == RunStatus.EXPIRED:
+            return ToolResult(
+                tool_name=self.spec.name,
+                output=None,
+                error=f"Sub-agent run {result.run_id} expired waiting for approval",
+            )
+
+        return ToolResult(tool_name=self.spec.name, output=result.output)
+
+
 class Agent:
     """
     Agent(model=..., tools=[...], store=...) — the ergonomic entry point.
@@ -231,3 +306,27 @@ class Agent:
             "checkpoint manually before calling resume(), as shown in "
             "examples/kubectl_agent."
         )
+
+    def as_tool(self, name: str, description: str) -> SubAgentTool:
+        """
+        Wraps this Agent as a Tool another Agent can call — the
+        agent-calling-agent / delegation pattern. The returned tool takes
+        a single `prompt` argument and runs this agent against it.
+
+        Usage:
+            specialist = Agent(provider=..., tools=[...], store=shared_store_url)
+            planner = Agent(
+                provider=...,
+                tools=[specialist.as_tool("query_database", "Ask the database specialist a question")],
+                store=shared_store_url,  # SAME store — required for the
+                                          # sub-agent's run to be
+                                          # independently resumable
+            )
+
+        If the sub-agent's run pauses for approval, the PARENT run also
+        pauses (see SubAgentTool for why) — resuming requires resuming
+        the sub-agent's run_id first, then resuming the parent. The
+        parent's pending-approval record's missing_roles will contain
+        "sub_agent:<run_id>" naming exactly which one.
+        """
+        return SubAgentTool(self, name=name, description=description)

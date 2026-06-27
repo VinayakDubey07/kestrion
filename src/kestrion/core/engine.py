@@ -327,6 +327,15 @@ class Engine:
         await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
         try:
             result = await tool.call(**kwargs)
+        except ApprovalRequired:
+            # A tool's OWN call() can raise this directly — the
+            # motivating case is SubAgentTool, where a sub-agent's run
+            # pausing for approval needs to propagate to the parent as a
+            # pause, not get logged as a tool failure. Re-raise as-is,
+            # bypassing the generic except-Exception branch below, which
+            # would otherwise emit a misleading TOOL_CALL_FAILED event
+            # for what is actually a clean pause, not a failure.
+            raise
         except Exception as exc:
             await self._emit(state, EventType.TOOL_CALL_FAILED, {"tool": tool_name, "error": str(exc)})
             raise
