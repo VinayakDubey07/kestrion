@@ -280,6 +280,40 @@ class Engine:
 
         return state
 
+    def check_approval(self, state: AgentState, tool_name: str, kwargs: dict) -> None:
+        """
+        Raises ApprovalRequired if `tool_name` has unsatisfied required
+        roles, otherwise returns normally. This is the SAME check
+        call_tool performs internally before executing a tool — exposed
+        publicly so callers like Agent's parallel-tool-call dispatch can
+        pre-check an entire batch of calls for approval before running
+        ANY of them, without duplicating this logic (and risking it
+        silently drifting out of sync the next time approval-gating
+        changes, which has already happened twice in this codebase).
+        """
+        tool = self.tools[tool_name]
+        required_roles = tool.spec.required_roles()
+        if not required_roles:
+            return
+        recorded = state.scratch.get("_approved_tools", {}).get(tool_name)
+        # Backward-compat shape: scratch["_approved_tools"][name] = True
+        # (from before chains existed) means "approved, role-agnostic" —
+        # treat it as satisfying any/all required roles. Must check this
+        # BEFORE trying to treat `recorded` as an iterable of role names,
+        # since True is not iterable (caught by the regression test
+        # this exact bug produced — test_resume_from_independent_engine
+        # _after_approval and others, which all pre-date the chain
+        # feature and store the bool shape).
+        if recorded is True:
+            approved_roles = set(required_roles)
+        elif isinstance(recorded, list):
+            approved_roles = set(recorded)
+        else:
+            approved_roles = set()
+        missing = [r for r in required_roles if r not in approved_roles]
+        if missing:
+            raise ApprovalRequired(tool_name, kwargs, missing_roles=missing)
+
     async def call_tool(self, state: AgentState, tool_name: str, **kwargs) -> ToolResult:
         """
         Nodes call tools through the engine, never directly — this is the
@@ -287,27 +321,8 @@ class Engine:
         tool calls happens, so individual nodes can't accidentally bypass
         the safety gate for a mutating kubectl/SQL call.
         """
+        self.check_approval(state, tool_name, kwargs)
         tool = self.tools[tool_name]
-        required_roles = tool.spec.required_roles()
-        if required_roles:
-            recorded = state.scratch.get("_approved_tools", {}).get(tool_name)
-            # Backward-compat shape: scratch["_approved_tools"][name] = True
-            # (from before chains existed) means "approved, role-agnostic" —
-            # treat it as satisfying any/all required roles. Must check this
-            # BEFORE trying to treat `recorded` as an iterable of role names,
-            # since True is not iterable (caught by the regression test
-            # this exact bug produced — test_resume_from_independent_engine
-            # _after_approval and others, which all pre-date the chain
-            # feature and store the bool shape).
-            if recorded is True:
-                approved_roles = set(required_roles)
-            elif isinstance(recorded, list):
-                approved_roles = set(recorded)
-            else:
-                approved_roles = set()
-            missing = [r for r in required_roles if r not in approved_roles]
-            if missing:
-                raise ApprovalRequired(tool_name, kwargs, missing_roles=missing)
 
         await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
         try:

@@ -19,6 +19,7 @@ loop.
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from dataclasses import asdict, dataclass
 
@@ -127,11 +128,35 @@ class _AgentLoopNode:
                     },
                 )
 
-            # Execute every requested tool call. ApprovalRequired propagates
-            # naturally — engine.call_tool raises it, this loop doesn't
-            # catch it, Engine._drive's except clause handles the pause.
+            # Multiple tool calls in one turn run CONCURRENTLY, not one at
+            # a time — but only after every gated call in the batch has
+            # been pre-checked for approval via the SAME check_approval
+            # method call_tool uses internally (no duplicated gating
+            # logic to drift out of sync). This two-phase design (check
+            # everything, THEN dispatch everything) guarantees a batch is
+            # either fully run or cleanly paused with nothing partially
+            # executed — never "2 of 3 tools already ran, then we paused
+            # on the 3rd." This is safe because call_tool's gating check
+            # happens strictly before any side effect (before
+            # TOOL_CALL_STARTED is even emitted) — raising here is
+            # equivalent to raising inside call_tool itself, just earlier
+            # and for the whole batch at once.
             for call in response.tool_calls:
-                result = await agent._engine.call_tool(state, call.name, **call.arguments)
+                if call.name in agent._tools:
+                    agent._engine.check_approval(state, call.name, call.arguments)
+                # unknown tool names are left for call_tool to raise its
+                # own KeyError on, same as before this feature existed
+
+            # All gates clear — dispatch every call in this turn
+            # concurrently. asyncio.gather (default, no
+            # return_exceptions) means a real exception from one call
+            # still propagates immediately, same fail-fast behavior as
+            # the old sequential loop had — we're not silently swallowing
+            # failures just because calls are now concurrent.
+            results = await asyncio.gather(
+                *[agent._engine.call_tool(state, call.name, **call.arguments) for call in response.tool_calls]
+            )
+            for call, result in zip(response.tool_calls, results):
                 messages.append(
                     Message(role="tool", tool_call_id=call.id, content=str(result.output))
                 )
