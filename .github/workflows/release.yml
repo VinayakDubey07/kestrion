@@ -3,6 +3,7 @@ name: Release
 # Builds and publishes to PyPI whenever a GitHub Release is published.
 # Tag the commit (e.g. v0.2.0), then draft a Release from that tag in the
 # GitHub UI — this workflow runs once the Release is published.
+
 on:
   release:
     types: [published]
