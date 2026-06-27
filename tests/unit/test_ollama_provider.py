@@ -5,7 +5,6 @@ tests fake the HTTP response shape directly.
 """
 
 import httpx
-import pytest
 
 from kestrion.llm.ollama_provider import OllamaProvider
 

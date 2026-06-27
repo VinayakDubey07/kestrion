@@ -14,7 +14,6 @@ engine's core loop from day one.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Callable, Literal
@@ -26,7 +25,6 @@ from .types import (
     Event,
     EventType,
     Node,
-    NodeResult,
     RunStatus,
     Tool,
     ToolResult,

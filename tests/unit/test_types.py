@@ -4,7 +4,7 @@ engine or any storage. If these fail, nothing else in the test suite
 is worth trusting.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from kestrion.core.types import (
     AgentState,

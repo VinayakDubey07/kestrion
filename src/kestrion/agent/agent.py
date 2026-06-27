@@ -22,7 +22,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import asdict, dataclass
 
-from kestrion.core.engine import ApprovalRequired, Engine
+from kestrion.core.engine import Engine
 from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, Tool
 from kestrion.llm.base import LLMProvider, LLMResponse, Message, ToolCallRequest
 from kestrion.store.sqlite_store import SQLiteCheckpointStore

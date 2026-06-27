@@ -15,8 +15,6 @@ Skipped automatically if Ollama isn't reachable, so it doesn't break
 `pytest tests/` for anyone without Ollama running (e.g. in CI).
 """
 
-import asyncio
-
 import httpx
 import pytest
 
