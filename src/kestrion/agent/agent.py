@@ -153,9 +153,43 @@ class _AgentLoopNode:
             # still propagates immediately, same fail-fast behavior as
             # the old sequential loop had — we're not silently swallowing
             # failures just because calls are now concurrent.
-            results = await asyncio.gather(
-                *[agent._engine.call_tool(state, call.name, **call.arguments) for call in response.tool_calls]
-            )
+            call_kwargs_list = []
+            for call in response.tool_calls:
+                kwargs = dict(call.arguments)
+                if isinstance(agent._tools.get(call.name), HandoffTool):
+                    # HandoffTool needs the CALLER's full conversation,
+                    # not whatever arguments the model happened to pass —
+                    # inject it here rather than asking the model to
+                    # somehow produce the entire message history itself.
+                    kwargs["_handoff_messages"] = [_message_to_dict(m) for m in messages]
+                call_kwargs_list.append(kwargs)
+
+            try:
+                results = await asyncio.gather(
+                    *[
+                        agent._engine.call_tool(state, call.name, **kwargs)
+                        for call, kwargs in zip(response.tool_calls, call_kwargs_list)
+                    ]
+                )
+            except HandoffCompleted as handoff:
+                # The conversation has been fully transferred — this
+                # agent's run ends HERE, not by falling through to the
+                # normal "no more tool calls" completion path, and
+                # critically not by feeding a handoff "result" back to
+                # the model as an ordinary tool message (which could
+                # cause this agent to keep talking about a conversation
+                # it no longer owns).
+                return NodeResult(
+                    next_node=None,
+                    state_updates={
+                        "_messages": [_message_to_dict(m) for m in messages],
+                        "final_output": (
+                            f"Handed off to another agent (run_id={handoff.target_run_id})."
+                        ),
+                        "_handed_off_to": handoff.target_run_id,
+                    },
+                )
+
             for call, result in zip(response.tool_calls, results):
                 messages.append(
                     Message(role="tool", tool_call_id=call.id, content=str(result.output))
@@ -245,6 +279,82 @@ class SubAgentTool(Tool):
         return ToolResult(tool_name=self.spec.name, output=result.output)
 
 
+class HandoffCompleted(Exception):
+    """
+    Raised by HandoffTool.call() to signal that the conversation has been
+    fully transferred to another agent — NOT an error. This is a
+    deliberate control-flow signal, same pattern as ApprovalRequired:
+    _AgentLoopNode.run() catches it specifically and ends the CALLING
+    agent's run immediately, recording the handoff, rather than letting
+    the loop continue and feed a handoff "result" back to the model as
+    if it were an ordinary tool result. A normal ToolResult would risk
+    the original agent continuing to talk about a conversation it no
+    longer owns.
+    """
+
+    def __init__(self, target_run_id: str, target_status: RunStatus, target_output: str | None):
+        self.target_run_id = target_run_id
+        self.target_status = target_status
+        self.target_output = target_output
+
+
+class HandoffTool(Tool):
+    """
+    Wraps an Agent as a handoff target. Unlike SubAgentTool (delegation —
+    the parent stays in control and gets an answer back), calling a
+    HandoffTool transfers the ENTIRE conversation to the target agent,
+    which takes over completely. The calling agent's run ends as soon as
+    the handoff happens; it never resumes control of this conversation.
+
+    Design decisions, made deliberately rather than by default:
+
+    1. The target agent gets its OWN run_id, not the caller's. This was
+       chosen over "same run_id continues" specifically to avoid a real
+       correctness risk: if the same run_id were reused, the target
+       agent's tool calls would be checked against
+       scratch["_approved_tools"] entries that may have been recorded
+       for the ORIGINAL agent's differently-scoped tools — a same-named
+       tool on the target agent could be incorrectly treated as
+       pre-approved. Separate run_ids keep approval scoping correct,
+       same reasoning that already justified separate run_ids for
+       sub-agents.
+
+    2. The full message history transfers via Agent.run_with_history(),
+       not just a summary or a fresh prompt — the target agent needs to
+       see everything that already happened to handle the conversation
+       coherently.
+
+    3. The two runs are linked via scratch, not by sharing an identity —
+       the caller's final state records target_run_id under
+       "_handed_off_to", so anyone tracking the conversation across the
+       handoff boundary can follow the link without the engine needing
+       any special "this is actually one logical conversation" concept.
+    """
+
+    def __init__(self, target_agent: "Agent", name: str, description: str):
+        self._target_agent = target_agent
+        self.spec = ToolSpec(
+            name=name,
+            description=description,
+            parameters={"type": "object", "properties": {}},
+            requires_approval=False,
+        )
+
+    async def call(self, **kwargs) -> ToolResult:
+        # kwargs intentionally unused here — the transferred history
+        # comes from the CALLER's conversation, injected by
+        # _AgentLoopNode via the special _handoff_messages kwarg it
+        # passes when dispatching this specific tool. See
+        # _AgentLoopNode.run()'s tool-dispatch loop for where that's set.
+        messages = kwargs["_handoff_messages"]
+        result = await self._target_agent.run_with_history(messages)
+        raise HandoffCompleted(
+            target_run_id=result.run_id,
+            target_status=result.status,
+            target_output=result.output,
+        )
+
+
 class Agent:
     """
     Agent(model=..., tools=[...], store=...) — the ergonomic entry point.
@@ -272,9 +382,25 @@ class Agent:
         )
 
     async def run(self, prompt: str, run_id: str | None = None) -> RunResult:
-        run_id = run_id or f"run_{uuid.uuid4().hex[:12]}"
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
-        state = await self._engine.start(run_id=run_id, _messages=initial_messages)
+        return await self.run_with_history(initial_messages, run_id=run_id)
+
+    async def run_with_history(
+        self, messages: list[dict], run_id: str | None = None
+    ) -> RunResult:
+        """
+        Like run(), but seeds the new run with an existing message
+        history instead of a single fresh prompt. `messages` must be a
+        list of dicts in the same shape _message_to_dict produces.
+
+        This exists specifically for handoff (see HandoffTool below): when
+        agent A hands off to agent B, B needs to start with the ENTIRE
+        transferred conversation, not just a new prompt — run() alone
+        can't express that since it only ever wraps a single string into
+        a one-message history.
+        """
+        run_id = run_id or f"run_{uuid.uuid4().hex[:12]}"
+        state = await self._engine.start(run_id=run_id, _messages=messages)
         return RunResult(
             run_id=state.run_id,
             status=state.status,
@@ -330,3 +456,27 @@ class Agent:
         "sub_agent:<run_id>" naming exactly which one.
         """
         return SubAgentTool(self, name=name, description=description)
+
+    def as_handoff_target(self, name: str, description: str) -> HandoffTool:
+        """
+        Wraps this Agent as a HANDOFF target — distinct from as_tool().
+        Calling the returned tool transfers the ENTIRE conversation to
+        this agent, which takes over completely; the calling agent's run
+        ends as soon as the handoff happens and never resumes control.
+
+        Usage:
+            billing_agent = Agent(provider=..., tools=[...], store=shared_store_url)
+            router = Agent(
+                provider=...,
+                tools=[billing_agent.as_handoff_target("transfer_to_billing", "Hand off to the billing specialist")],
+                store=shared_store_url,
+            )
+            result = await router.run("I have a question about my invoice")
+            # result.status == COMPLETED, result.state.scratch["_handed_off_to"]
+            # names the billing agent's NEW, separate run_id to follow.
+
+        Use as_tool() instead if you want the original agent to stay in
+        control and just ask the other agent a question (delegation,
+        not a full handoff).
+        """
+        return HandoffTool(self, name=name, description=description)

@@ -337,6 +337,15 @@ class Engine:
             # for what is actually a clean pause, not a failure.
             raise
         except Exception as exc:
+            if exc.__class__.__name__ == "HandoffCompleted":
+                # Same reasoning as ApprovalRequired above — a successful
+                # handoff is not a tool failure. Checked by class name
+                # rather than importing kestrion.agent.agent here, since
+                # core/ must not depend on agent/ (see architecture.md's
+                # dependency-direction rule) — HandoffCompleted is an
+                # agent/-layer control-flow signal, not a core concept,
+                # but call_tool still needs to avoid mislabeling it.
+                raise
             await self._emit(state, EventType.TOOL_CALL_FAILED, {"tool": tool_name, "error": str(exc)})
             raise
         await self._emit(
