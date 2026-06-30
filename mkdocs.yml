@@ -1,0 +1,45 @@
+site_name: Kestrion
+site_description: A durable-execution-first framework for building production AI agents
+repo_url: https://github.com/VinayakDubey07/kestrion
+docs_dir: docs
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: teal
+  features:
+    - navigation.sections
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Concepts:
+      - Event Sourcing: concepts/event-sourcing.md
+      - Checkpointing: concepts/checkpointing.md
+      - Approval Gates: concepts/approval-gates.md
+  - Architecture: architecture.md
+  - API Reference:
+      - Overview: api-reference/index.md
+      - Core: api-reference/core.md
+      - Agent: api-reference/agent.md
+      - LLM Providers: api-reference/llm.md
+      - MCP: api-reference/mcp.md
+      - Storage: api-reference/store.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            docstring_style: google
+            merge_init_into_class: true
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
