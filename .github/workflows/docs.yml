@@ -1,0 +1,36 @@
+name: Deploy Docs
+
+# Builds the mkdocs site and deploys it to GitHub Pages whenever docs/,
+# mkdocs.yml, or the source (docstrings feed the API reference) change
+# on main. Manual trigger also available via workflow_dispatch.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/kestrion/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install docs dependencies
+        run: |
+          pip install -e .
+          pip install mkdocs mkdocs-material "mkdocstrings[python]"
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force
