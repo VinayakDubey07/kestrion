@@ -2,10 +2,10 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: pre-alpha (`0.2.0`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client, and four agentic features (multi-step approval
-chains, time-boxed approvals, parallel tool calls, sub-agents) are built and tested — 75 passing
-tests. Multi-agent handoff, memory/context compaction, an MCP server, a scheduler, a CLI, and
+Status: pre-alpha (`0.2.1`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+three LLM providers, a live-verified MCP client, and five agentic features (multi-step approval
+chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent handoff) are built and
+tested — 82 passing tests. Memory/context compaction, an MCP server, a scheduler, a CLI, and
 Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion
@@ -199,11 +199,19 @@ into Kestrion's gating, by name.
   server (so it's callable from Claude Code or Codex CLI) is designed but not implemented.
 - **Anthropic and OpenAI providers are implemented against documented API shapes but not yet
   smoke-tested against a live API call** — no API key has been used to verify them in practice.
-  **Ollama is verified live** — `tests/unit/test_smoke_ollama.py` runs a real agent against a real
-  local Ollama server and passes.
-- **Multi-agent handoff and memory/context compaction are not yet built.** Sub-agents (delegation,
-  where the parent stays in control) exist; handoff (transferring an entire conversation to a
-  different agent that takes over) does not.
+  **Ollama is verified live** — `tests/unit/test_smoke_ollama.py` and
+  [`examples/ops_demo`](examples/ops_demo) both run real agents against a real local Ollama server
+  and pass. One real, observed limitation worth knowing: small local models can produce plain-text
+  output *describing* a tool call and a plausible-sounding result without ever actually emitting a
+  real tool-call request — Kestrion has no way to detect this, because there's genuinely no
+  `ToolCallRequest` for the engine to act on; the model just wrote a paragraph claiming success.
+  This is a model-capability limitation, not something Kestrion's approval gating or event logging
+  can catch, since nothing was actually called. Hosted models (Claude, GPT) are far more reliable
+  about this in practice, though unverified live as of this writing (see above).
+- **Multi-agent handoff is built.** `Agent.as_handoff_target()` transfers an entire conversation to
+  another agent, which takes over completely (distinct from sub-agents/delegation, where the
+  original agent stays in control). **Memory/context compaction is not yet built** — long-running
+  conversations accumulate unbounded message history today.
 - **No real concurrency control across multiple agent runs.** Parallel tool calls *within* one
   agent's turn are supported; running many separate agents at once against a shared rate limit is
   not.
@@ -223,6 +231,11 @@ into Kestrion's gating, by name.
 - [`examples/rest_api_tool`](examples/rest_api_tool) — patterns for calling REST/SOAP APIs from a
   tool: explicit timeouts, gating a mutating call, reading secrets from the environment, and
   writing your own retry loop.
+- [`examples/ops_demo`](examples/ops_demo) — an integration demo exercising parallel tool calls,
+  sub-agent delegation, a multi-role approval chain with a timeout, and multi-agent handoff
+  together against a real local Ollama model. Run live, this also surfaced a real limitation: a
+  small local model can describe a fabricated tool call and result in plain text without ever
+  emitting a real tool-call request — see the Known Gaps note above.
 - [`tests/unit/test_smoke_ollama.py`](tests/unit/test_smoke_ollama.py) — a live, real smoke test
   against a local Ollama server. Skips automatically if Ollama isn't running.
 - [`tests/unit/test_mcp_client.py`](tests/unit/test_mcp_client.py) — a live test against a real
@@ -250,9 +263,9 @@ ruff check src/ tests/
 
 ## Roadmap
 
-Next up: multi-agent handoff, memory/context compaction, an MCP server, a scheduler for safe
+Next up: memory/context compaction, an MCP server, a scheduler for safe
 concurrent execution, a CLI with Kubernetes deploy support, Postgres-backed storage, and a docs
-site.
+site. See [ROADMAP.md](ROADMAP.md) for the detailed, dated 3-month plan.
 
 ## License
 

@@ -36,6 +36,18 @@ def add(a: int, b: int) -> int:
     return a + b
 
 
+@tool(requires_approval=["engineer", "manager"])
+def deploy_to_prod() -> dict:
+    """Deploys to production. Needs both an engineer and a manager."""
+    return {"deployed": True}
+
+
+@tool(requires_approval=True, approval_timeout_seconds=3600.0)
+def restart_service() -> dict:
+    """Restarts a service. Must be approved within an hour."""
+    return {"restarted": True}
+
+
 # ---------------------------------------------------------------------------
 # Decorator / schema introspection tests
 # ---------------------------------------------------------------------------
@@ -53,6 +65,28 @@ def test_tool_decorator_with_args_sets_requires_approval():
     assert spec.requires_approval is True
     assert spec.parameters["properties"]["yaml"] == {"type": "string"}
     assert spec.parameters["required"] == ["yaml"]
+
+
+def test_tool_decorator_accepts_a_role_list_for_approval_chains():
+    """
+    Regression test: ToolSpec.requires_approval was widened to accept
+    str | list[str] when approval chains were built, but the @tool
+    decorator's own signature was never updated to match — meaning
+    @tool(requires_approval=["a", "b"]) raised TypeError until this was
+    fixed. Found while building an integration demo that used @tool
+    directly instead of constructing ToolSpec by hand, which is what
+    every chain/timeout unit test had done up to that point.
+    """
+    spec = deploy_to_prod.spec
+    assert spec.requires_approval == ["engineer", "manager"]
+    assert spec.required_roles() == ["engineer", "manager"]
+
+
+def test_tool_decorator_accepts_approval_timeout_seconds():
+    """Same regression class as above, for approval_timeout_seconds."""
+    spec = restart_service.spec
+    assert spec.requires_approval is True
+    assert spec.approval_timeout_seconds == 3600.0
 
 
 def test_tool_decorator_infers_integer_types():

@@ -119,7 +119,13 @@ class _FunctionTool(Tool):
             )
 
 
-def tool(func: Callable | None = None, *, requires_approval: bool = False, name: str | None = None):
+def tool(
+    func: Callable | None = None,
+    *,
+    requires_approval: bool | str | list[str] = False,
+    approval_timeout_seconds: float | None = None,
+    name: str | None = None,
+):
     """
     Decorator that turns a function into a Kestrion Tool.
 
@@ -134,9 +140,29 @@ def tool(func: Callable | None = None, *, requires_approval: bool = False, name:
             '''kubectl apply a manifest against the cluster.'''
             ...
 
+        @tool(requires_approval=["engineer", "manager"])
+        def deploy_to_prod() -> dict:
+            '''Deploys to production. Needs both an engineer and a manager.'''
+            ...
+
+        @tool(requires_approval=True, approval_timeout_seconds=3600.0)
+        def restart_service() -> dict:
+            '''Restarts a service. Must be approved within an hour.'''
+            ...
+
     The docstring becomes the tool description the LLM sees — make it
     descriptive, since it's the only thing the model has to decide
     whether/how to call the tool.
+
+    NOTE: requires_approval accepting a role string or list of roles
+    (approval chains), and approval_timeout_seconds, were both added to
+    ToolSpec when those features were built, but this decorator's
+    signature was never updated to pass them through — meaning anyone
+    using @tool(requires_approval=["a", "b"]) before this fix hit a
+    TypeError, since the decorator only accepted a bare bool. Found
+    while building an integration demo that actually exercised every
+    feature together through @tool, rather than constructing ToolSpec
+    directly the way every unit test for chains/timeouts had done.
     """
 
     def decorator(f: Callable) -> _FunctionTool:
@@ -149,6 +175,7 @@ def tool(func: Callable | None = None, *, requires_approval: bool = False, name:
             description=description,
             parameters=parameters,
             requires_approval=requires_approval,
+            approval_timeout_seconds=approval_timeout_seconds,
         )
 
         wrapped = _FunctionTool(f, spec)
