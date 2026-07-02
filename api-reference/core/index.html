@@ -1,0 +1,2647 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A durable-execution-first framework for building production AI agents">
+      
+      
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../agent/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Core - Kestrion</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#core" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Kestrion" class="md-header__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Kestrion
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Core
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Kestrion" class="md-nav__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Kestrion
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/event-sourcing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Sourcing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/checkpointing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checkpointing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/approval-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Approval Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.core.types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.AgentState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentState
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AgentState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.AgentState.to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.CheckpointStore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CheckpointStore
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CheckpointStore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.CheckpointStore.append_event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        append_event
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.ToolSpec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolSpec
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ToolSpec">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.ToolSpec.required_roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        required_roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.core.engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.ApprovalRequired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ApprovalRequired
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.approve_pending_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        approve_pending_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.call_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        call_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.check_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check_approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.record_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.record_event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resume
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.RunExpiredError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunExpiredError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.core.types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        types
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="types">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.AgentState" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentState
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="AgentState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.AgentState.to_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.CheckpointStore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CheckpointStore
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CheckpointStore">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.CheckpointStore.append_event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        append_event
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.Tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.ToolSpec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolSpec
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ToolSpec">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.types.ToolSpec.required_roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        required_roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.core.engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.ApprovalRequired" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ApprovalRequired
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.approve_pending_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        approve_pending_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.call_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        call_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.check_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check_approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.record_approval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_approval
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.record_event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        record_event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.Engine.resume" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        resume
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.core.engine.RunExpiredError" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunExpiredError
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="core">Core</h1>
+<p>The execution engine and its data contracts. See <a href="../../architecture/">Architecture</a> for the design
+rationale behind these — this page is the API surface itself, pulled directly from source
+docstrings.</p>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="kestrion.core.types" class="doc doc-heading">
+            <code>kestrion.core.types</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Core type definitions for the agent framework.</p>
+<p>Design principle: everything that happens during agent execution is an
+immutable Event. State is never mutated in place — it's <em>derived</em> by folding
+events. This gives you replay, time-travel debugging, and crash recovery
+almost for free, which is exactly the observability/production story we want.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.AgentState" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">AgentState</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">RunStatus</span><span class="o">.</span><span class="n">PENDING</span><span class="p">,</span> <span class="n">current_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scratch</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span> <span class="n">history</span><span class="o">=</span><span class="nb">list</span><span class="p">(),</span> <span class="n">total_tokens</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_cost_usd</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_event_seq</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>The <em>current</em> derived state of a run. This is what your agent's logic
+reads/writes during a step — but every write happens by emitting an
+Event, never by mutating AgentState directly from outside the engine.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.types.AgentState.to_dict" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_dict</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Explicit, stable serialization for checkpoint storage. Deliberately
+NOT pickle: pickle ties the on-disk format to this exact class
+definition and Python version, which is a liability the moment
+anyone outside this process depends on reading old checkpoints
+(e.g. after an engine upgrade). JSON-compatible dicts are boring
+and durable, which is exactly what a checkpoint format should be.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/types.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Explicit, stable serialization for checkpoint storage. Deliberately</span>
+<span class="sd">    NOT pickle: pickle ties the on-disk format to this exact class</span>
+<span class="sd">    definition and Python version, which is a liability the moment</span>
+<span class="sd">    anyone outside this process depends on reading old checkpoints</span>
+<span class="sd">    (e.g. after an engine upgrade). JSON-compatible dicts are boring</span>
+<span class="sd">    and durable, which is exactly what a checkpoint format should be.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;run_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+        <span class="s2">&quot;current_node&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_node</span><span class="p">,</span>
+        <span class="s2">&quot;scratch&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scratch</span><span class="p">,</span>
+        <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
+        <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_tokens</span><span class="p">,</span>
+        <span class="s2">&quot;total_cost_usd&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_cost_usd</span><span class="p">,</span>
+        <span class="s2">&quot;last_event_seq&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_event_seq</span><span class="p">,</span>
+    <span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.CheckpointStore" class="doc doc-heading">
+            <code>CheckpointStore</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+
+
+        <p>Pluggable storage. SQLite implementation for local/single-agent use,
+Postgres/Redis for the scaled, multi-tenant production case.
+This boundary is the thing that lets the framework scale from your
+laptop to 10,000 concurrent agent sessions without an API change.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.types.CheckpointStore.append_event" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">append_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the new event sequence number.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/types.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">append_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the new event sequence number.&quot;&quot;&quot;</span>
+    <span class="o">...</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.Event" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">Event</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">run_id</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="nb">dict</span><span class="p">(),</span> <span class="n">node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tokens_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tokens_out</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cost_usd</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Immutable fact. Never mutated, never deleted. The event log for a run
+IS the source of truth — current state is just a fold over these.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.Node" class="doc doc-heading">
+            <code>Node</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+
+
+        <p>A single step in the agent's graph. Pure-ish: given state, produce
+(next_node_name, state_updates, events_to_emit). The engine is
+responsible for actually persisting events and advancing state —
+nodes never touch storage directly. This keeps nodes testable
+without a database.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.Tool" class="doc doc-heading">
+            <code>Tool</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
+
+
+
+        <p>Every Tool is structurally an MCP tool. A Tool can be backed by:
+  - local Python code
+  - a remote MCP server (kubectl-mcp, oracle-sql-mcp, etc.)
+From the engine's perspective these look identical.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.types.ToolSpec" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">ToolSpec</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">requires_approval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">approval_timeout_seconds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.types.ToolSpec.required_roles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">required_roles</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalizes requires_approval into a list of role names that must
+all appear in an approval record before this tool can run.
+True normalizes to a single anonymous role ("<strong>any</strong>") so the
+existing scratch["_approved_tools"][name] = True shape still
+satisfies it — this is what keeps bool-style approval backward
+compatible with the new chain mechanism underneath.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/types.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">required_roles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalizes requires_approval into a list of role names that must</span>
+<span class="sd">    all appear in an approval record before this tool can run.</span>
+<span class="sd">    True normalizes to a single anonymous role (&quot;__any__&quot;) so the</span>
+<span class="sd">    existing scratch[&quot;_approved_tools&quot;][name] = True shape still</span>
+<span class="sd">    satisfies it — this is what keeps bool-style approval backward</span>
+<span class="sd">    compatible with the new chain mechanism underneath.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">requires_approval</span>
+    <span class="k">if</span> <span class="n">ra</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">ra</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;__any__&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ra</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ra</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">ra</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="kestrion.core.engine" class="doc doc-heading">
+            <code>kestrion.core.engine</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+        <p>The execution engine. This is the part that makes "production-grade" true
+rather than aspirational: every step is checkpointed, every run is
+resumable, every tool call that mutates external state can be gated on
+human approval.</p>
+<p>Worked example used in comments throughout: a kubectl agent that (1) reads
+cluster state, (2) proposes a YAML change, (3) requires human approval,
+(4) applies it, (5) verifies rollout. This mirrors the bastion-host kubectl
+MCP agent you already built — the approval gate is exactly the kind of
+thing that's awkward to retrofit into LangGraph but trivial if it's in the
+engine's core loop from day one.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.engine.ApprovalRequired" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">ApprovalRequired</span><span class="p">(</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">missing_roles</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+
+        <p>Raised (and caught by the engine, not the user) when a node wants to
+call a tool whose required-approval roles aren't all satisfied yet.
+The engine persists a checkpoint and parks the run in
+WAITING_ON_HUMAN rather than blocking a thread — this is what makes
+"1000 agents waiting on approval" cheap.</p>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">missing_roles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tool_name</span> <span class="o">=</span> <span class="n">tool_name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+    <span class="c1"># Which required roles have NOT yet approved. For simple</span>
+    <span class="c1"># requires_approval=True tools this is always [&quot;__any__&quot;]. For a</span>
+    <span class="c1"># chain like [&quot;engineer&quot;, &quot;manager&quot;], this narrows as approvals</span>
+    <span class="c1"># come in — e.g. after the engineer approves, a re-raised</span>
+    <span class="c1"># ApprovalRequired on retry would show only [&quot;manager&quot;] missing.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">missing_roles</span> <span class="o">=</span> <span class="n">missing_roles</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.engine.Engine" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">Engine</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">tools</span><span class="p">,</span> <span class="n">store</span><span class="p">,</span> <span class="n">entry_node</span><span class="p">,</span> <span class="n">approval_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Drives a graph of Nodes to completion, persisting an event log and
+periodic checkpoints. Stateless across runs by design — you can run
+many Engine instances behind a load balancer, because all durable
+state lives in the CheckpointStore, not in this object.</p>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">nodes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Node</span><span class="p">],</span>
+    <span class="n">tools</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tool</span><span class="p">],</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">CheckpointStore</span><span class="p">,</span>
+    <span class="n">entry_node</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">approval_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tools</span> <span class="o">=</span> <span class="n">tools</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">store</span> <span class="o">=</span> <span class="n">store</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">entry_node</span> <span class="o">=</span> <span class="n">entry_node</span>
+    <span class="c1"># sync hook the host app can override; default = auto-deny.</span>
+    <span class="c1"># In production this is what a UI &quot;approve kubectl apply&quot; button</span>
+    <span class="c1"># calls into, or a Slack approval workflow, etc.</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">approval_callback</span> <span class="o">=</span> <span class="n">approval_callback</span> <span class="ow">or</span> <span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="kc">False</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.approve_pending_tool" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">approve_pending_tool</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Host app calls this after a human clicks 'approve'. Sets a flag the
+next resume() call will honor. (Left as a stub here — real impl
+would persist the approval decision via the store so it survives
+a process restart, same pattern as everything else.)</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">approve_pending_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Host app calls this after a human clicks &#39;approve&#39;. Sets a flag the</span>
+<span class="sd">    next resume() call will honor. (Left as a stub here — real impl</span>
+<span class="sd">    would persist the approval decision via the store so it survives</span>
+<span class="sd">    a process restart, same pattern as everything else.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Wire this to your approval persistence layer&quot;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.call_tool" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">call_tool</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Nodes call tools through the engine, never directly — this is the
+single choke point where approval-gating and event emission for
+tool calls happens, so individual nodes can't accidentally bypass
+the safety gate for a mutating kubectl/SQL call.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span>
+<span class="normal">350</span>
+<span class="normal">351</span>
+<span class="normal">352</span>
+<span class="normal">353</span>
+<span class="normal">354</span>
+<span class="normal">355</span>
+<span class="normal">356</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">call_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Nodes call tools through the engine, never directly — this is the</span>
+<span class="sd">    single choke point where approval-gating and event emission for</span>
+<span class="sd">    tool calls happens, so individual nodes can&#39;t accidentally bypass</span>
+<span class="sd">    the safety gate for a mutating kubectl/SQL call.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_approval</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span>
+
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emit</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">TOOL_CALL_STARTED</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;tool&quot;</span><span class="p">:</span> <span class="n">tool_name</span><span class="p">,</span> <span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">})</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">tool</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ApprovalRequired</span><span class="p">:</span>
+        <span class="c1"># A tool&#39;s OWN call() can raise this directly — the</span>
+        <span class="c1"># motivating case is SubAgentTool, where a sub-agent&#39;s run</span>
+        <span class="c1"># pausing for approval needs to propagate to the parent as a</span>
+        <span class="c1"># pause, not get logged as a tool failure. Re-raise as-is,</span>
+        <span class="c1"># bypassing the generic except-Exception branch below, which</span>
+        <span class="c1"># would otherwise emit a misleading TOOL_CALL_FAILED event</span>
+        <span class="c1"># for what is actually a clean pause, not a failure.</span>
+        <span class="k">raise</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exc</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HandoffCompleted&quot;</span><span class="p">:</span>
+            <span class="c1"># Same reasoning as ApprovalRequired above — a successful</span>
+            <span class="c1"># handoff is not a tool failure. Checked by class name</span>
+            <span class="c1"># rather than importing kestrion.agent.agent here, since</span>
+            <span class="c1"># core/ must not depend on agent/ (see architecture.md&#39;s</span>
+            <span class="c1"># dependency-direction rule) — HandoffCompleted is an</span>
+            <span class="c1"># agent/-layer control-flow signal, not a core concept,</span>
+            <span class="c1"># but call_tool still needs to avoid mislabeling it.</span>
+            <span class="k">raise</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emit</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">EventType</span><span class="o">.</span><span class="n">TOOL_CALL_FAILED</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;tool&quot;</span><span class="p">:</span> <span class="n">tool_name</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">)})</span>
+        <span class="k">raise</span>
+    <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emit</span><span class="p">(</span>
+        <span class="n">state</span><span class="p">,</span>
+        <span class="n">EventType</span><span class="o">.</span><span class="n">TOOL_CALL_COMPLETED</span><span class="p">,</span>
+        <span class="p">{</span><span class="s2">&quot;tool&quot;</span><span class="p">:</span> <span class="n">tool_name</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">output</span><span class="p">)[:</span><span class="mi">2000</span><span class="p">]},</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.check_approval" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">check_approval</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Raises ApprovalRequired if <code>tool_name</code> has unsatisfied required
+roles, otherwise returns normally. This is the SAME check
+call_tool performs internally before executing a tool — exposed
+publicly so callers like Agent's parallel-tool-call dispatch can
+pre-check an entire batch of calls for approval before running
+ANY of them, without duplicating this logic (and risking it
+silently drifting out of sync the next time approval-gating
+changes, which has already happened twice in this codebase).</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span>
+<span class="normal">310</span>
+<span class="normal">311</span>
+<span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">check_approval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raises ApprovalRequired if `tool_name` has unsatisfied required</span>
+<span class="sd">    roles, otherwise returns normally. This is the SAME check</span>
+<span class="sd">    call_tool performs internally before executing a tool — exposed</span>
+<span class="sd">    publicly so callers like Agent&#39;s parallel-tool-call dispatch can</span>
+<span class="sd">    pre-check an entire batch of calls for approval before running</span>
+<span class="sd">    ANY of them, without duplicating this logic (and risking it</span>
+<span class="sd">    silently drifting out of sync the next time approval-gating</span>
+<span class="sd">    changes, which has already happened twice in this codebase).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span>
+    <span class="n">required_roles</span> <span class="o">=</span> <span class="n">tool</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">required_roles</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">required_roles</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">recorded</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">scratch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_approved_tools&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool_name</span><span class="p">)</span>
+    <span class="c1"># Backward-compat shape: scratch[&quot;_approved_tools&quot;][name] = True</span>
+    <span class="c1"># (from before chains existed) means &quot;approved, role-agnostic&quot; —</span>
+    <span class="c1"># treat it as satisfying any/all required roles. Must check this</span>
+    <span class="c1"># BEFORE trying to treat `recorded` as an iterable of role names,</span>
+    <span class="c1"># since True is not iterable (caught by the regression test</span>
+    <span class="c1"># this exact bug produced — test_resume_from_independent_engine</span>
+    <span class="c1"># _after_approval and others, which all pre-date the chain</span>
+    <span class="c1"># feature and store the bool shape).</span>
+    <span class="k">if</span> <span class="n">recorded</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">approved_roles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">required_roles</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">recorded</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">approved_roles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">recorded</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">approved_roles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">required_roles</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">approved_roles</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ApprovalRequired</span><span class="p">(</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="n">missing_roles</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.record_approval" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">record_approval</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s1">&#39;__any__&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Correctly appends a role to state.scratch["_approved_tools"][tool_name]
+without clobbering any roles already recorded there. This exists
+specifically to replace the error-prone pattern of hand-writing
+scratch["_approved_tools"] = {tool: True} — that overwrite pattern
+silently destroys a partially-satisfied approval chain (e.g. if
+"engineer" already approved and you then overwrite the whole dict
+to record "manager" approving, the engineer's approval vanishes).</p>
+<p>Caller is still responsible for persisting a checkpoint (via
+save() against the store) after calling this and before calling
+resume() — this only mutates the in-memory AgentState, consistent
+with every other state-mutating helper in this module.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@staticmethod</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">record_approval</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;__any__&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Correctly appends a role to state.scratch[&quot;_approved_tools&quot;][tool_name]</span>
+<span class="sd">    without clobbering any roles already recorded there. This exists</span>
+<span class="sd">    specifically to replace the error-prone pattern of hand-writing</span>
+<span class="sd">    scratch[&quot;_approved_tools&quot;] = {tool: True} — that overwrite pattern</span>
+<span class="sd">    silently destroys a partially-satisfied approval chain (e.g. if</span>
+<span class="sd">    &quot;engineer&quot; already approved and you then overwrite the whole dict</span>
+<span class="sd">    to record &quot;manager&quot; approving, the engineer&#39;s approval vanishes).</span>
+
+<span class="sd">    Caller is still responsible for persisting a checkpoint (via</span>
+<span class="sd">    save() against the store) after calling this and before calling</span>
+<span class="sd">    resume() — this only mutates the in-memory AgentState, consistent</span>
+<span class="sd">    with every other state-mutating helper in this module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">approved</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">scratch</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;_approved_tools&quot;</span><span class="p">,</span> <span class="p">{})</span>
+    <span class="n">existing</span> <span class="o">=</span> <span class="n">approved</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Already fully approved under the old bool shape; nothing to add.</span>
+        <span class="k">return</span>
+    <span class="n">roles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">existing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">roles</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">role</span><span class="p">)</span>
+    <span class="n">approved</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">roles</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.record_event" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">record_event</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Public escape hatch for nodes that need to durably record
+something that isn't a tool call — the motivating case is
+Agent's LLM-loop node recording LLM_CALL_COMPLETED events (for
+token/cost tracking) as they happen, rather than batching them
+into the eventual NodeResult. Batching would lose them if the
+node later raises ApprovalRequired and never returns a
+NodeResult at all. Appends to the store AND folds into state
+immediately — same durability guarantee as call_tool's internal
+_emit calls.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">record_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Public escape hatch for nodes that need to durably record</span>
+<span class="sd">    something that isn&#39;t a tool call — the motivating case is</span>
+<span class="sd">    Agent&#39;s LLM-loop node recording LLM_CALL_COMPLETED events (for</span>
+<span class="sd">    token/cost tracking) as they happen, rather than batching them</span>
+<span class="sd">    into the eventual NodeResult. Batching would lose them if the</span>
+<span class="sd">    node later raises ApprovalRequired and never returns a</span>
+<span class="sd">    NodeResult at all. Appends to the store AND folds into state</span>
+<span class="sd">    immediately — same durability guarantee as call_tool&#39;s internal</span>
+<span class="sd">    _emit calls.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">seq</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">append_event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+    <span class="n">state</span><span class="o">.</span><span class="n">last_event_seq</span> <span class="o">=</span> <span class="n">seq</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_fold</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.core.engine.Engine.resume" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">resume</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">on_expired</span><span class="o">=</span><span class="s1">&#39;status&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Crash recovery / human-approval resume in one code path. Load the
+latest checkpoint, replay any events since it (in case the process
+died between checkpoint and completion), then keep driving.</p>
+<p>on_expired controls what happens if this run's pending approval
+deadline (set via ToolSpec.approval_timeout_seconds) has passed
+without all required roles approving:
+  - "status" (default): the run transitions to RunStatus.EXPIRED
+    and is returned normally — consistent with how every other
+    terminal state (COMPLETED, FAILED) already works in this
+    codebase: callers check .status, no exception needed for the
+    common case.
+  - "raise": raises RunExpiredError instead. For callers who want
+    a hard failure if they accidentally try to resume something
+    stale — e.g. a cron job that should alert loudly rather than
+    silently return a status nobody checks.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">resume</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">on_expired</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;status&quot;</span><span class="p">,</span> <span class="s2">&quot;raise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;status&quot;</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AgentState</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Crash recovery / human-approval resume in one code path. Load the</span>
+<span class="sd">    latest checkpoint, replay any events since it (in case the process</span>
+<span class="sd">    died between checkpoint and completion), then keep driving.</span>
+
+<span class="sd">    on_expired controls what happens if this run&#39;s pending approval</span>
+<span class="sd">    deadline (set via ToolSpec.approval_timeout_seconds) has passed</span>
+<span class="sd">    without all required roles approving:</span>
+<span class="sd">      - &quot;status&quot; (default): the run transitions to RunStatus.EXPIRED</span>
+<span class="sd">        and is returned normally — consistent with how every other</span>
+<span class="sd">        terminal state (COMPLETED, FAILED) already works in this</span>
+<span class="sd">        codebase: callers check .status, no exception needed for the</span>
+<span class="sd">        common case.</span>
+<span class="sd">      - &quot;raise&quot;: raises RunExpiredError instead. For callers who want</span>
+<span class="sd">        a hard failure if they accidentally try to resume something</span>
+<span class="sd">        stale — e.g. a cron job that should alert loudly rather than</span>
+<span class="sd">        silently return a status nobody checks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">checkpoint</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No checkpoint found for run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">state</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">newer_events</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">events_since</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">event_seq</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">newer_events</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fold</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">evt</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">RunStatus</span><span class="o">.</span><span class="n">WAITING_ON_HUMAN</span><span class="p">:</span>
+        <span class="n">pending</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">scratch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_pending_approval&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">expires_at</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;expires_at&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">expires_at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">expires_at</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">utcnow</span><span class="p">():</span>
+            <span class="n">state</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">RunStatus</span><span class="o">.</span><span class="n">EXPIRED</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_emit</span><span class="p">(</span>
+                <span class="n">state</span><span class="p">,</span>
+                <span class="n">EventType</span><span class="o">.</span><span class="n">RUN_EXPIRED</span><span class="p">,</span>
+                <span class="p">{</span><span class="s2">&quot;tool&quot;</span><span class="p">:</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tool&quot;</span><span class="p">),</span> <span class="s2">&quot;expired_at&quot;</span><span class="p">:</span> <span class="n">expires_at</span><span class="p">},</span>
+            <span class="p">)</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkpoint</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">on_expired</span> <span class="o">==</span> <span class="s2">&quot;raise&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">RunExpiredError</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tool&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;unknown&gt;&quot;</span><span class="p">),</span> <span class="n">expires_at</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">state</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">RunStatus</span><span class="o">.</span><span class="n">RUNNING</span>
+
+    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.core.engine.RunExpiredError" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">RunExpiredError</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="n">expired_at</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+
+        <p>Raised by resume(on_expired="raise") when a run's pending approval
+deadline has passed without all required roles approving. Distinct
+from ApprovalRequired (which the engine catches internally and never
+lets escape to the caller) — this one IS meant to surface to whoever
+called resume(), since "this approval window closed" is a fact about
+the world the caller needs to react to, not an internal control-flow
+signal.</p>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/core/engine.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">expired_at</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">run_id</span> <span class="o">=</span> <span class="n">run_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tool_name</span> <span class="o">=</span> <span class="n">tool_name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">expired_at</span> <span class="o">=</span> <span class="n">expired_at</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2">&#39;s pending approval for tool </span><span class="si">{</span><span class="n">tool_name</span><span class="si">!r}</span><span class="s2"> expired at </span><span class="si">{</span><span class="n">expired_at</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

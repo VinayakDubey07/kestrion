@@ -1,0 +1,1715 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A durable-execution-first framework for building production AI agents">
+      
+      
+      
+      
+        <link rel="prev" href="../concepts/approval-gates/">
+      
+      
+        <link rel="next" href="../api-reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Architecture - Kestrion</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#kestrion-architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Kestrion" class="md-header__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Kestrion
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Kestrion" class="md-nav__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Kestrion
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/event-sourcing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Sourcing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/checkpointing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checkpointing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../concepts/approval-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Approval Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-central-idea-state-is-derived-never-mutated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The central idea: state is derived, never mutated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-module-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Module map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-core-data-types-coretypespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Core data types (core/types.py)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Core data types (core/types.py)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agentstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpointstore-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CheckpointStore (Protocol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toolspec-tool-toolresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolSpec, Tool, ToolResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-noderesult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node, NodeResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-execution-engine-coreenginepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The execution engine (core/engine.py)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The execution engine (core/engine.py)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-drive-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The drive loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approval-gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval gating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-sourcing-plumbing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event sourcing plumbing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-how-resume-actually-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. How resume actually works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-agent-tool-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The Agent / @tool layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The Agent / @tool layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-layer-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this layer exists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-function-signatures-to-json-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @tool: function signatures to JSON schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-agent-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Agent loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-decisions-and-the-bugs-that-shaped-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design decisions, and the bugs that shaped them
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-whats-deliberately-not-in-this-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. What's deliberately NOT in this document
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-central-idea-state-is-derived-never-mutated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The central idea: state is derived, never mutated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-module-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Module map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-core-data-types-coretypespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Core data types (core/types.py)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Core data types (core/types.py)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agentstate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AgentState
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checkpoint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checkpointstore-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CheckpointStore (Protocol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#toolspec-tool-toolresult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ToolSpec, Tool, ToolResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#node-noderesult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node, NodeResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-execution-engine-coreenginepy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The execution engine (core/engine.py)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The execution engine (core/engine.py)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-drive-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The drive loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approval-gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Approval gating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-sourcing-plumbing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event sourcing plumbing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-how-resume-actually-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. How resume actually works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-agent-tool-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The Agent / @tool layer
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. The Agent / @tool layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-this-layer-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this layer exists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-function-signatures-to-json-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        @tool: function signatures to JSON schema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-agent-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Agent loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Message serialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-decisions-and-the-bugs-that-shaped-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design decisions, and the bugs that shaped them
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-whats-deliberately-not-in-this-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. What's deliberately NOT in this document
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="kestrion-architecture">Kestrion Architecture</h1>
+<p>This document describes how Kestrion is actually built — the core abstractions, how they compose,
+and the specific design decisions behind the durability guarantees the project is built around.
+It reflects the code as it exists at <code>0.1.0</code>, not the aspirational end state. Where something is
+designed but not implemented, that's called out explicitly rather than glossed over.</p>
+<h2 id="1-the-central-idea-state-is-derived-never-mutated">1. The central idea: state is derived, never mutated</h2>
+<p>Everything else in this document follows from one decision: <strong><code>AgentState</code> is never the source of
+truth — it's a cache, derived by folding an immutable log of <code>Event</code> objects.</strong></p>
+<div class="highlight"><pre><span></span><code>Event 1 ──┐
+Event 2 ──┼──► fold ──► AgentState (current)
+Event 3 ──┤
+Event N ──┘
+</code></pre></div>
+<p>Concretely, this means:</p>
+<ul>
+<li>Every meaningful thing that happens during a run — an LLM call completing, a tool being invoked,
+  a transition between graph nodes — is recorded as an <code>Event</code> <em>before</em> anything else happens.</li>
+<li><code>AgentState</code> (the thing your code reads <code>scratch</code>, <code>history</code>, <code>total_tokens</code> from) is rebuilt by
+  replaying events through a single function, <code>Engine._fold</code>.</li>
+<li>Because state is derivable from the log, <strong>any process holding the log can reconstruct the exact
+  state of a run</strong>, regardless of whether it's the process that started the run.</li>
+</ul>
+<p>This is the mechanism underneath the project's central claim — durable execution by default, not
+as an opt-in feature.</p>
+<h2 id="2-module-map">2. Module map</h2>
+<div class="highlight"><pre><span></span><code>kestrion/
+├── core/
+│   ├── types.py      — data contracts: Event, AgentState, Checkpoint, ToolSpec, Node, NodeResult
+│   └── engine.py      — the execution loop, approval gating, event sourcing plumbing
+├── store/
+│   └── sqlite_store.py — CheckpointStore implementation (Protocol defined in core/types.py)
+├── agent/
+│   ├── agent.py        — Agent class, the ergonomic user-facing API
+│   └── decorators.py   — @tool, turning Python functions into Tool objects
+└── llm/
+    ├── base.py                — LLMProvider Protocol, Message/LLMResponse/ToolCallRequest types
+    ├── anthropic_provider.py  — Anthropic Claude implementation
+    ├── openai_provider.py     — OpenAI implementation
+    └── ollama_provider.py     — local-model implementation via Ollama&#39;s HTTP API
+</code></pre></div>
+<p>Two architectural rules hold across every module boundary in this list:</p>
+<ol>
+<li><strong>Protocols, not inheritance.</strong> <code>CheckpointStore</code> and <code>LLMProvider</code> are <code>typing.Protocol</code>
+   classes. Concrete implementations (<code>SQLiteCheckpointStore</code>, <code>AnthropicProvider</code>, etc.) satisfy
+   them structurally — there's no base class to subclass, no import-time coupling between <code>core/</code>
+   and any specific storage backend or LLM vendor.</li>
+<li><strong><code>core/</code> depends on nothing above it.</strong> <code>engine.py</code> and <code>types.py</code> have zero imports from
+   <code>store/</code>, <code>agent/</code>, or <code>llm/</code>. Dependencies only flow downward: <code>agent/</code> depends on <code>core/</code> and
+   <code>llm/</code>; nothing in <code>core/</code> knows <code>Agent</code> or any LLM provider exists.</li>
+</ol>
+<h2 id="3-core-data-types-coretypespy">3. Core data types (<code>core/types.py</code>)</h2>
+<h3 id="event">Event</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Event</span><span class="p">:</span>
+    <span class="n">event_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="n">EventType</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">node</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">tokens_in</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">tokens_out</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">cost_usd</span><span class="p">:</span> <span class="nb">float</span>
+</code></pre></div>
+<p>Immutable by construction (<code>frozen=True</code>). An <code>Event</code> is a fact about something that already
+happened — nothing in the codebase ever mutates an <code>Event</code> after creation, only creates new ones.</p>
+<p><code>EventType</code> is a closed enum: <code>RUN_STARTED</code>, <code>MESSAGE_RECEIVED</code>, <code>LLM_CALL_STARTED</code>,
+<code>LLM_CALL_COMPLETED</code>, <code>TOOL_CALL_STARTED</code>, <code>TOOL_CALL_COMPLETED</code>, <code>TOOL_CALL_FAILED</code>,
+<code>STATE_TRANSITION</code>, <code>CHECKPOINT_SAVED</code>, <code>RUN_COMPLETED</code>, <code>RUN_FAILED</code>, <code>HUMAN_INTERVENTION</code>.</p>
+<p>Token/cost fields live directly on <code>Event</code>, not bolted on as separate logging — this is what makes
+cost tracking "free": any code path that records an event for any reason gets cost accounting for
+free if it populates those fields.</p>
+<h3 id="agentstate">AgentState</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AgentState</span><span class="p">:</span>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">status</span><span class="p">:</span> <span class="n">RunStatus</span>              <span class="c1"># PENDING | RUNNING | WAITING_ON_HUMAN | COMPLETED | FAILED</span>
+    <span class="n">current_node</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">scratch</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>        <span class="c1"># arbitrary node-writable working memory</span>
+    <span class="n">history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>  <span class="c1"># summarized tool/LLM history, NOT the full event log</span>
+    <span class="n">total_tokens</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">total_cost_usd</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">last_event_seq</span><span class="p">:</span> <span class="nb">int</span>            <span class="c1"># position in the event log this state reflects</span>
+</code></pre></div>
+<p><code>AgentState</code> is mutable — but the only code permitted to mutate it is <code>Engine._fold</code> (for fields
+derived from events) and the engine's own driving loop (for <code>status</code>/<code>current_node</code> transitions).
+Node implementations never mutate <code>AgentState</code> fields directly except by writing into <code>scratch</code>
+via the <code>state_updates</code> they return.</p>
+<p><code>AgentState.to_dict()</code> / <code>from_dict()</code> provide explicit, version-stable serialization for
+persistence — see §6 for why this replaced an earlier <code>pickle</code>-based approach.</p>
+<h3 id="checkpoint">Checkpoint</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Checkpoint</span><span class="p">:</span>
+    <span class="n">checkpoint_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">event_seq</span><span class="p">:</span> <span class="nb">int</span>
+</code></pre></div>
+<p>A <code>Checkpoint</code> is a point-in-time snapshot of <code>AgentState</code>, tagged with the event-log position it
+corresponds to. Checkpoints are what <code>resume()</code> actually loads — they exist so that resuming a run
+doesn't require replaying the <em>entire</em> event history from event zero, only the events since the
+last checkpoint (see §5).</p>
+<h3 id="checkpointstore-protocol">CheckpointStore (Protocol)</h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CheckpointStore</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">:</span> <span class="n">Checkpoint</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">latest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Checkpoint</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">append_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Event</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span> <span class="o">...</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">events_since</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">seq</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Event</span><span class="p">]:</span> <span class="o">...</span>
+</code></pre></div>
+<p>This is the seam where storage backends plug in. <code>SQLiteCheckpointStore</code> is the only
+implementation that exists today; a Postgres implementation is designed (it would need to satisfy
+exactly this Protocol) but not built.</p>
+<h3 id="toolspec-tool-toolresult">ToolSpec, Tool, ToolResult</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ToolSpec</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>   <span class="c1"># JSON schema</span>
+    <span class="n">requires_approval</span><span class="p">:</span> <span class="nb">bool</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Tool</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">ToolSpec</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span> <span class="o">...</span>
+</code></pre></div>
+<p><code>requires_approval</code> is the single field that drives the entire human-in-the-loop mechanism — see
+§4. <code>parameters</code> is a JSON schema, deliberately the same shape MCP tools use, so that an MCP-backed
+tool (once Phase 3 is built) and a <code>@tool</code>-decorated Python function look structurally identical to
+the engine.</p>
+<h3 id="node-noderesult">Node, NodeResult</h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Node</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">AgentState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;NodeResult&quot;</span><span class="p">:</span> <span class="o">...</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NodeResult</span><span class="p">:</span>
+    <span class="n">next_node</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>          <span class="c1"># None = run is complete</span>
+    <span class="n">state_updates</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>  <span class="c1"># merged into AgentState.scratch</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Event</span><span class="p">]</span>
+</code></pre></div>
+<p>A <code>Node</code> is one step of an execution graph. Nodes are deliberately storage-ignorant: they receive
+<code>AgentState</code>, return a <code>NodeResult</code>, and never touch the <code>CheckpointStore</code> directly (except via
+<code>Engine.call_tool</code> / <code>Engine.record_event</code>, which exist precisely so nodes don't need direct store
+access). This keeps node logic unit-testable without a database.</p>
+<h2 id="4-the-execution-engine-coreenginepy">4. The execution engine (<code>core/engine.py</code>)</h2>
+<h3 id="the-drive-loop">The drive loop</h3>
+<p><code>Engine._drive</code> is the heart of the system:</p>
+<div class="highlight"><pre><span></span><code>while state.status == RUNNING and state.current_node is not None:
+    node = nodes[state.current_node]
+    try:
+        result = await node.run(state)
+    except ApprovalRequired:
+        → pause: status = WAITING_ON_HUMAN, checkpoint, return
+    except Exception:
+        → status = FAILED, checkpoint, re-raise
+
+    fold result.events into state
+    state.scratch.update(result.state_updates)
+
+    if result.next_node is None:
+        status = COMPLETED
+    else:
+        current_node = result.next_node
+
+    checkpoint(state)   # after EVERY transition, not periodically
+</code></pre></div>
+<p>Two things about this loop are deliberate, not incidental:</p>
+<ul>
+<li><strong>Checkpointing happens after every single transition</strong>, not on a timer or a sampled interval.
+  The tradeoff is more write volume in exchange for the simplest possible recovery story: there's
+  never a window where a meaningful state change exists only in memory.</li>
+<li><strong><code>ApprovalRequired</code> is the only exception with a special path.</strong> Everything else becomes a hard
+  <code>FAILED</code> state. This is intentional — an unexpected exception in your tool/node code is a bug to
+  surface, not something to silently swallow and retry.</li>
+</ul>
+<h3 id="approval-gating">Approval gating</h3>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">call_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">tool_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span>
+    <span class="n">tool</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">[</span><span class="n">tool_name</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">tool</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">requires_approval</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">state</span><span class="o">.</span><span class="n">scratch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_approved_tools&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tool_name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ApprovalRequired</span><span class="p">(</span><span class="n">tool_name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+    <span class="o">...</span>
+</code></pre></div>
+<p>This is the actual mechanism behind "the engine enforces approval gates, not the node author."
+Every tool call — from any node, from the <code>Agent</code> loop, from anywhere — funnels through this one
+method. There is no other path to invoke a tool's <code>.call()</code> that bypasses this check. A node author
+cannot accidentally skip the gate, because there's no API surface that would let them.</p>
+<p>When <code>ApprovalRequired</code> is raised, <code>_drive</code>'s <code>except</code> clause catches it <em>outside</em> the node's own
+code — the node itself never has a chance to catch and discard it. The engine:
+1. Sets <code>status = WAITING_ON_HUMAN</code>
+2. Records exactly which tool/arguments are pending in <code>scratch["_pending_approval"]</code>
+3. Records a <code>HUMAN_INTERVENTION</code> event
+4. Checkpoints
+5. Returns control to the caller — no thread is blocked waiting</p>
+<h3 id="event-sourcing-plumbing">Event sourcing plumbing</h3>
+<p>Three methods, each with a distinct durability contract:</p>
+<ul>
+<li><strong><code>_emit</code></strong> — private. Used internally by <code>call_tool</code> and the drive loop for engine-owned events
+  (<code>TOOL_CALL_STARTED</code>, <code>RUN_COMPLETED</code>, etc.). Appends to the store and advances
+  <code>state.last_event_seq</code>, but does not fold.</li>
+<li><strong><code>record_event</code></strong> — public. The escape hatch for node implementations that need to durably
+  record something that isn't a tool call. Appends <em>and</em> folds immediately. This exists
+  specifically because of a bug found during development (see §7) — <code>Agent</code>'s LLM loop uses this to
+  record <code>LLM_CALL_COMPLETED</code> events the instant they happen, so token/cost data survives even if
+  the very next line raises <code>ApprovalRequired</code>.</li>
+<li><strong><code>_fold</code></strong> — private, and the <em>only</em> place <code>AgentState</code> fields are derived from events. Centralizing
+  this is what makes "rebuild state by replaying the log" an actual guarantee rather than an
+  aspiration — there's exactly one function to audit if you want to know how any field is computed.</li>
+</ul>
+<h2 id="5-how-resume-actually-works">5. How resume actually works</h2>
+<p>This is worth tracing in full, since it's the project's core differentiating claim.</p>
+<div class="highlight"><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">resume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AgentState</span><span class="p">:</span>
+    <span class="n">checkpoint</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">latest</span><span class="p">(</span><span class="n">run_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+    <span class="n">state</span> <span class="o">=</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">state</span>
+    <span class="n">newer_events</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">store</span><span class="o">.</span><span class="n">events_since</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">.</span><span class="n">event_seq</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">evt</span> <span class="ow">in</span> <span class="n">newer_events</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fold</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">evt</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">WAITING_ON_HUMAN</span><span class="p">:</span>
+        <span class="n">state</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">RUNNING</span>
+
+    <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drive</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+</code></pre></div>
+<p>Step by step:</p>
+<ol>
+<li><strong>Load the latest checkpoint</strong> for this <code>run_id</code> from the store. This is a full <code>AgentState</code>
+   snapshot as of some point in the event log.</li>
+<li><strong>Replay any events newer than that checkpoint.</strong> This handles the edge case where an event was
+   appended after the checkpoint was saved but the process died before a <em>new</em> checkpoint captured
+   it — without this step, that event's effect on state would be lost.</li>
+<li><strong>Flip <code>WAITING_ON_HUMAN</code> back to <code>RUNNING</code>.</strong> Resuming implies the human-in-the-loop condition
+   has been satisfied (the caller is expected to have set <code>scratch["_approved_tools"]</code> before
+   calling <code>resume</code>).</li>
+<li><strong>Re-enter <code>_drive</code>.</strong> From here, execution proceeds exactly as it would have if the process had
+   never stopped — same loop, same checkpointing behavior, same approval gating for any <em>other</em>
+   gated tool calls later in the graph.</li>
+</ol>
+<p>Crucially: <strong>none of this requires the resuming <code>Engine</code> to be the same object, or even the same
+process, that called <code>start()</code>.</strong> <code>Engine</code> holds no run-specific state on <code>self</code> — <code>nodes</code>, <code>tools</code>,
+and <code>store</code> are configured once at construction and never change per-run. This was verified
+directly: <code>tests/unit/test_engine.py::test_resume_from_independent_engine_after_approval</code>
+constructs a second, independent <code>Engine</code> instance sharing nothing with the first except the
+<code>CheckpointStore</code>, and shows it correctly completing a run the first instance paused.</p>
+<h2 id="6-the-agent-tool-layer">6. The <code>Agent</code> / <code>@tool</code> layer</h2>
+<h3 id="why-this-layer-exists">Why this layer exists</h3>
+<p>The raw <code>Engine</code> + <code>Node</code> API requires hand-writing graph nodes and explicitly calling
+<code>engine.call_tool</code>. <code>Agent</code> exists to remove that — it's a thin layer that auto-generates a single
+implicit node implementing a standard "LLM decides what to do, possibly call tools, repeat until
+done" loop, so most users never touch <code>Node</code>/<code>NodeResult</code> directly.</p>
+<h3 id="tool-function-signatures-to-json-schema"><code>@tool</code>: function signatures to JSON schema</h3>
+<p><code>decorators.py</code> introspects a function's signature via <code>inspect.signature</code> and converts type
+annotations to JSON schema fragments:</p>
+<table>
+<thead>
+<tr>
+<th>Python annotation</th>
+<th>JSON schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>str</code>, <code>int</code>, <code>float</code>, <code>bool</code></td>
+<td><code>{"type": "string"/"integer"/"number"/"boolean"}</code></td>
+</tr>
+<tr>
+<td><code>list[X]</code></td>
+<td><code>{"type": "array", "items": &lt;schema for X&gt;}</code></td>
+</tr>
+<tr>
+<td><code>dict</code></td>
+<td><code>{"type": "object"}</code></td>
+</tr>
+<tr>
+<td><code>Optional[X]</code> / <code>X \| None</code></td>
+<td>unwrapped to X's schema (JSON schema has no first-class <code>None</code>)</td>
+</tr>
+<tr>
+<td>anything else (Pydantic models, custom classes)</td>
+<td>raises <code>NotImplementedError</code> explicitly</td>
+</tr>
+</tbody>
+</table>
+<p>The last row is a deliberate design choice: rather than silently producing a wrong or
+under-specified schema for an annotation it doesn't understand, the decorator fails loudly at
+decoration time. A wrong schema reaching an LLM is a worse failure mode than a clear error at
+import time.</p>
+<p>The function's docstring becomes the <code>ToolSpec.description</code> the model sees — the only information
+the model has to decide whether and how to call the tool.</p>
+<h3 id="the-agent-loop">The <code>Agent</code> loop</h3>
+<div class="highlight"><pre><span></span><code>messages = rebuild from state.scratch[&quot;_messages&quot;]   # NOT held in memory across resumes
+
+loop:
+    response = provider.complete(messages, tools, system)
+    record_event(LLM_CALL_COMPLETED) immediately      # durability, see below
+    messages.append(assistant message)
+
+    if no tool_calls:
+        persist messages + final_output to scratch
+        return (run complete)
+
+    for each tool_call:
+        result = engine.call_tool(...)   # ApprovalRequired propagates naturally
+        messages.append(tool result message)
+
+    persist in-progress messages to scratch
+    # loop continues
+</code></pre></div>
+<p>Two non-obvious design decisions here:</p>
+<ol>
+<li>
+<p><strong>The entire multi-turn tool-calling loop lives inside one <code>Node.run()</code> call</strong>, not spread
+   across multiple graph nodes. This means an entire conversation turn — including several tool
+   calls — is checkpointed as a single engine "step," not after every individual tool call within
+   it. The tradeoff: simpler mental model and fewer checkpoint writes, at the cost of slightly
+   coarser resume granularity if the process dies <em>mid-turn</em> before any gated tool is hit (you'd
+   replay that turn rather than resume from its middle). This doesn't affect the approval-gating
+   guarantee, since <code>ApprovalRequired</code> is a real exception that still propagates out of the loop
+   and is still caught by <code>Engine._drive</code>, not swallowed internally.</p>
+</li>
+<li>
+<p><strong><code>record_event</code> is called immediately after every LLM response, not batched into the
+   eventual <code>NodeResult</code>.</strong> This was a real bug found and fixed during development (see §7) — if it
+   were batched, an <code>ApprovalRequired</code> raised partway through the loop would mean <code>node.run()</code> never
+   returns a <code>NodeResult</code> at all, silently dropping the token/cost data for every LLM call made
+   earlier in that same turn.</p>
+</li>
+</ol>
+<h3 id="message-serialization">Message serialization</h3>
+<p><code>agent/agent.py</code> defines <code>_message_to_dict</code> / <code>_message_from_dict</code> rather than relying on
+<code>dataclasses.asdict</code>'s default behavior naively, or <code>Message.__dict__</code>. This matters because
+<code>Message.tool_calls</code> is a list of nested <code>ToolCallRequest</code> dataclass instances — a shallow
+<code>__dict__</code> call leaves those un-converted, which breaks JSON serialization the moment the engine
+tries to checkpoint <code>state.scratch</code>. <code>dataclasses.asdict()</code> recurses correctly; this was also a
+real bug caught during development (see §7).</p>
+<h2 id="7-design-decisions-and-the-bugs-that-shaped-them">7. Design decisions, and the bugs that shaped them</h2>
+<p>This section exists because several real defects were found and fixed during development, each of
+which led directly to a design rule documented above. Listing them here is more useful than
+pretending the design was correct on the first attempt.</p>
+<p><strong>Checkpoint serialization: <code>pickle</code> → explicit <code>to_dict</code>/<code>from_dict</code>.</strong>
+The original <code>SQLiteCheckpointStore</code> used <code>pickle.dumps(checkpoint.state)</code>. This was replaced with
+explicit JSON serialization via <code>AgentState.to_dict()</code>/<code>from_dict()</code> because <code>pickle</code> ties the
+on-disk checkpoint format to the exact Python class definition and interpreter version at the time
+of writing — a liability the moment anyone depends on reading an old checkpoint after the code
+changes. The JSON-based <code>save()</code> now also fails loudly (<code>ValueError</code>, not a silent fallback) if
+<code>scratch</code> ever contains something non-JSON-serializable, rather than letting <code>pickle</code> silently
+paper over the problem.</p>
+<p><strong><code>Message.__dict__</code> does not recursively serialize nested dataclasses.</strong>
+Found while building the <code>Agent</code> loop: a <code>Message</code> with <code>tool_calls</code> set produced a dict whose
+<code>tool_calls</code> value was still a list of <code>ToolCallRequest</code> <em>objects</em>, not dicts — which crashed
+checkpointing the first time a tool-calling turn tried to persist. Fixed by using
+<code>dataclasses.asdict()</code> via the <code>_message_to_dict</code>/<code>_message_from_dict</code> helpers described in §6.</p>
+<p><strong>Token/cost data was silently lost on approval pauses.</strong>
+The first version of the <code>Agent</code> loop batched <code>LLM_CALL_COMPLETED</code> events into the <code>NodeResult</code> it
+would eventually return. But when a turn's tool call triggers <code>ApprovalRequired</code>, <code>node.run()</code> exits
+via exception — there is no <code>NodeResult</code>, ever, for that turn. Any LLM call made earlier in the same
+turn (the one that decided to call the gated tool) would have its token/cost data silently
+dropped. This is why <code>Engine.record_event</code> exists as a public method: it lets <code>agent.py</code> durably
+record each LLM call's event the instant it happens, rather than batching and risking loss. There's
+a dedicated regression test for this:
+<code>test_agent_records_llm_tokens_even_when_run_pauses_on_approval</code>.</p>
+<p><strong><code>OllamaProvider</code> could crash the whole run on malformed tool-call JSON.</strong>
+Smaller local models are less reliable than hosted models at producing well-formed JSON in tool
+call arguments. The original implementation called <code>json.loads()</code> on the raw arguments string with
+no error handling — a malformed response would raise an uncaught <code>JSONDecodeError</code> and crash the
+entire agent run. Fixed to catch the parse failure and surface it as a visible note in the
+response text with empty arguments, consistent with how <code>Engine.call_tool</code> already treats tool
+failures elsewhere (recoverable, not fatal).</p>
+<h2 id="8-whats-deliberately-not-in-this-document">8. What's deliberately NOT in this document</h2>
+<p>This document describes what's built. It does not describe (because they don't exist yet):</p>
+<ul>
+<li>MCP client/server integration (<code>mcp/</code> is currently empty stub files)</li>
+<li>The scheduler / concurrent-execution layer (<code>scheduler/</code>)</li>
+<li>The CLI or <code>kestrion deploy</code> (<code>cli/</code>)</li>
+<li>Postgres-backed storage (<code>store/postgres_store.py</code> is an empty stub)</li>
+<li>A <code>Trace</code> viewer for the event log (the data exists; no presentation layer reads it yet)</li>
+<li><strong><code>core/errors.py</code></strong> — empty stub. Exceptions today are scattered and inconsistent: <code>ApprovalRequired</code>
+  lives in <code>engine.py</code>; raw <code>ValueError</code>/<code>NotImplementedError</code> are raised elsewhere for missing
+  checkpoints, bad store URLs, and unimplemented approval persistence. A proper <code>KestrionError</code>
+  hierarchy is planned but not yet built.</li>
+<li><strong><code>agent/graph.py</code></strong> — empty stub. Intended as a multi-node graph builder so explicit
+  multi-step workflows (like <code>examples/kubectl_agent.py</code>) can be expressed through <code>Agent</code>-style
+  ergonomics instead of hand-written <code>Node</code>/<code>NodeResult</code> classes. Not a capability gap today — that
+  workflow shape is already possible by writing raw <code>Node</code> classes directly — just not yet as
+  convenient as it could be.</li>
+</ul>
+<p>See the project's <code>README.md</code> "Known gaps" section and the phased build plan for what's planned
+versus implemented at any given time — this document will need updating as those phases land.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

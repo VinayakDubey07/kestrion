@@ -1,0 +1,2184 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A durable-execution-first framework for building production AI agents">
+      
+      
+      
+      
+        <link rel="prev" href="../core/">
+      
+      
+        <link rel="next" href="../llm/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Agent - Kestrion</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#agent" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Kestrion" class="md-header__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Kestrion
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Agent
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Kestrion" class="md-nav__button md-logo" aria-label="Kestrion" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Kestrion
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VinayakDubey07/kestrion" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/event-sourcing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Event Sourcing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/checkpointing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checkpointing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../concepts/approval-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Approval Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.agent.decorators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decorators
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.decorators.tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.agent.agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.approve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        approve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        as_handoff_target
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="as_handoff_target">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target--resultstatus-completed-resultstatescratch_handed_off_to" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        result.status == COMPLETED, result.state.scratch["_handed_off_to"]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target--names-the-billing-agents-new-separate-run_id-to-follow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        names the billing agent's NEW, separate run_id to follow.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        as_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.run_with_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_with_history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.HandoffCompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandoffCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.HandoffTool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandoffTool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.RunResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.SubAgentTool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubAgentTool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Providers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.agent.decorators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        decorators
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.decorators.tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kestrion.agent.agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Agent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.approve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        approve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        as_handoff_target
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="as_handoff_target">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target--resultstatus-completed-resultstatescratch_handed_off_to" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        result.status == COMPLETED, result.state.scratch["_handed_off_to"]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_handoff_target--names-the-billing-agents-new-separate-run_id-to-follow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        names the billing agent's NEW, separate run_id to follow.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.as_tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        as_tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.Agent.run_with_history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run_with_history
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.HandoffCompleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandoffCompleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.HandoffTool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HandoffTool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.RunResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RunResult
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kestrion.agent.agent.SubAgentTool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SubAgentTool
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="agent">Agent</h1>
+<p>The ergonomic, user-facing layer built on top of <code>kestrion.core</code>.</p>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="kestrion.agent.decorators" class="doc doc-heading">
+            <code>kestrion.agent.decorators</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+        <p>@tool turns a plain Python function into something satisfying the
+Tool/ToolSpec contract from core/types.py, by introspecting the
+function signature into a JSON schema. This is the highest-risk piece
+of Phase 2, flagged as such in the build plan — type hints have a lot
+of edge cases (Optional, defaults, list[str], nested types). What's
+implemented here covers the common cases; anything genuinely exotic
+(Pydantic models, deeply nested generics) is a known gap, not silently
+mishandled — see the NotImplementedError below.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="kestrion.agent.decorators.tool" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">tool</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">requires_approval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">approval_timeout_seconds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Decorator that turns a function into a Kestrion Tool.</p>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>@tool
+def get_cluster_state() -&gt; dict:
+    '''Read current deployment replica counts.'''
+    ...</p>
+<p>@tool(requires_approval=True)
+def apply_manifest(yaml: str) -&gt; dict:
+    '''kubectl apply a manifest against the cluster.'''
+    ...</p>
+<p>@tool(requires_approval=["engineer", "manager"])
+def deploy_to_prod() -&gt; dict:
+    '''Deploys to production. Needs both an engineer and a manager.'''
+    ...</p>
+<p>@tool(requires_approval=True, approval_timeout_seconds=3600.0)
+def restart_service() -&gt; dict:
+    '''Restarts a service. Must be approved within an hour.'''
+    ...</p>
+</details>        <p>The docstring becomes the tool description the LLM sees — make it
+descriptive, since it's the only thing the model has to decide
+whether/how to call the tool.</p>
+<p>NOTE: requires_approval accepting a role string or list of roles
+(approval chains), and approval_timeout_seconds, were both added to
+ToolSpec when those features were built, but this decorator's
+signature was never updated to pass them through — meaning anyone
+using @tool(requires_approval=["a", "b"]) before this fix hit a
+TypeError, since the decorator only accepted a bare bool. Found
+while building an integration demo that actually exercised every
+feature together through @tool, rather than constructing ToolSpec
+directly the way every unit test for chains/timeouts had done.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/agent/decorators.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">tool</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">requires_approval</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">approval_timeout_seconds</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator that turns a function into a Kestrion Tool.</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        @tool</span>
+<span class="sd">        def get_cluster_state() -&gt; dict:</span>
+<span class="sd">            &#39;&#39;&#39;Read current deployment replica counts.&#39;&#39;&#39;</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        @tool(requires_approval=True)</span>
+<span class="sd">        def apply_manifest(yaml: str) -&gt; dict:</span>
+<span class="sd">            &#39;&#39;&#39;kubectl apply a manifest against the cluster.&#39;&#39;&#39;</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        @tool(requires_approval=[&quot;engineer&quot;, &quot;manager&quot;])</span>
+<span class="sd">        def deploy_to_prod() -&gt; dict:</span>
+<span class="sd">            &#39;&#39;&#39;Deploys to production. Needs both an engineer and a manager.&#39;&#39;&#39;</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        @tool(requires_approval=True, approval_timeout_seconds=3600.0)</span>
+<span class="sd">        def restart_service() -&gt; dict:</span>
+<span class="sd">            &#39;&#39;&#39;Restarts a service. Must be approved within an hour.&#39;&#39;&#39;</span>
+<span class="sd">            ...</span>
+
+<span class="sd">    The docstring becomes the tool description the LLM sees — make it</span>
+<span class="sd">    descriptive, since it&#39;s the only thing the model has to decide</span>
+<span class="sd">    whether/how to call the tool.</span>
+
+<span class="sd">    NOTE: requires_approval accepting a role string or list of roles</span>
+<span class="sd">    (approval chains), and approval_timeout_seconds, were both added to</span>
+<span class="sd">    ToolSpec when those features were built, but this decorator&#39;s</span>
+<span class="sd">    signature was never updated to pass them through — meaning anyone</span>
+<span class="sd">    using @tool(requires_approval=[&quot;a&quot;, &quot;b&quot;]) before this fix hit a</span>
+<span class="sd">    TypeError, since the decorator only accepted a bare bool. Found</span>
+<span class="sd">    while building an integration demo that actually exercised every</span>
+<span class="sd">    feature together through @tool, rather than constructing ToolSpec</span>
+<span class="sd">    directly the way every unit test for chains/timeouts had done.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">decorator</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_FunctionTool</span><span class="p">:</span>
+        <span class="n">tool_name</span> <span class="o">=</span> <span class="n">name</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;Calls </span><span class="si">{</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">_build_parameters_schema</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">ToolSpec</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">tool_name</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+            <span class="n">requires_approval</span><span class="o">=</span><span class="n">requires_approval</span><span class="p">,</span>
+            <span class="n">approval_timeout_seconds</span><span class="o">=</span><span class="n">approval_timeout_seconds</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">wrapped</span> <span class="o">=</span> <span class="n">_FunctionTool</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+        <span class="n">functools</span><span class="o">.</span><span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wrapped</span>
+
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Bare @tool usage (no parens, no kwargs)</span>
+        <span class="k">return</span> <span class="n">decorator</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">decorator</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="kestrion.agent.agent" class="doc doc-heading">
+            <code>kestrion.agent.agent</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Agent is the ergonomic, user-facing API. Underneath, it's a single
+implicit Engine node that runs a "call the LLM, execute whatever tools
+it asks for, feed results back, repeat" loop until the model produces
+a final answer with no more tool calls.</p>
+<p>Design choice worth being explicit about: this loop lives INSIDE one
+Node's run() call, not spread across multiple graph nodes. That means
+from the Engine's perspective, an entire multi-tool-call conversation
+turn is one "step" — checkpointed once it's done, not after every
+individual tool call within the turn. Tradeoff: simpler mental model
+and fewer checkpoint writes, at the cost of slightly coarser resume
+granularity (if the process dies mid-turn, you replay that turn, not
+resume from the middle of it). For approval-gated tools this doesn't
+matter — ApprovalRequired still propagates out and pauses the run
+exactly as before, since it's a real exception, not swallowed by the
+loop.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.agent.agent.Agent" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">Agent</span><span class="p">(</span><span class="n">provider</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="s1">&#39;sqlite:///kestrion_runs.db&#39;</span><span class="p">,</span> <span class="n">system_prompt</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Agent(model=..., tools=[...], store=...) — the ergonomic entry point.
+Wraps a single-node Engine running the LLM tool-calling loop above.</p>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">provider</span><span class="p">:</span> <span class="n">LLMProvider</span><span class="p">,</span>
+    <span class="n">tools</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Tool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">store</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sqlite:///kestrion_runs.db&quot;</span><span class="p">,</span>
+    <span class="n">system_prompt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">provider</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_tools</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tool</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tools</span> <span class="ow">or</span> <span class="p">[])}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">system_prompt</span> <span class="o">=</span> <span class="n">system_prompt</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span> <span class="o">=</span> <span class="n">_store_from_url</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">store</span>
+
+    <span class="n">loop_node</span> <span class="o">=</span> <span class="n">_AgentLoopNode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="n">Engine</span><span class="p">(</span>
+        <span class="n">nodes</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;agent_loop&quot;</span><span class="p">:</span> <span class="n">loop_node</span><span class="p">},</span>
+        <span class="n">tools</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tools</span><span class="p">,</span>
+        <span class="n">store</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">,</span>
+        <span class="n">entry_node</span><span class="o">=</span><span class="s2">&quot;agent_loop&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.agent.agent.Agent.approve" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">approve</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">tool</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Marks a tool as approved for a paused run. NOTE: this is the same
+stub-shaped gap flagged in Engine.approve_pending_tool — real
+approval persistence needs its own durable record, not just an
+in-memory flag, before this is production-safe. Implemented here
+as a minimal version so Agent's resume() flow is usable today.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">approve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tool</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Marks a tool as approved for a paused run. NOTE: this is the same</span>
+<span class="sd">    stub-shaped gap flagged in Engine.approve_pending_tool — real</span>
+<span class="sd">    approval persistence needs its own durable record, not just an</span>
+<span class="sd">    in-memory flag, before this is production-safe. Implemented here</span>
+<span class="sd">    as a minimal version so Agent&#39;s resume() flow is usable today.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+        <span class="s2">&quot;Agent.approve() needs a durable approval-persistence layer — &quot;</span>
+        <span class="s2">&quot;see Engine.approve_pending_tool. For now, set &quot;</span>
+        <span class="s2">&quot;state.scratch[&#39;_approved_tools&#39;] = {tool: True} and save a &quot;</span>
+        <span class="s2">&quot;checkpoint manually before calling resume(), as shown in &quot;</span>
+        <span class="s2">&quot;examples/kubectl_agent.&quot;</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.agent.agent.Agent.as_handoff_target" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">as_handoff_target</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Wraps this Agent as a HANDOFF target — distinct from as_tool().
+Calling the returned tool transfers the ENTIRE conversation to
+this agent, which takes over completely; the calling agent's run
+ends as soon as the handoff happens and never resumes control.</p>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>billing_agent = Agent(provider=..., tools=[...], store=shared_store_url)
+router = Agent(
+    provider=...,
+    tools=[billing_agent.as_handoff_target("transfer_to_billing", "Hand off to the billing specialist")],
+    store=shared_store_url,
+)
+result = await router.run("I have a question about my invoice")</p>
+<h5 id="kestrion.agent.agent.Agent.as_handoff_target--resultstatus-completed-resultstatescratch_handed_off_to">result.status == COMPLETED, result.state.scratch["_handed_off_to"]</h5>
+<h5 id="kestrion.agent.agent.Agent.as_handoff_target--names-the-billing-agents-new-separate-run_id-to-follow">names the billing agent's NEW, separate run_id to follow.</h5>
+</details>        <p>Use as_tool() instead if you want the original agent to stay in
+control and just ask the other agent a question (delegation,
+not a full handoff).</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">as_handoff_target</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HandoffTool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps this Agent as a HANDOFF target — distinct from as_tool().</span>
+<span class="sd">    Calling the returned tool transfers the ENTIRE conversation to</span>
+<span class="sd">    this agent, which takes over completely; the calling agent&#39;s run</span>
+<span class="sd">    ends as soon as the handoff happens and never resumes control.</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        billing_agent = Agent(provider=..., tools=[...], store=shared_store_url)</span>
+<span class="sd">        router = Agent(</span>
+<span class="sd">            provider=...,</span>
+<span class="sd">            tools=[billing_agent.as_handoff_target(&quot;transfer_to_billing&quot;, &quot;Hand off to the billing specialist&quot;)],</span>
+<span class="sd">            store=shared_store_url,</span>
+<span class="sd">        )</span>
+<span class="sd">        result = await router.run(&quot;I have a question about my invoice&quot;)</span>
+<span class="sd">        # result.status == COMPLETED, result.state.scratch[&quot;_handed_off_to&quot;]</span>
+<span class="sd">        # names the billing agent&#39;s NEW, separate run_id to follow.</span>
+
+<span class="sd">    Use as_tool() instead if you want the original agent to stay in</span>
+<span class="sd">    control and just ask the other agent a question (delegation,</span>
+<span class="sd">    not a full handoff).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">HandoffTool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.agent.agent.Agent.as_tool" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">as_tool</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Wraps this Agent as a Tool another Agent can call — the
+agent-calling-agent / delegation pattern. The returned tool takes
+a single <code>prompt</code> argument and runs this agent against it.</p>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <p>specialist = Agent(provider=..., tools=[...], store=shared_store_url)
+planner = Agent(
+    provider=...,
+    tools=[specialist.as_tool("query_database", "Ask the database specialist a question")],
+    store=shared_store_url,  # SAME store — required for the
+                              # sub-agent's run to be
+                              # independently resumable
+)</p>
+</details>        <p>If the sub-agent's run pauses for approval, the PARENT run also
+pauses (see SubAgentTool for why) — resuming requires resuming
+the sub-agent's run_id first, then resuming the parent. The
+parent's pending-approval record's missing_roles will contain
+"sub_agent:<run_id>" naming exactly which one.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">as_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SubAgentTool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps this Agent as a Tool another Agent can call — the</span>
+<span class="sd">    agent-calling-agent / delegation pattern. The returned tool takes</span>
+<span class="sd">    a single `prompt` argument and runs this agent against it.</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        specialist = Agent(provider=..., tools=[...], store=shared_store_url)</span>
+<span class="sd">        planner = Agent(</span>
+<span class="sd">            provider=...,</span>
+<span class="sd">            tools=[specialist.as_tool(&quot;query_database&quot;, &quot;Ask the database specialist a question&quot;)],</span>
+<span class="sd">            store=shared_store_url,  # SAME store — required for the</span>
+<span class="sd">                                      # sub-agent&#39;s run to be</span>
+<span class="sd">                                      # independently resumable</span>
+<span class="sd">        )</span>
+
+<span class="sd">    If the sub-agent&#39;s run pauses for approval, the PARENT run also</span>
+<span class="sd">    pauses (see SubAgentTool for why) — resuming requires resuming</span>
+<span class="sd">    the sub-agent&#39;s run_id first, then resuming the parent. The</span>
+<span class="sd">    parent&#39;s pending-approval record&#39;s missing_roles will contain</span>
+<span class="sd">    &quot;sub_agent:&lt;run_id&gt;&quot; naming exactly which one.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">SubAgentTool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="kestrion.agent.agent.Agent.run_with_history" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run_with_history</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">run_id</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Like run(), but seeds the new run with an existing message
+history instead of a single fresh prompt. <code>messages</code> must be a
+list of dicts in the same shape _message_to_dict produces.</p>
+<p>This exists specifically for handoff (see HandoffTool below): when
+agent A hands off to agent B, B needs to start with the ENTIRE
+transferred conversation, not just a new prompt — run() alone
+can't express that since it only ever wraps a single string into
+a one-message history.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_with_history</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RunResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Like run(), but seeds the new run with an existing message</span>
+<span class="sd">    history instead of a single fresh prompt. `messages` must be a</span>
+<span class="sd">    list of dicts in the same shape _message_to_dict produces.</span>
+
+<span class="sd">    This exists specifically for handoff (see HandoffTool below): when</span>
+<span class="sd">    agent A hands off to agent B, B needs to start with the ENTIRE</span>
+<span class="sd">    transferred conversation, not just a new prompt — run() alone</span>
+<span class="sd">    can&#39;t express that since it only ever wraps a single string into</span>
+<span class="sd">    a one-message history.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">run_id</span> <span class="o">=</span> <span class="n">run_id</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;run_</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span> <span class="n">_messages</span><span class="o">=</span><span class="n">messages</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RunResult</span><span class="p">(</span>
+        <span class="n">run_id</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">run_id</span><span class="p">,</span>
+        <span class="n">status</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
+        <span class="n">output</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">scratch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;final_output&quot;</span><span class="p">),</span>
+        <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.agent.agent.HandoffCompleted" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">HandoffCompleted</span><span class="p">(</span><span class="n">target_run_id</span><span class="p">,</span> <span class="n">target_status</span><span class="p">,</span> <span class="n">target_output</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="Exception">Exception</span></code></p>
+
+
+
+        <p>Raised by HandoffTool.call() to signal that the conversation has been
+fully transferred to another agent — NOT an error. This is a
+deliberate control-flow signal, same pattern as ApprovalRequired:
+_AgentLoopNode.run() catches it specifically and ends the CALLING
+agent's run immediately, recording the handoff, rather than letting
+the loop continue and feed a handoff "result" back to the model as
+if it were an ordinary tool result. A normal ToolResult would risk
+the original agent continuing to talk about a conversation it no
+longer owns.</p>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_run_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_status</span><span class="p">:</span> <span class="n">RunStatus</span><span class="p">,</span> <span class="n">target_output</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">target_run_id</span> <span class="o">=</span> <span class="n">target_run_id</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">target_status</span> <span class="o">=</span> <span class="n">target_status</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">target_output</span> <span class="o">=</span> <span class="n">target_output</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.agent.agent.HandoffTool" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">HandoffTool</span><span class="p">(</span><span class="n">target_agent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="Tool (kestrion.core.types.Tool)" href="../core/#kestrion.core.types.Tool">Tool</a></code></p>
+
+
+
+        <p>Wraps an Agent as a handoff target. Unlike SubAgentTool (delegation —
+the parent stays in control and gets an answer back), calling a
+HandoffTool transfers the ENTIRE conversation to the target agent,
+which takes over completely. The calling agent's run ends as soon as
+the handoff happens; it never resumes control of this conversation.</p>
+<p>Design decisions, made deliberately rather than by default:</p>
+<ol>
+<li>
+<p>The target agent gets its OWN run_id, not the caller's. This was
+   chosen over "same run_id continues" specifically to avoid a real
+   correctness risk: if the same run_id were reused, the target
+   agent's tool calls would be checked against
+   scratch["_approved_tools"] entries that may have been recorded
+   for the ORIGINAL agent's differently-scoped tools — a same-named
+   tool on the target agent could be incorrectly treated as
+   pre-approved. Separate run_ids keep approval scoping correct,
+   same reasoning that already justified separate run_ids for
+   sub-agents.</p>
+</li>
+<li>
+<p>The full message history transfers via Agent.run_with_history(),
+   not just a summary or a fresh prompt — the target agent needs to
+   see everything that already happened to handle the conversation
+   coherently.</p>
+</li>
+<li>
+<p>The two runs are linked via scratch, not by sharing an identity —
+   the caller's final state records target_run_id under
+   "_handed_off_to", so anyone tracking the conversation across the
+   handoff boundary can follow the link without the engine needing
+   any special "this is actually one logical conversation" concept.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_agent</span><span class="p">:</span> <span class="s2">&quot;Agent&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_target_agent</span> <span class="o">=</span> <span class="n">target_agent</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">ToolSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{}},</span>
+        <span class="n">requires_approval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.agent.agent.RunResult" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">RunResult</span><span class="p">(</span><span class="n">run_id</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>What Agent.run()/.resume() hands back — a thin, friendly view over AgentState.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="kestrion.agent.agent.SubAgentTool" class="doc doc-heading">
+              <code class="highlight language-python"><span class="n">SubAgentTool</span><span class="p">(</span><span class="n">sub_agent</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">description</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="Tool (kestrion.core.types.Tool)" href="../core/#kestrion.core.types.Tool">Tool</a></code></p>
+
+
+
+        <p>Wraps an Agent so it satisfies the Tool contract — making "one agent
+calls another agent" require zero new engine machinery. From the
+parent Engine's perspective, calling a sub-agent looks exactly like
+calling any other tool.</p>
+<p>Design decisions worth being explicit about:</p>
+<ol>
+<li>
+<p>The sub-agent's run gets its OWN run_id and checkpoint history in
+   the same store, not nested inside the parent's event log. This
+   means the sub-agent's run is independently resumable — if the
+   parent crashes after the sub-agent already completed, that work
+   isn't redone. Sharing the same store (rather than a separate one)
+   is what makes resume() work for it using the exact same mechanism
+   as any top-level run.</p>
+</li>
+<li>
+<p>If the sub-agent's run pauses on WAITING_ON_HUMAN, that must
+   propagate to the PARENT, not be silently swallowed as if the
+   sub-agent just "returned" a paused status as a normal result. This
+   is handled by re-raising ApprovalRequired in the parent's context,
+   tagged with a synthetic role name carrying the sub-agent's run_id
+   (sub_agent:<run_id>) so whoever resolves the parent's pending
+   approval knows exactly which sub-agent run needs resuming
+   separately. This reuses the existing missing_roles mechanism
+   unchanged — no new pause/resume concept was needed.</p>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+                  <details class="mkdocstrings-source">
+                    <summary>Source code in <code>src/kestrion/agent/agent.py</code></summary>
+                    <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sub_agent</span><span class="p">:</span> <span class="s2">&quot;Agent&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sub_agent</span> <span class="o">=</span> <span class="n">sub_agent</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="o">=</span> <span class="n">ToolSpec</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="n">parameters</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">}},</span>
+            <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;prompt&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+        <span class="n">requires_approval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+                  </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
