@@ -1,0 +1,12 @@
+# Kestrion
+*.db
+*.db-shm
+*.db-wal
+agent_runs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
