@@ -258,6 +258,8 @@ class Engine:
 
             # Fold this node's events into state, then advance.
             for evt in result.events:
+                seq = await self.store.append_event(evt)
+                state.last_event_seq = seq
                 self._fold(state, evt)
             state.scratch.update(result.state_updates)
 
