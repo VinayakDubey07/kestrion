@@ -6,7 +6,8 @@ parameter ("status" vs "raise").
 
 from datetime import datetime, timedelta, timezone
 
-from kestrion.core.engine import Engine, RunExpiredError
+from kestrion.core.engine import Engine
+from kestrion.core.errors import RunExpiredError
 from kestrion.core.types import (
     AgentState,
     Checkpoint,

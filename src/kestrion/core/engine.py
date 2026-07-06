@@ -32,47 +32,16 @@ from .types import (
     utcnow,
 )
 
+from .errors import (
+    ApprovalRequired,
+    CheckpointNotFoundError,
+    HandoffCompleted,
+    InvalidRunStatusError,
+    InvalidToolApprovalError,
+    RunExpiredError,
+)
+
 logger = logging.getLogger("agentframework.engine")
-
-
-class RunExpiredError(Exception):
-    """
-    Raised by resume(on_expired="raise") when a run's pending approval
-    deadline has passed without all required roles approving. Distinct
-    from ApprovalRequired (which the engine catches internally and never
-    lets escape to the caller) — this one IS meant to surface to whoever
-    called resume(), since "this approval window closed" is a fact about
-    the world the caller needs to react to, not an internal control-flow
-    signal.
-    """
-
-    def __init__(self, run_id: str, tool_name: str, expired_at: str):
-        self.run_id = run_id
-        self.tool_name = tool_name
-        self.expired_at = expired_at
-        super().__init__(
-            f"Run {run_id}'s pending approval for tool {tool_name!r} expired at {expired_at}"
-        )
-
-
-class ApprovalRequired(Exception):
-    """
-    Raised (and caught by the engine, not the user) when a node wants to
-    call a tool whose required-approval roles aren't all satisfied yet.
-    The engine persists a checkpoint and parks the run in
-    WAITING_ON_HUMAN rather than blocking a thread — this is what makes
-    "1000 agents waiting on approval" cheap.
-    """
-
-    def __init__(self, tool_name: str, kwargs: dict, missing_roles: list[str]):
-        self.tool_name = tool_name
-        self.kwargs = kwargs
-        # Which required roles have NOT yet approved. For simple
-        # requires_approval=True tools this is always ["__any__"]. For a
-        # chain like ["engineer", "manager"], this narrows as approvals
-        # come in — e.g. after the engineer approves, a re-raised
-        # ApprovalRequired on retry would show only ["manager"] missing.
-        self.missing_roles = missing_roles
 
 
 class Engine:
@@ -135,7 +104,7 @@ class Engine:
         """
         checkpoint = await self.store.latest(run_id)
         if checkpoint is None:
-            raise ValueError(f"No checkpoint found for run {run_id}")
+            raise CheckpointNotFoundError(run_id)
 
         state = checkpoint.state
         newer_events = await self.store.events_since(run_id, checkpoint.event_seq)
@@ -192,27 +161,28 @@ class Engine:
         """
         checkpoint = await self.store.latest(run_id)
         if checkpoint is None:
-            raise ValueError(f"No checkpoint found for run_id={run_id!r}")
+            raise CheckpointNotFoundError(run_id)
 
         state = checkpoint.state
 
         if state.status != RunStatus.WAITING_ON_HUMAN:
-            raise ValueError(
-                f"Run {run_id!r} is not waiting for approval "
-                f"(current status: {state.status.value!r})."
+            raise InvalidRunStatusError(
+                run_id,
+                state.status.value,
+                [RunStatus.WAITING_ON_HUMAN.value]
             )
 
         pending = state.scratch.get("_pending_approval") or {}
         pending_tool = pending.get("tool")
         if tool is None:
             if pending_tool is None:
-                raise ValueError(
+                raise InvalidToolApprovalError(
                     f"Run {run_id!r} has no pending tool in scratch. "
                     "Pass tool= explicitly."
                 )
             tool = pending_tool
         elif pending_tool is not None and tool != pending_tool:
-            raise ValueError(
+            raise InvalidToolApprovalError(
                 f"Tool {tool!r} does not match the pending tool "
                 f"{pending_tool!r} for run {run_id!r}."
             )
@@ -401,14 +371,10 @@ class Engine:
             # for what is actually a clean pause, not a failure.
             raise
         except Exception as exc:
-            if exc.__class__.__name__ == "HandoffCompleted":
+            if isinstance(exc, HandoffCompleted):
                 # Same reasoning as ApprovalRequired above — a successful
-                # handoff is not a tool failure. Checked by class name
-                # rather than importing kestrion.agent.agent here, since
-                # core/ must not depend on agent/ (see architecture.md's
-                # dependency-direction rule) — HandoffCompleted is an
-                # agent/-layer control-flow signal, not a core concept,
-                # but call_tool still needs to avoid mislabeling it.
+                # handoff is not a tool failure. Since HandoffCompleted is in
+                # core/errors.py, we can safely check isinstance here directly.
                 raise
             await self._emit(state, EventType.TOOL_CALL_FAILED, {"tool": tool_name, "error": str(exc)})
             raise

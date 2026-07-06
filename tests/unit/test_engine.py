@@ -9,7 +9,8 @@ kubectl/k8s framing) so a failure points at the engine itself, not at
 example-specific logic.
 """
 
-from kestrion.core.engine import ApprovalRequired, Engine
+from kestrion.core.engine import Engine
+from kestrion.core.errors import ApprovalRequired, CheckpointNotFoundError
 from kestrion.core.types import (
     AgentState,
     NodeResult,
@@ -208,8 +209,8 @@ async def test_resume_raises_clearly_when_no_checkpoint_exists(tmp_store):
 
     try:
         await engine.resume("run_that_never_existed")
-        assert False, "expected ValueError for missing checkpoint"
-    except ValueError as exc:
+        assert False, "expected CheckpointNotFoundError for missing checkpoint"
+    except CheckpointNotFoundError as exc:
         assert "run_that_never_existed" in str(exc)
 
 

@@ -23,8 +23,16 @@ import asyncio
 import uuid
 from dataclasses import asdict, dataclass
 
-from kestrion.core.engine import ApprovalRequired, Engine
+from kestrion.core.engine import Engine
 from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, Tool, ToolResult, ToolSpec
+from kestrion.core.errors import (
+    ApprovalRequired,
+    CheckpointNotFoundError,
+    HandoffCompleted,
+    InvalidRunStatusError,
+    InvalidStoreURLError,
+    InvalidToolApprovalError,
+)
 from kestrion.llm.base import LLMProvider, LLMResponse, Message, ToolCallRequest
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
@@ -67,7 +75,7 @@ def _store_from_url(url: str):
     if url.startswith("sqlite:///"):
         path = url[len("sqlite:///"):]
         return SQLiteCheckpointStore(path=path)
-    raise ValueError(f"Unsupported store URL scheme: {url!r}. Supported: sqlite:///path/to/file.db")
+    raise InvalidStoreURLError(f"Unsupported store URL scheme: {url!r}. Supported: sqlite:///path/to/file.db")
 
 
 class _AgentLoopNode:
@@ -343,23 +351,7 @@ class SubAgentTool(Tool):
         return ToolResult(tool_name=self.spec.name, output=result.output)
 
 
-class HandoffCompleted(Exception):
-    """
-    Raised by HandoffTool.call() to signal that the conversation has been
-    fully transferred to another agent — NOT an error. This is a
-    deliberate control-flow signal, same pattern as ApprovalRequired:
-    _AgentLoopNode.run() catches it specifically and ends the CALLING
-    agent's run immediately, recording the handoff, rather than letting
-    the loop continue and feed a handoff "result" back to the model as
-    if it were an ordinary tool result. A normal ToolResult would risk
-    the original agent continuing to talk about a conversation it no
-    longer owns.
-    """
 
-    def __init__(self, target_run_id: str, target_status: RunStatus, target_output: str | None):
-        self.target_run_id = target_run_id
-        self.target_status = target_status
-        self.target_output = target_output
 
 
 class HandoffTool(Tool):
@@ -542,17 +534,17 @@ class Agent:
         # ── 1. Load latest checkpoint ──────────────────────────────────────
         checkpoint = await self._store.latest(run_id)
         if checkpoint is None:
-            raise ValueError(f"No checkpoint found for run_id={run_id!r}")
+            raise CheckpointNotFoundError(run_id)
 
         state = checkpoint.state
 
         # ── 2. Validate the run is actually waiting ────────────────────────
         from kestrion.core.types import RunStatus  # local to avoid circular at module level
         if state.status != RunStatus.WAITING_ON_HUMAN:
-            raise ValueError(
-                f"Run {run_id!r} is not waiting for approval "
-                f"(current status: {state.status.value!r}). "
-                "Only WAITING_ON_HUMAN runs can be approved."
+            raise InvalidRunStatusError(
+                run_id,
+                state.status.value,
+                [RunStatus.WAITING_ON_HUMAN.value]
             )
 
         # ── 3. Resolve and validate the tool name ─────────────────────────
@@ -561,13 +553,13 @@ class Agent:
 
         if tool is None:
             if pending_tool is None:
-                raise ValueError(
+                raise InvalidToolApprovalError(
                     f"Run {run_id!r} has no pending tool in scratch. "
                     "Pass tool= explicitly."
                 )
             tool = pending_tool
         elif pending_tool is not None and tool != pending_tool:
-            raise ValueError(
+            raise InvalidToolApprovalError(
                 f"Tool {tool!r} does not match the pending tool "
                 f"{pending_tool!r} for run {run_id!r}."
             )

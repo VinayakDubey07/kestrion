@@ -17,6 +17,11 @@ from dataclasses import dataclass, field
 from kestrion.agent.agent import Agent, RunResult
 from kestrion.agent.decorators import tool
 from kestrion.core.types import EventType, RunStatus
+from kestrion.core.errors import (
+    CheckpointNotFoundError,
+    InvalidRunStatusError,
+    InvalidToolApprovalError,
+)
 from kestrion.llm.base import LLMProvider, LLMResponse, ToolCallRequest
 
 
@@ -267,7 +272,7 @@ async def test_approval_granted_event_emitted(tmp_store):
 
 async def test_unknown_run_id_raises(tmp_store):
     agent = _agent(FakeLLM([]), [appr_gated], tmp_store)
-    with pytest.raises(ValueError, match="No checkpoint found"):
+    with pytest.raises(CheckpointNotFoundError):
         await agent.approve("run_does_not_exist")
 
 
@@ -278,7 +283,7 @@ async def test_wrong_tool_name_raises(tmp_store):
     agent = _agent(llm, [appr_gated], tmp_store)
     result = await agent.run("go")
     assert result.status == RunStatus.WAITING_ON_HUMAN
-    with pytest.raises(ValueError, match="does not match the pending tool"):
+    with pytest.raises(InvalidToolApprovalError):
         await agent.approve(result.run_id, tool="some_other_tool")
 
 
@@ -287,7 +292,7 @@ async def test_approving_completed_run_raises(tmp_store):
     agent = _agent(llm, [], tmp_store)
     result = await agent.run("hello")
     assert result.status == RunStatus.COMPLETED
-    with pytest.raises(ValueError, match="not waiting for approval"):
+    with pytest.raises(InvalidRunStatusError):
         await agent.approve(result.run_id)
 
 
@@ -318,7 +323,7 @@ async def test_engine_approve_wrong_status_raises(tmp_store):
     agent = _agent(llm, [], tmp_store)
     result = await agent.run("hi")
     assert result.status == RunStatus.COMPLETED
-    with pytest.raises(ValueError, match="not waiting for approval"):
+    with pytest.raises(InvalidRunStatusError):
         await agent._engine.approve_pending_tool(result.run_id)
 
 
@@ -329,5 +334,5 @@ async def test_engine_approve_wrong_tool_raises(tmp_store):
     agent = _agent(llm, [appr_gated], tmp_store)
     result = await agent.run("go")
     assert result.status == RunStatus.WAITING_ON_HUMAN
-    with pytest.raises(ValueError, match="does not match the pending tool"):
+    with pytest.raises(InvalidToolApprovalError):
         await agent._engine.approve_pending_tool(result.run_id, tool="nonexistent")
