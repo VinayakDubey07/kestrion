@@ -37,6 +37,8 @@ Code, not just prose:
   recovery using the raw `Engine`/`Node` primitives directly.
 - [`examples/rest_api_tool`](../examples/rest_api_tool) — calling REST/SOAP APIs from a tool:
   timeouts, secrets, retries.
+- [`examples/mcp_server.py`](../examples/mcp_server.py) — a worked example exposing a Kestrion
+  agent as an MCP server over stdio.
 - [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising six agentic
   features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction)
   against a real local model.

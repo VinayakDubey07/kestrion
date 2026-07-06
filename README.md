@@ -278,6 +278,8 @@ for what to fill in before `kubectl apply`.
   against a local Ollama server. Skips automatically if Ollama isn't running.
 - [`tests/unit/test_mcp_client.py`](tests/unit/test_mcp_client.py) — a live test against a real
   MCP server (`tests/fixtures/mock_mcp_server.py`), including the approval-gating integration.
+- [`examples/mcp_server.py`](examples/mcp_server.py) — a worked example exposing a Kestrion agent
+  as an MCP server over stdio.
 - [`tests/unit/test_mcp_server.py`](tests/unit/test_mcp_server.py) — a live test of the MCP
   server side (`serve_agent()`), verifying a paused run is correctly surfaced through the MCP
   protocol rather than misreported as an error.
@@ -308,8 +310,8 @@ ruff check src/ tests/
 
 ## Roadmap
 
-Next up: memory/context compaction, a scheduler for safe concurrent execution across many agent
-runs, Postgres-backed storage, and further hardening. See [roadmap.md](roadmap.md) for the
+Next up: a scheduler for safe concurrent execution across many agent runs,
+Postgres-backed storage, and further hardening. See [roadmap.md](roadmap.md) for the
 detailed, dated 3-month plan.
 
 ## License
