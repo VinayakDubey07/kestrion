@@ -115,13 +115,47 @@ confirms that neither tool in a mixed batch runs when one of them is gated and u
 
 When using the sub-agent delegation pattern, a sub-agent's run might pause waiting on a gated tool. The engine propagates this pause to the parent run as a pending approval for a synthetic role named `sub_agent:<child_run_id>`. For a detailed discussion on how delegation and approvals work across multiple agents, see [Sub-Agents vs. Handoff](sub-agents-vs-handoff.md).
 
-## What's still a known gap
+## Durable Approval APIs (`Agent.approve()` & `Engine.approve_pending_tool()`)
 
-`Agent.approve()` — a single-call convenience method for recording an approval — is currently a
-stub that raises `NotImplementedError` with instructions for doing it manually (exactly the
-`Engine.record_approval` + checkpoint-save pattern shown above and in
-[Getting Started](../getting-started.md)). A real implementation needs a durable approval-
-persistence layer of its own; see the project README's "Known gaps" for current status.
+To make approvals extremely simple, Kestrion provides built-in methods at both the high-level `Agent` layer and the low-level `Engine` layer.
+
+### 1. High-Level: `Agent.approve()`
+`Agent.approve()` is a convenience method that takes care of the entire loading, validating, recording, checkpointing, and optional resuming flow in a single call.
+
+```python
+async def approve(
+    self,
+    run_id: str,
+    tool: str | None = None,
+    role: str = "__any__",
+    and_resume: bool = True,
+) -> RunResult | None:
+```
+
+* **Default behavior**: Calling `await agent.approve(run_id)` automatically resolves the currently pending tool from the checkpoint's state, records a generic approval, writes a durable `HUMAN_INTERVENTION` event (with an `approval_granted` payload), saves a new checkpoint, and calls `resume()` immediately.
+* **Partial approvals**: When validating a multi-role chain, call `agent.approve(run_id, role="role_name", and_resume=False)`. This persists the approval fact safely to the store but keeps the run paused so other roles can approve later.
+
+### 2. Low-Level: `Engine.approve_pending_tool()`
+For raw graph/engine users, the `Engine` exposes `approve_pending_tool()`:
+
+```python
+async def approve_pending_tool(
+    self,
+    run_id: str,
+    tool: str | None = None,
+    role: str = "__any__",
+) -> AgentState:
+```
+
+Unlike `Agent.approve()`, this method records and checkpoints the approval but does **not** automatically trigger resumption. The caller is responsible for calling `engine.resume(run_id)` separately:
+
+```python
+# Record the approval (persists a new checkpoint):
+await engine.approve_pending_tool(run_id, tool="deploy_to_prod", role="engineer")
+
+# Continue the run when ready:
+result = await engine.resume(run_id)
+```
 
 ## Related
 

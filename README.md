@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: pre-alpha (`0.2.1`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, and five agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, and six agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff) are built and tested — 107 passing tests. Memory/context compaction, a scheduler, and
-Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
+handoff, memory/context compaction) are built and tested — 127 passing tests. A scheduler
+and Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion
 
@@ -70,16 +70,11 @@ real cluster until that's explicitly approved.
 ### Resuming a paused run
 
 Resuming works from a completely independent process — this is the actual crash-recovery
-guarantee, not just a convenience method:
+guarantee. Approving a paused run is a clean one-liner:
 
 ```python
 # Anywhere else, any time later, sharing only the same store file:
-from kestrion.core.engine import Engine
-Engine.record_approval(state, "apply_manifest", role="__any__")
-# (persist that as a checkpoint — see examples/kubectl_agent for the full pattern;
-#  Agent.approve() is not yet a polished one-liner, see Known Gaps below)
-
-result = await agent.resume(run_id)
+result = await agent.approve(run_id)
 print(result.status)  # "completed"
 ```
 
@@ -257,14 +252,12 @@ for what to fill in before `kubectl apply`.
   about this in practice, though unverified live as of this writing (see above).
 - **Multi-agent handoff is built.** `Agent.as_handoff_target()` transfers an entire conversation to
   another agent, which takes over completely (distinct from sub-agents/delegation, where the
-  original agent stays in control). **Memory/context compaction is not yet built** — long-running
-  conversations accumulate unbounded message history today.
+  original agent stays in control).
+- **Memory/context compaction is built.** Long-running conversations are automatically summarized
+  by the agent when history thresholds (`max_history_turns` or `max_history_tokens`) are exceeded.
 - **No real concurrency control across multiple agent runs.** Parallel tool calls *within* one
   agent's turn are supported; running many separate agents at once against a shared rate limit is
   not.
-- **`Agent.approve()` is a stub.** Approving a paused run currently means manually calling
-  `Engine.record_approval` and saving a checkpoint by hand (see `examples/kubectl_agent`), not a
-  polished one-line call.
 - **SQLite only.** A `CheckpointStore` Protocol exists so Postgres can be added without touching
   the engine, but that implementation doesn't exist yet.
 

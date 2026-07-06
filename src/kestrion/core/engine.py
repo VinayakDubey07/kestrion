@@ -160,14 +160,76 @@ class Engine:
 
         return await self._drive(state)
 
-    def approve_pending_tool(self, run_id: str) -> None:
+    async def approve_pending_tool(
+        self,
+        run_id: str,
+        tool: str | None = None,
+        role: str = "__any__",
+    ) -> AgentState:
         """
-        Host app calls this after a human clicks 'approve'. Sets a flag the
-        next resume() call will honor. (Left as a stub here — real impl
-        would persist the approval decision via the store so it survives
-        a process restart, same pattern as everything else.)
+        Record approval for the pending tool on a paused run and persist it
+        durably. The caller is responsible for calling ``resume()`` separately
+        (unlike ``Agent.approve()`` which wraps both steps).
+
+        Designed for raw Engine users who manage the run loop themselves
+        rather than going through the ``Agent`` wrapper. For the high-level
+        one-call API, use ``Agent.approve()`` instead.
+
+        Parameters
+        ----------
+        run_id:
+            Run ID currently in ``WAITING_ON_HUMAN`` status.
+        tool:
+            Name of the tool to approve. Defaults to the pending tool in
+            ``state.scratch["_pending_approval"]["tool"]``.
+        role:
+            Role granting the approval. Defaults to ``"__any__"``.
+
+        Returns
+        -------
+        The updated ``AgentState`` with the approval recorded. Call
+        ``engine.resume(run_id)`` after this to continue the run.
         """
-        raise NotImplementedError("Wire this to your approval persistence layer")
+        checkpoint = await self.store.latest(run_id)
+        if checkpoint is None:
+            raise ValueError(f"No checkpoint found for run_id={run_id!r}")
+
+        state = checkpoint.state
+
+        if state.status != RunStatus.WAITING_ON_HUMAN:
+            raise ValueError(
+                f"Run {run_id!r} is not waiting for approval "
+                f"(current status: {state.status.value!r})."
+            )
+
+        pending = state.scratch.get("_pending_approval") or {}
+        pending_tool = pending.get("tool")
+        if tool is None:
+            if pending_tool is None:
+                raise ValueError(
+                    f"Run {run_id!r} has no pending tool in scratch. "
+                    "Pass tool= explicitly."
+                )
+            tool = pending_tool
+        elif pending_tool is not None and tool != pending_tool:
+            raise ValueError(
+                f"Tool {tool!r} does not match the pending tool "
+                f"{pending_tool!r} for run {run_id!r}."
+            )
+
+        self.record_approval(state, tool, role=role)
+
+        approval_event = Event.create(
+            run_id=run_id,
+            type=EventType.HUMAN_INTERVENTION,
+            payload={"reason": "approval_granted", "tool": tool, "role": role},
+            node=state.current_node,
+        )
+        seq = await self.store.append_event(approval_event)
+        state.last_event_seq = seq
+
+        await self._checkpoint(state)
+        return state
 
     @staticmethod
     def record_approval(state: AgentState, tool_name: str, role: str = "__any__") -> None:

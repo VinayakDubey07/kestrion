@@ -82,37 +82,28 @@ everything that happened so far is already in `my_agent.db`.
 ## Approving and resuming
 
 In a real application, the approval step usually happens in a different process than the one that
-started the run — a person clicks "approve" in a UI, hours later, on a different machine. Kestrion
-models this directly: approving is just recording that fact in the run's state and persisting it,
-then calling `resume()`.
+started the run — a person clicks "approve" in a UI, hours later, on a different machine.
+
+Kestrion makes this extremely simple with the one-liner `approve()` method:
 
 ```python
-from datetime import datetime, timezone
-from kestrion.core.engine import Engine
-from kestrion.core.types import Checkpoint, new_id
-
-# Record the approval (this mutates result.state in place — see the
-# "Approval Gates" concept doc for why record_approval exists instead
-# of writing to scratch by hand).
-Engine.record_approval(result.state, "send_email", role="__any__")
-
-# Persist it as a checkpoint so resume() (possibly in a different
-# process) can see it.
-await agent._store.save(Checkpoint(
-    checkpoint_id=new_id("ckpt"),
-    run_id=result.run_id,
-    state=result.state,
-    created_at=datetime.now(timezone.utc),
-    event_seq=result.state.last_event_seq,
-))
-
-final = await agent.resume(result.run_id)
+# Anywhere else, any time later, sharing only the same store database:
+final = await agent.approve(result.run_id)
 print(final.status)   # RunStatus.COMPLETED
 ```
 
-This is more manual than it will eventually be — `Agent.approve()` is a planned ergonomic
-shortcut for exactly this, not yet built (see the project README's "Known gaps"). What's shown
-above is the real mechanism underneath it, and it's already fully functional.
+Under the hood, `agent.approve()` handles loading the latest checkpoint, validating status, appending a role approval (`Engine.record_approval`), logging the decision, persisting a new checkpoint, and calling `resume()`.
+
+For multi-step approval chains (e.g. `requires_approval=["engineer", "manager"]`), you can pass the specific role and prevent immediate resumption by setting `and_resume=False`:
+
+```python
+# Engineer signs off:
+await agent.approve(result.run_id, role="engineer", and_resume=False)
+
+# Manager signs off later, letting execution continue:
+final = await agent.approve(result.run_id, role="manager")
+print(final.status)   # RunStatus.COMPLETED
+```
 
 ## What just happened, mechanically
 

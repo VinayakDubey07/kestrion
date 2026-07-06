@@ -37,9 +37,9 @@ Code, not just prose:
   recovery using the raw `Engine`/`Node` primitives directly.
 - [`examples/rest_api_tool`](../examples/rest_api_tool) — calling REST/SOAP APIs from a tool:
   timeouts, secrets, retries.
-- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising five agentic
-  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff) against
-  a real local model.
+- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising six agentic
+  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction)
+  against a real local model.
 
 ## What's built vs. planned
 

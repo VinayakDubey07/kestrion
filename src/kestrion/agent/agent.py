@@ -487,21 +487,126 @@ class Agent:
             state=state,
         )
 
-    def approve(self, run_id: str, tool: str) -> None:
+    async def approve(
+        self,
+        run_id: str,
+        tool: str | None = None,
+        role: str = "__any__",
+        and_resume: bool = True,
+    ) -> "RunResult | None":
         """
-        Marks a tool as approved for a paused run. NOTE: this is the same
-        stub-shaped gap flagged in Engine.approve_pending_tool — real
-        approval persistence needs its own durable record, not just an
-        in-memory flag, before this is production-safe. Implemented here
-        as a minimal version so Agent's resume() flow is usable today.
+        Approve a pending tool call for a paused run, then (by default)
+        resume execution immediately.
+
+        Parameters
+        ----------
+        run_id:
+            The run ID that is currently in ``WAITING_ON_HUMAN`` status.
+        tool:
+            The name of the tool to approve. Defaults to whatever tool is
+            currently pending in the run's state, so the simplest call
+            for a single-tool approval is just::
+
+                result = await agent.approve(run_id)
+
+        role:
+            The role granting the approval. Defaults to ``"__any__"``
+            (suitable for ``requires_approval=True`` tools). For a
+            multi-role chain (e.g. ``requires_approval=["engineer", "manager"]``),
+            call ``approve()`` once per role::
+
+                await agent.approve(run_id, role="engineer", and_resume=False)
+                result = await agent.approve(run_id, role="manager")
+
+        and_resume:
+            If ``True`` (the default), immediately call ``resume()`` and
+            return its ``RunResult`` after persisting the approval.
+            If ``False``, persist the approval and return ``None`` — the
+            run stays in ``WAITING_ON_HUMAN`` until all required roles
+            have approved and a final ``resume()`` is triggered (either by
+            a subsequent ``approve()`` with ``and_resume=True``, or by a
+            direct call to ``agent.resume(run_id)``).
+
+        Returns
+        -------
+        ``RunResult`` if ``and_resume=True`` (the run may be COMPLETED,
+        WAITING_ON_HUMAN if more roles are still needed, or EXPIRED).
+        ``None`` if ``and_resume=False``.
+
+        Raises
+        ------
+        ValueError
+            If the run is not found, is not in ``WAITING_ON_HUMAN`` status,
+            or the supplied ``tool`` name does not match the pending tool.
         """
-        raise NotImplementedError(
-            "Agent.approve() needs a durable approval-persistence layer — "
-            "see Engine.approve_pending_tool. For now, set "
-            "state.scratch['_approved_tools'] = {tool: True} and save a "
-            "checkpoint manually before calling resume(), as shown in "
-            "examples/kubectl_agent."
+        # ── 1. Load latest checkpoint ──────────────────────────────────────
+        checkpoint = await self._store.latest(run_id)
+        if checkpoint is None:
+            raise ValueError(f"No checkpoint found for run_id={run_id!r}")
+
+        state = checkpoint.state
+
+        # ── 2. Validate the run is actually waiting ────────────────────────
+        from kestrion.core.types import RunStatus  # local to avoid circular at module level
+        if state.status != RunStatus.WAITING_ON_HUMAN:
+            raise ValueError(
+                f"Run {run_id!r} is not waiting for approval "
+                f"(current status: {state.status.value!r}). "
+                "Only WAITING_ON_HUMAN runs can be approved."
+            )
+
+        # ── 3. Resolve and validate the tool name ─────────────────────────
+        pending = state.scratch.get("_pending_approval") or {}
+        pending_tool = pending.get("tool")
+
+        if tool is None:
+            if pending_tool is None:
+                raise ValueError(
+                    f"Run {run_id!r} has no pending tool in scratch. "
+                    "Pass tool= explicitly."
+                )
+            tool = pending_tool
+        elif pending_tool is not None and tool != pending_tool:
+            raise ValueError(
+                f"Tool {tool!r} does not match the pending tool "
+                f"{pending_tool!r} for run {run_id!r}."
+            )
+
+        # ── 4. Record approval in state (safe append, no overwrite) ───────
+        self._engine.record_approval(state, tool, role=role)
+
+        # ── 5. Emit a durable HUMAN_INTERVENTION/approval_granted event ───
+        # Reusing the existing event type keeps the dashboard/trace viewer
+        # working with zero schema change — the payload's "reason" field
+        # distinguishes "approval_granted" from "approval_required".
+        from kestrion.core.types import Event, EventType
+        approval_event = Event.create(
+            run_id=run_id,
+            type=EventType.HUMAN_INTERVENTION,
+            payload={
+                "reason": "approval_granted",
+                "tool": tool,
+                "role": role,
+            },
+            node="agent_loop",
         )
+        seq = await self._store.append_event(approval_event)
+        state.last_event_seq = seq
+
+        # ── 6. Persist checkpoint — approval survives a crash before resume ─
+        from kestrion.core.types import Checkpoint, new_id, utcnow
+        await self._store.save(Checkpoint(
+            checkpoint_id=new_id("ckpt"),
+            run_id=run_id,
+            state=state,
+            created_at=utcnow(),
+            event_seq=state.last_event_seq,
+        ))
+
+        # ── 7. Optionally resume immediately ───────────────────────────────
+        if and_resume:
+            return await self.resume(run_id)
+        return None
 
     def as_tool(self, name: str, description: str) -> SubAgentTool:
         """
