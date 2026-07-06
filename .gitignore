@@ -30,3 +30,4 @@ unused.db
 internal/
 test-project/
 my-agent-k8s.yaml
+roadmap.md
