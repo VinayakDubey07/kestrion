@@ -3,10 +3,11 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: pre-alpha (`0.2.2`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, and six agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, six agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction) are built and tested — 128 passing tests. A scheduler
-and Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
+handoff, memory/context compaction), and a **DAG-based async scheduler** for multi-agent
+orchestraton are built and tested — 149 passing tests. Postgres support is designed but not yet
+implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion
 
@@ -192,6 +193,40 @@ That's intentional: exposing raw tools would let a caller invoke them directly, 
 gates, runs on every `ask_agent` call. A paused run is surfaced as a clear message (not an MCP
 error) so the caller knows a human approval is pending.
 
+### Pipeline / multi-agent orchestration
+
+Run a team of agents as a **DAG** — some agents execute concurrently, others wait until their
+upstream dependencies finish:
+
+```python
+from kestrion.scheduler import Pipeline, AgentTask, RateLimiterConfig
+
+pipeline = Pipeline(
+    tasks=[
+        AgentTask("researcher_a", agent=agent_a, prompt="Research Python's history and use cases"),
+        AgentTask("researcher_b", agent=agent_b, prompt="Research Rust's history and use cases"),
+        AgentTask(
+            "synthesizer",
+            agent=synth_agent,
+            prompt="Compare the two languages",
+            depends_on=["researcher_a", "researcher_b"],   # waits for both
+        ),
+    ],
+    max_workers=3,
+    rate_limiter_config=RateLimiterConfig(requests_per_minute=60),  # None for Ollama
+)
+
+results = await pipeline.run()
+for name, result in results.items():
+    print(f"{name}: {result.status.value} — {result.run_result.output[:80]}")
+```
+
+`researcher_a` and `researcher_b` run **concurrently** in the worker pool. `synthesizer` only
+starts once both complete — dependency resolution uses `asyncio.Event` per task, with no polling.
+If one task fails, independent branches keep running (`fail_fast=False` default); dependents are
+marked `SKIPPED` with a clear reason. Every run is stored in the shared SQLite store and visible
+in `kestrion dashboard`.
+
 ### CLI
 
 ```bash
@@ -230,6 +265,8 @@ for what to fill in before `kubectl apply`.
 - Agents that need to survive a crash or restart mid-task. `agent.resume(run_id)` works from a
   totally different process than the one that started the run.
 - Multi-turn tool use, including multiple tool calls per turn running concurrently.
+- **Multi-agent research pipelines and orchestration** — run a team of agents as a DAG where
+  some agents run concurrently and others wait for upstream results to arrive before starting.
 
 ## Known gaps (honest, not aspirational)
 
@@ -255,14 +292,20 @@ for what to fill in before `kubectl apply`.
   original agent stays in control).
 - **Memory/context compaction is built.** Long-running conversations are automatically summarized
   by the agent when history thresholds (`max_history_turns` or `max_history_tokens`) are exceeded.
-- **No real concurrency control across multiple agent runs.** Parallel tool calls *within* one
+- **No real concurrency control across multiple agent runs.** ~~Parallel tool calls *within* one
   agent's turn are supported; running many separate agents at once against a shared rate limit is
-  not.
+  not.~~ The `kestrion.scheduler` package now provides a `Pipeline` class with a DAG-based
+  runner, bounded `WorkerPool`, and shared token-bucket `RateLimiter` with exponential backoff.
+  See [`examples/pipeline_demo.py`](examples/pipeline_demo.py) and the new
+  `### Pipeline / multi-agent orchestration` section below.
 - **SQLite only.** A `CheckpointStore` Protocol exists so Postgres can be added without touching
   the engine, but that implementation doesn't exist yet.
 
 ## Examples
 
+- [`examples/pipeline_demo.py`](examples/pipeline_demo.py) — a live demo of the `Pipeline`
+  scheduler: two researcher agents run concurrently, a synthesizer agent waits for both to finish,
+  all results saved to a shared SQLite store and viewable in the dashboard.
 - [`examples/kubectl_agent`](examples/kubectl_agent) — the original worked example, demonstrating
   pause-on-approval and resume-after-restart using the raw `Engine`/`Node` primitives directly
   (useful for understanding what `Agent` builds on top of).
@@ -310,9 +353,9 @@ ruff check src/ tests/
 
 ## Roadmap
 
-Next up: a scheduler for safe concurrent execution across many agent runs,
-Postgres-backed storage, and further hardening. See [roadmap.md](roadmap.md) for the
-detailed, dated 3-month plan.
+Next up: Postgres-backed storage and further hardening. The scheduler is now built — see
+[`kestrion/scheduler/`](src/kestrion/scheduler/) and [`examples/pipeline_demo.py`](examples/pipeline_demo.py).
+See [roadmap.md](roadmap.md) for the detailed, dated 3-month plan.
 
 ## License
 

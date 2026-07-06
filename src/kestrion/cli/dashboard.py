@@ -92,8 +92,10 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
                 run_id, created_at, state_blob = r
                 try:
                     state = json.loads(state_blob)
+                    scratch = state.get("scratch", {})
                     runs.append({
                         "run_id": run_id,
+                        "task_name": scratch.get("_pipeline_task_name"),
                         "status": state.get("status", "unknown"),
                         "total_tokens": state.get("total_tokens", 0),
                         "total_cost_usd": state.get("total_cost_usd", 0.0),

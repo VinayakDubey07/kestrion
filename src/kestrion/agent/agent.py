@@ -449,12 +449,12 @@ class Agent:
             entry_node="agent_loop",
         )
 
-    async def run(self, prompt: str, run_id: str | None = None) -> RunResult:
+    async def run(self, prompt: str, run_id: str | None = None, **initial_scratch) -> RunResult:
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
-        return await self.run_with_history(initial_messages, run_id=run_id)
+        return await self.run_with_history(initial_messages, run_id=run_id, **initial_scratch)
 
     async def run_with_history(
-        self, messages: list[dict], run_id: str | None = None
+        self, messages: list[dict], run_id: str | None = None, **initial_scratch
     ) -> RunResult:
         """
         Like run(), but seeds the new run with an existing message
@@ -466,9 +466,13 @@ class Agent:
         transferred conversation, not just a new prompt — run() alone
         can't express that since it only ever wraps a single string into
         a one-message history.
+
+        Any extra keyword arguments (e.g. ``_pipeline_task_name="researcher_a``)
+        are passed through as initial scratch values, allowing callers to
+        tag runs with metadata without needing a separate API.
         """
         run_id = run_id or f"run_{uuid.uuid4().hex[:12]}"
-        state = await self._engine.start(run_id=run_id, _messages=messages)
+        state = await self._engine.start(run_id=run_id, _messages=messages, **initial_scratch)
         return RunResult(
             run_id=state.run_id,
             status=state.status,

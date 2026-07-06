@@ -246,6 +246,14 @@
       font-weight: 500;
     }
 
+    .run-id-sub {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-faint);
+      margin: 2px 16px 0;
+    }
+
     .badge {
       font-size: 10px;
       padding: 3px 8px;
@@ -658,6 +666,15 @@
         </div>
       </div>
 
+      <div class="detail-tabs" id="detail-tabs" style="display: none;">
+        <div class="detail-tab active" onclick="switchTab('timeline')">Event Timeline</div>
+        <div class="detail-tab" onclick="switchTab('chat')">Chat History</div>
+      </div>
+
+      <div class="chat-container" id="chat-container" style="display: none;">
+        <!-- Chat messages will be loaded here -->
+      </div>
+
       <div class="timeline-container" id="timeline-container" style="display: none;">
         <div class="timeline" id="timeline">
           <!-- Events will be loaded here -->
@@ -705,7 +722,7 @@
       list.innerHTML = '';
 
       const filtered = runsData.filter(r => {
-        const matchesText = r.run_id.toLowerCase().includes(filterText);
+        const matchesText = r.run_id.toLowerCase().includes(filterText) || (r.task_name || "").toLowerCase().includes(filterText);
         const matchesStatus = currentFilterStatus === 'all' || r.status === currentFilterStatus;
         return matchesText && matchesStatus;
       });
@@ -722,11 +739,14 @@
 
         const date = new Date(run.timestamp || Date.now()).toLocaleTimeString();
 
+        const displayName = run.task_name || run.run_id;
+        const subLabel = run.task_name ? `<span class="run-id-sub">${run.run_id}</span>` : ``;
         item.innerHTML = `
           <div class="run-item-header">
-            <span class="run-id">${run.run_id}</span>
+            <span class="run-id">${displayName}</span>
             <span class="badge ${run.status}">${run.status.replace('_', ' ')}</span>
           </div>
+          ${subLabel}
           <div class="run-item-meta">
             <span>${date} &middot; Tokens: ${run.total_tokens}</span>
             <span>$${(run.total_cost_usd || 0).toFixed(5)}</span>
@@ -798,9 +818,63 @@
         const eventsRes = await fetch(`/api/runs/${runId}/events`);
         const events = await eventsRes.json();
         renderTimeline(events);
+
+        const messages = (state.scratch && state.scratch._messages) ? state.scratch._messages : [];
+        renderChat(messages);
+        
+        document.getElementById('detail-tabs').style.display = 'flex';
+        if (document.querySelectorAll('.detail-tab')[0].classList.contains('active')) {
+            switchTab('timeline');
+        } else {
+            switchTab('chat');
+        }
       } catch (err) {
         console.error('Failed to load details:', err);
       }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
+      if (tabId === 'timeline') {
+        document.querySelectorAll('.detail-tab')[0].classList.add('active');
+        document.getElementById('timeline-container').style.display = 'block';
+        document.getElementById('chat-container').style.display = 'none';
+      } else {
+        document.querySelectorAll('.detail-tab')[1].classList.add('active');
+        document.getElementById('timeline-container').style.display = 'none';
+        document.getElementById('chat-container').style.display = 'flex';
+      }
+    }
+
+    function renderChat(messages) {
+      const container = document.getElementById('chat-container');
+      container.innerHTML = '';
+      if (!messages || messages.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color: var(--text-dim); margin-top: 40px;">No chat history available.</div>';
+        return;
+      }
+      
+      messages.forEach(msg => {
+        const bubble = document.createElement('div');
+        const roleClass = msg.role === 'user' ? 'user' : (msg.role === 'assistant' ? 'assistant' : 'system');
+        bubble.className = `chat-bubble ${roleClass}`;
+        
+        let html = `<div class="chat-meta">${msg.role.toUpperCase()}</div>`;
+        
+        if (msg.content) {
+            html += `<div class="chat-content">${escapeHTML(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)).replace(/\\n/g, '<br>')}</div>`;
+        }
+        
+        if (msg.tool_calls && msg.tool_calls.length > 0) {
+            msg.tool_calls.forEach(tc => {
+                html += `<div class="chat-tool-call"><strong>🔧 Tool Call:</strong> ${tc.name}<br>${escapeHTML(JSON.stringify(tc.arguments))}</div>`;
+            });
+        }
+        
+        bubble.innerHTML = html;
+        container.appendChild(bubble);
+      });
+      container.scrollTop = container.scrollHeight;
     }
 
     function renderTimeline(events) {
@@ -960,6 +1034,8 @@
         document.getElementById('empty-state').style.display = 'flex';
         document.getElementById('detail-header').style.display = 'none';
         document.getElementById('timeline-container').style.display = 'none';
+        document.getElementById('chat-container').style.display = 'none';
+        document.getElementById('detail-tabs').style.display = 'none';
         document.querySelectorAll('.run-item').forEach(el => el.classList.remove('active'));
     }
 
