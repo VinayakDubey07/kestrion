@@ -83,14 +83,18 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
             runs = []
             for r in rows:
                 run_id, created_at, state_blob = r
-                state = json.loads(state_blob)
-                runs.append({
-                    "run_id": run_id,
-                    "status": state.get("status", "unknown"),
-                    "total_tokens": state.get("total_tokens", 0),
-                    "total_cost_usd": state.get("total_cost_usd", 0.0),
-                    "timestamp": created_at
-                })
+                try:
+                    state = json.loads(state_blob)
+                    runs.append({
+                        "run_id": run_id,
+                        "status": state.get("status", "unknown"),
+                        "total_tokens": state.get("total_tokens", 0),
+                        "total_cost_usd": state.get("total_cost_usd", 0.0),
+                        "timestamp": created_at
+                    })
+                except (json.JSONDecodeError, TypeError):
+                    # Skip old-format (pickle) or corrupted checkpoints gracefully
+                    pass
 
             self.send_json(runs)
         except Exception as exc:
@@ -203,6 +207,9 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
 
 
 def start_dashboard(db_path: str, host: str, port: int) -> None:
+    # Ensure the database tables exist
+    _ = SQLiteCheckpointStore(path=db_path)
+    
     # Set the DB path on the handler class before instantiation
     DashboardHTTPHandler.db_path = db_path
     
