@@ -432,9 +432,7 @@ they're either separate concerns or not yet built):
 - **Postgres-backed storage** (`store/postgres_store.py` is an empty stub) — `CheckpointStore`
   Protocol exists so this can be added without touching the engine.
 - **A `Trace` viewer** for the event log — built! Developers can inspect events via the terminal timeline (`kestrion trace <run_id>`) or launch the web dashboard (`kestrion dashboard`).
-- **`core/errors.py`** — empty stub. Exceptions today are scattered: `ApprovalRequired` and
-  `RunExpiredError` live in `engine.py`; raw `ValueError`/`NotImplementedError` are raised
-  elsewhere. A proper `KestrionError` hierarchy is planned.
+- **`core/errors.py`** — built! Exceptions are centralized under a semantic `KestrionError` class hierarchy, including `CheckpointNotFoundError`, `InvalidRunStatusError`, `InvalidStoreURLError`, `InvalidToolApprovalError`, `RunExpiredError`, `ApprovalRequired`, and `HandoffCompleted`. This also enables `core/engine.py` to import and check exceptions like `HandoffCompleted` cleanly without circular dependencies.
 - **`agent/graph.py`** — empty stub. Multi-step workflows are possible today via raw `Node`
   classes directly; this would add a more ergonomic builder API on top.
 

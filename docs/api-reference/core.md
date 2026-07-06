@@ -7,3 +7,5 @@ docstrings.
 ::: kestrion.core.types
 
 ::: kestrion.core.engine
+
+::: kestrion.core.errors
