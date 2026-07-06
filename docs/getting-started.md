@@ -121,6 +121,23 @@ resume — was recorded as an event in `my_agent.db`. Nothing about `result.stat
 `result.output` is stored directly; it's all *derived* by replaying that log. This is the core idea
 behind Kestrion, explained in full in [Event Sourcing](concepts/event-sourcing.md).
 
+## Visualizing runs and approving tools
+
+Kestrion provides a built-in Console to help you inspect and manage runs.
+
+### 1. Terminal Trace Inspector
+To see a colorized, step-by-step event timeline of a run directly in your terminal, run:
+```bash
+kestrion trace <run_id>
+```
+
+### 2. Web Dashboard & Approvals
+To launch an interactive web dashboard where you can view runs, inspect event payloads/costs, and approve pending gated tools via a visual interface:
+```bash
+kestrion dashboard --port 8000
+```
+Open `http://localhost:8000` in your browser to access the console.
+
 ## Where to go next
 
 - [Event Sourcing](concepts/event-sourcing.md) — why state is never mutated directly

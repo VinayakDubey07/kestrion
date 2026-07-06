@@ -196,6 +196,126 @@ def cmd_deploy(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_trace(args: argparse.Namespace) -> int:
+    db_path = args.store or "kestrion_runs.db"
+    db_file = Path(db_path)
+    if not db_file.exists():
+        if not args.store and Path("agent_runs.db").exists():
+            db_path = "agent_runs.db"
+            db_file = Path(db_path)
+        else:
+            print(f"error: database file '{db_path}' not found", file=sys.stderr)
+            return 1
+
+    from kestrion.store.sqlite_store import SQLiteCheckpointStore
+    store = SQLiteCheckpointStore(path=db_path)
+
+    async def get_data():
+        events = await store.events_since(args.run_id, 0)
+        checkpoint = await store.latest(args.run_id)
+        return events, checkpoint
+
+    try:
+        events, checkpoint = asyncio.run(get_data())
+    except Exception as exc:
+        print(f"error loading run: {exc}", file=sys.stderr)
+        return 1
+
+    if not events:
+        print(f"No events found for run_id: {args.run_id}", file=sys.stderr)
+        return 1
+
+    # ANSI colors
+    C_GREEN = "\033[92m"
+    C_YELLOW = "\033[93m"
+    C_RED = "\033[91m"
+    C_CYAN = "\033[96m"
+    C_MAGENTA = "\033[95m"
+    C_RESET = "\033[0m"
+    C_BOLD = "\033[1m"
+
+    state = checkpoint.state if checkpoint else None
+    status = state.status.value if state else "UNKNOWN"
+    total_tokens = state.total_tokens if state else 0
+    total_cost = state.total_cost_usd if state else 0.0
+
+    color = C_RESET
+    if status == "completed":
+        color = C_GREEN
+    elif status == "waiting_on_human":
+        color = C_YELLOW
+    elif status == "failed":
+        color = C_RED
+    elif status == "expired":
+        color = C_MAGENTA
+
+    print(f"{C_BOLD}Run ID: {args.run_id}{C_RESET} ({color}{C_BOLD}{status.upper()}{C_RESET})")
+    print(f"Database: {db_path}")
+    print(f"Total Tokens: {total_tokens} | Cost: ${total_cost:.5f}")
+    print("-" * 80)
+
+    for evt in events:
+        ts = evt.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        evt_type = evt.type.value.upper()
+        
+        if "FAILED" in evt_type or "EXPIRED" in evt_type:
+            type_color = C_RED
+        elif "STARTED" in evt_type:
+            type_color = C_GREEN
+        elif "COMPLETED" in evt_type:
+            type_color = C_CYAN
+        elif "HUMAN" in evt_type:
+            type_color = C_YELLOW
+        else:
+            type_color = C_RESET
+
+        node_str = f" [{evt.node}]" if evt.node else ""
+        print(f"[{ts}] {type_color}{C_BOLD}{evt_type}{C_RESET}{node_str}")
+
+        payload = evt.payload
+        if evt.type.value == "message_received":
+            print(f"  {C_YELLOW}User Prompt:{C_RESET} {payload.get('content')}")
+        elif evt.type.value == "llm_call_completed":
+            print(f"  {C_CYAN}LLM Response:{C_RESET} Stop Reason: {payload.get('stop_reason')} | Tokens: {evt.tokens_in} in / {evt.tokens_out} out | Cost: ${evt.cost_usd:.5f}")
+        elif evt.type.value == "tool_call_started":
+            print(f"  {C_CYAN}Tool Call:{C_RESET} {payload.get('tool')}({payload.get('args')})")
+        elif evt.type.value == "tool_call_completed":
+            out_str = str(payload.get("output"))
+            if len(out_str) > 120:
+                out_str = out_str[:120] + "..."
+            print(f"  {C_GREEN}Tool Output:{C_RESET} {out_str}")
+        elif evt.type.value == "tool_call_failed":
+            print(f"  {C_RED}Tool Error:{C_RESET} {payload.get('error')}")
+        elif evt.type.value == "state_transition":
+            from_node = payload.get("from")
+            to_node = payload.get("to")
+            print(f"  {C_MAGENTA}Transition:{C_RESET} {from_node} -> {to_node}")
+        elif evt.type.value == "human_intervention":
+            reason = payload.get("reason")
+            tool = payload.get("tool")
+            roles = payload.get("missing_roles")
+            expires = payload.get("expires_at")
+            print(f"  {C_YELLOW}Approval Required:{C_RESET} Tool '{tool}' | Missing Roles: {roles} | Expires: {expires}")
+        elif evt.type.value == "checkpoint_saved":
+            pass
+        elif payload:
+            print(f"  Payload: {payload}")
+    return 0
+
+
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    db_path = args.store or "kestrion_runs.db"
+    db_file = Path(db_path)
+    if not db_file.exists():
+        if not args.store and Path("agent_runs.db").exists():
+            db_path = "agent_runs.db"
+            db_file = Path(db_path)
+
+    from kestrion.cli.dashboard import start_dashboard
+    start_dashboard(db_path=db_path, host=args.host, port=args.port)
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Main / argument parsing
 # ---------------------------------------------------------------------------
@@ -211,6 +331,8 @@ def build_parser() -> argparse.ArgumentParser:
               kestrion init ./my-agent          scaffold in a subdirectory
               kestrion run agent.py             run an agent script
               kestrion deploy --target k8s      generate Kubernetes manifests
+              kestrion trace <run_id>           view a run's event timeline
+              kestrion dashboard                start the web dashboard
         """),
     )
     parser.add_argument("--version", action="version", version="%(prog)s 0.2.1")
@@ -241,6 +363,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_deploy.add_argument("--output", help="output filename (default: <name>-k8s.yaml)")
     p_deploy.add_argument("--force", action="store_true", help="overwrite existing Dockerfile")
 
+    # trace
+    p_trace = sub.add_parser("trace", help="inspect a run's event timeline")
+    p_trace.add_argument("run_id", help="the run ID to trace")
+    p_trace.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
+
+    # dashboard
+    p_dash = sub.add_parser("dashboard", help="start the web dashboard server")
+    p_dash.add_argument("--host", default="127.0.0.1", help="host to bind the server to (default: 127.0.0.1)")
+    p_dash.add_argument("--port", type=int, default=8000, help="port to bind the server to (default: 8000)")
+    p_dash.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
+
     return parser
 
 
@@ -256,6 +389,8 @@ def main() -> None:
         "init": cmd_init,
         "run": cmd_run,
         "deploy": cmd_deploy,
+        "trace": cmd_trace,
+        "dashboard": cmd_dashboard,
     }
     sys.exit(handlers[args.command](args))
 

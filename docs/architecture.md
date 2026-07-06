@@ -431,8 +431,7 @@ they're either separate concerns or not yet built):
   across *multiple separate* agent runs sharing one provider quota.
 - **Postgres-backed storage** (`store/postgres_store.py` is an empty stub) — `CheckpointStore`
   Protocol exists so this can be added without touching the engine.
-- **A `Trace` viewer** for the event log — the data exists in every run's event log; no
-  presentation layer reads it yet.
+- **A `Trace` viewer** for the event log — built! Developers can inspect events via the terminal timeline (`kestrion trace <run_id>`) or launch the web dashboard (`kestrion dashboard`).
 - **`core/errors.py`** — empty stub. Exceptions today are scattered: `ApprovalRequired` and
   `RunExpiredError` live in `engine.py`; raw `ValueError`/`NotImplementedError` are raised
   elsewhere. A proper `KestrionError` hierarchy is planned.

@@ -210,6 +210,12 @@ kestrion run agent.py
 
 # Generate Kubernetes manifests
 kestrion deploy --target k8s --name my-agent --image registry.example.com/my-agent:latest
+
+# Print the event timeline trace of a run
+kestrion trace run_id --store kestrion_runs.db
+
+# Launch the visual web dashboard
+kestrion dashboard --port 8000
 ```
 
 `kestrion deploy` generates a complete K8s manifest (Namespace, ConfigMap, Secret stub,
