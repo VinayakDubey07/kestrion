@@ -65,6 +65,7 @@ The ergonomic, user-facing layer built on top of `core`.
 
 - `kestrion.mcp.client.MCPClient` — `stdio()`, `http()`, `list_tools(requires_approval=[...])`
 - `kestrion.mcp.client.MCPTool` — wraps one MCP-advertised tool as a Kestrion `Tool`
+- `kestrion.mcp.server.serve_agent` — exposes a Kestrion `Agent` as a real MCP server
 
 ## Storage (`kestrion.store`)
 

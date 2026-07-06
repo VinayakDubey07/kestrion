@@ -111,6 +111,10 @@ This is directly tested:
 `tests/unit/test_parallel_tool_calls.py::test_gated_call_in_a_batch_blocks_everything_before_any_call_executes`
 confirms that neither tool in a mixed batch runs when one of them is gated and unapproved.
 
+## Sub-agent approval propagation
+
+When using the sub-agent delegation pattern, a sub-agent's run might pause waiting on a gated tool. The engine propagates this pause to the parent run as a pending approval for a synthetic role named `sub_agent:<child_run_id>`. For a detailed discussion on how delegation and approvals work across multiple agents, see [Sub-Agents vs. Handoff](sub-agents-vs-handoff.md).
+
 ## What's still a known gap
 
 `Agent.approve()` — a single-call convenience method for recording an approval — is currently a
@@ -123,3 +127,4 @@ persistence layer of its own; see the project README's "Known gaps" for current 
 
 - [Event Sourcing](event-sourcing.md) — why a pause is just "stop folding, record one event, return"
 - [Checkpointing](checkpointing.md) — how a paused run survives a process boundary
+- [Sub-Agents vs. Handoff](sub-agents-vs-handoff.md) — delegation vs transfer patterns in multi-agent runs

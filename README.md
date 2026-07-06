@@ -3,9 +3,9 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: pre-alpha (`0.2.1`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client, and five agentic features (multi-step approval
-chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent handoff) are built and
-tested — 82 passing tests. Memory/context compaction, an MCP server, a scheduler, a CLI, and
+three LLM providers, a live-verified MCP client and server, a CLI, and five agentic features
+(multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
+handoff) are built and tested — 107 passing tests. Memory/context compaction, a scheduler, and
 Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion
@@ -178,6 +178,45 @@ async with MCPClient.stdio(command="python3", args=["my_mcp_server.py"]) as clie
 MCP itself has no approval concept — `requires_approval` here is how you opt specific MCP tools
 into Kestrion's gating, by name.
 
+### MCP server
+
+Expose a Kestrion `Agent` as a real MCP server so something like Claude Code can connect to it
+and call its full reasoning loop as a single tool:
+
+```python
+from kestrion.mcp.server import serve_agent
+
+agent = Agent(provider=..., tools=[...], store="sqlite:///agent.db")
+mcp_server = serve_agent(agent, name="ops-agent", description="Ask the ops agent a question")
+mcp_server.run(transport="stdio")
+```
+
+This exposes one MCP tool — `ask_agent(prompt)` — rather than the agent's individual raw tools.
+That's intentional: exposing raw tools would let a caller invoke them directly, bypassing
+`Engine.call_tool`'s approval gating entirely. The full reasoning loop, including all approval
+gates, runs on every `ask_agent` call. A paused run is surfaced as a clear message (not an MCP
+error) so the caller knows a human approval is pending.
+
+### CLI
+
+```bash
+pip install kestrion
+
+# Scaffold a new project
+kestrion init ./my-agent
+
+# Run an agent script
+kestrion run agent.py
+
+# Generate Kubernetes manifests
+kestrion deploy --target k8s --name my-agent --image registry.example.com/my-agent:latest
+```
+
+`kestrion deploy` generates a complete K8s manifest (Namespace, ConfigMap, Secret stub,
+Deployment, PersistentVolumeClaim, Service) and a `Dockerfile`. It never puts a real API key
+in the output — only a clearly-labelled placeholder. See the generated files' inline comments
+for what to fill in before `kubectl apply`.
+
 ## What you can build with this today
 
 - Tool-calling agents where some actions are safe to auto-run and others need a human in the loop
@@ -193,10 +232,12 @@ into Kestrion's gating, by name.
 
 ## Known gaps (honest, not aspirational)
 
-- **MCP client is live-verified; MCP server is not built.** `kestrion.mcp.client.MCPClient`
+- **MCP is fully two-directional, both sides live-verified.** `kestrion.mcp.client.MCPClient`
   connects to real MCP servers (stdio or streamable-HTTP) and is tested against a real test-fixture
-  server, including the full approval-gating flow. Exposing a Kestrion `Agent` itself as an MCP
-  server (so it's callable from Claude Code or Codex CLI) is designed but not implemented.
+  server, including the full approval-gating flow. `kestrion.mcp.server.serve_agent()` exposes a
+  Kestrion `Agent` as a real MCP server, also live-verified end to end — a caller like Claude Code
+  can connect and invoke the agent's full reasoning loop (including approval gating) as a single
+  MCP tool. See [`examples/ops_demo`](examples/ops_demo) for a worked example using both.
 - **Anthropic and OpenAI providers are implemented against documented API shapes but not yet
   smoke-tested against a live API call** — no API key has been used to verify them in practice.
   **Ollama is verified live** — `tests/unit/test_smoke_ollama.py` and
@@ -215,8 +256,6 @@ into Kestrion's gating, by name.
 - **No real concurrency control across multiple agent runs.** Parallel tool calls *within* one
   agent's turn are supported; running many separate agents at once against a shared rate limit is
   not.
-- **No CLI or deploy story.** `kestrion deploy --target k8s` doesn't exist yet — you'd containerize
-  and deploy this yourself today.
 - **`Agent.approve()` is a stub.** Approving a paused run currently means manually calling
   `Engine.record_approval` and saving a checkpoint by hand (see `examples/kubectl_agent`), not a
   polished one-line call.
@@ -240,6 +279,12 @@ into Kestrion's gating, by name.
   against a local Ollama server. Skips automatically if Ollama isn't running.
 - [`tests/unit/test_mcp_client.py`](tests/unit/test_mcp_client.py) — a live test against a real
   MCP server (`tests/fixtures/mock_mcp_server.py`), including the approval-gating integration.
+- [`tests/unit/test_mcp_server.py`](tests/unit/test_mcp_server.py) — a live test of the MCP
+  server side (`serve_agent()`), verifying a paused run is correctly surfaced through the MCP
+  protocol rather than misreported as an error.
+- [`tests/unit/test_cli.py`](tests/unit/test_cli.py) — CLI integration tests for `kestrion init`,
+  `kestrion run`, and `kestrion deploy --target k8s`, including the security check that generated
+  manifests never contain real-looking API keys.
 
 ## Documentation
 
@@ -247,7 +292,8 @@ into Kestrion's gating, by name.
 - [Architecture](docs/architecture.md)
 - Concepts: [Event Sourcing](docs/concepts/event-sourcing.md) ·
   [Checkpointing](docs/concepts/checkpointing.md) ·
-  [Approval Gates](docs/concepts/approval-gates.md)
+  [Approval Gates](docs/concepts/approval-gates.md) ·
+  [Sub-Agents vs. Handoff](docs/concepts/sub-agents-vs-handoff.md)
 
 ## Development
 
@@ -263,9 +309,9 @@ ruff check src/ tests/
 
 ## Roadmap
 
-Next up: memory/context compaction, an MCP server, a scheduler for safe
-concurrent execution, a CLI with Kubernetes deploy support, Postgres-backed storage, and a docs
-site. See [ROADMAP.md](ROADMAP.md) for the detailed, dated 3-month plan.
+Next up: memory/context compaction, a scheduler for safe concurrent execution across many agent
+runs, Postgres-backed storage, and further hardening. See [roadmap.md](roadmap.md) for the
+detailed, dated 3-month plan.
 
 ## License
 

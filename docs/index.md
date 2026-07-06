@@ -19,6 +19,7 @@ The "why" behind the design, not just the "how":
   completely independent process, using nothing but a store.
 - **[Approval Gates](concepts/approval-gates.md)** — the base approval mechanism, multi-step
   chains, time-boxed approvals, and the safety guarantee around parallel tool calls.
+- **[Sub-Agents vs. Handoff](concepts/sub-agents-vs-handoff.md)** — delegation and transfer patterns for multi-agent workflows.
 
 ## Reference
 
@@ -32,7 +33,7 @@ The "why" behind the design, not just the "how":
 
 Code, not just prose:
 
-- [`examples/kubectl_agent.py`](../examples/kubectl_agent.py) — pause-on-approval and crash
+- [`examples/kubectl_agent/main.py`](../examples/kubectl_agent/main.py) — pause-on-approval and crash
   recovery using the raw `Engine`/`Node` primitives directly.
 - [`examples/rest_api_tool`](../examples/rest_api_tool) — calling REST/SOAP APIs from a tool:
   timeouts, secrets, retries.
@@ -45,4 +46,4 @@ Code, not just prose:
 This documentation describes what exists today. For an honest, dated account of what's verified,
 what's designed-but-unbuilt, and what's coming next, see the main
 [README's Known Gaps section](../README.md#known-gaps-honest-not-aspirational) and
-[ROADMAP.md](../ROADMAP.md).
+[roadmap.md](../roadmap.md).

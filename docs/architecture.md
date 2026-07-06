@@ -416,22 +416,28 @@ failures elsewhere (recoverable, not fatal).
 
 ## 8. What's deliberately NOT in this document
 
-This document describes what's built. It does not describe (because they don't exist yet):
+This document describes the core execution engine and agent layer. It does not cover (because
+they're either separate concerns or not yet built):
 
-- MCP client/server integration (`mcp/` is currently empty stub files)
-- The scheduler / concurrent-execution layer (`scheduler/`)
-- The CLI or `kestrion deploy` (`cli/`)
-- Postgres-backed storage (`store/postgres_store.py` is an empty stub)
-- A `Trace` viewer for the event log (the data exists; no presentation layer reads it yet)
-- **`core/errors.py`** — empty stub. Exceptions today are scattered and inconsistent: `ApprovalRequired`
-  lives in `engine.py`; raw `ValueError`/`NotImplementedError` are raised elsewhere for missing
-  checkpoints, bad store URLs, and unimplemented approval persistence. A proper `KestrionError`
-  hierarchy is planned but not yet built.
-- **`agent/graph.py`** — empty stub. Intended as a multi-node graph builder so explicit
-  multi-step workflows (like `examples/kubectl_agent.py`) can be expressed through `Agent`-style
-  ergonomics instead of hand-written `Node`/`NodeResult` classes. Not a capability gap today — that
-  workflow shape is already possible by writing raw `Node` classes directly — just not yet as
-  convenient as it could be.
+- **MCP client/server** — both now built and live-verified (`mcp/client.py`, `mcp/server.py`),
+  but at a higher layer than this document covers. The client wraps MCP-sourced tools as Kestrion
+  `Tool` objects; the server exposes a full `Agent` loop as one MCP tool via `serve_agent()`.
+  See the README's MCP sections for usage.
+- **CLI** — `kestrion init`, `kestrion run`, `kestrion deploy --target k8s` are now built
+  (`cli/main.py`, `cli/deploy.py`). Not covered here because the CLI is an entry-point layer on
+  top of the engine/agent, not a change to how either works.
+- **The scheduler / concurrent-execution layer** (`scheduler/`) — not yet built. Distinct from
+  parallel-tool-calls-within-one-run (built, see §4): this would rate-limit concurrent execution
+  across *multiple separate* agent runs sharing one provider quota.
+- **Postgres-backed storage** (`store/postgres_store.py` is an empty stub) — `CheckpointStore`
+  Protocol exists so this can be added without touching the engine.
+- **A `Trace` viewer** for the event log — the data exists in every run's event log; no
+  presentation layer reads it yet.
+- **`core/errors.py`** — empty stub. Exceptions today are scattered: `ApprovalRequired` and
+  `RunExpiredError` live in `engine.py`; raw `ValueError`/`NotImplementedError` are raised
+  elsewhere. A proper `KestrionError` hierarchy is planned.
+- **`agent/graph.py`** — empty stub. Multi-step workflows are possible today via raw `Node`
+  classes directly; this would add a more ergonomic builder API on top.
 
-See the project's `README.md` "Known gaps" section and the phased build plan for what's planned
-versus implemented at any given time — this document will need updating as those phases land.
+See the project's `README.md` "Known gaps" section and `roadmap.md` for what's planned versus
+implemented at any given time.
