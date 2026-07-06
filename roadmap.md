@@ -1,6 +1,6 @@
 # Kestrion — Roadmap (Next 3 Months)
 
-**Baseline:** `v0.2.1`, live on PyPI. 75 passing tests. Core engine, `Agent`/`@tool` API, 3 LLM
+**Baseline:** `v0.2.2`, live on PyPI. 128 passing tests. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
 and 4 of 6 planned agentic features (approval chains, timeouts, parallel tool calls, sub-agents)
 are built and tested.

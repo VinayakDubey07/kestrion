@@ -2,10 +2,10 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: pre-alpha (`0.2.1`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+Status: pre-alpha (`0.2.2`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
 three LLM providers, a live-verified MCP client and server, a CLI, and six agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction) are built and tested — 127 passing tests. A scheduler
+handoff, memory/context compaction) are built and tested — 128 passing tests. A scheduler
 and Postgres support are designed but not yet implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion

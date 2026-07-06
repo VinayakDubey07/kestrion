@@ -334,7 +334,7 @@ def build_parser() -> argparse.ArgumentParser:
               kestrion dashboard                start the web dashboard
         """),
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.2.1")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.2.2")
 
     sub = parser.add_subparsers(dest="command", metavar="<command>")
 
