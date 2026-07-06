@@ -1,0 +1,32 @@
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+doc/build/
+
+# Cache directories
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Databases & local state
+*.db
+*.db-journal
+*.sqlite
+kestrion_runs.db
+demo_runs.db
+unused.db
+
+# Project-specific ignored folders
+internal/
+test-project/
+my-agent-k8s.yaml
