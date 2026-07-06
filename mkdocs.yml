@@ -19,6 +19,7 @@ nav:
       - Event Sourcing: concepts/event-sourcing.md
       - Checkpointing: concepts/checkpointing.md
       - Approval Gates: concepts/approval-gates.md
+      - Sub-agents vs. Handoff: concepts/sub-agents-vs-handoff.md
   - Architecture: architecture.md
   - API Reference:
       - Overview: api-reference/index.md
