@@ -291,7 +291,6 @@ def cmd_trace(args: argparse.Namespace) -> int:
             to_node = payload.get("to")
             print(f"  {C_MAGENTA}Transition:{C_RESET} {from_node} -> {to_node}")
         elif evt.type.value == "human_intervention":
-            reason = payload.get("reason")
             tool = payload.get("tool")
             roles = payload.get("missing_roles")
             expires = payload.get("expires_at")

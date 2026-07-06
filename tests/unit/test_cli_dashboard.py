@@ -42,7 +42,7 @@ def temp_db_with_run():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        seq1 = loop.run_until_complete(store.append_event(evt_start))
+        loop.run_until_complete(store.append_event(evt_start))
         seq2 = loop.run_until_complete(store.append_event(evt_msg))
         
         state.last_event_seq = seq2

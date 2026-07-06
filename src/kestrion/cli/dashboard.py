@@ -1,6 +1,5 @@
 import json
 import sqlite3
-import sys
 import asyncio
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler

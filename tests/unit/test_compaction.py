@@ -1,9 +1,8 @@
 import pytest
 import tempfile
-import asyncio
 from pathlib import Path
 from kestrion.agent.agent import Agent
-from kestrion.llm.base import LLMResponse, Message
+from kestrion.llm.base import LLMResponse
 from kestrion.core.types import EventType
 
 class FakeCompactionProvider:
