@@ -3,23 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kestrion — Developer Console</title>
+  <title>Kestrion Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Light theme PrismJS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
-
     :root {
-      --bg: #0b1329;
-      --surface: #111b35;
-      --surface-hover: #1c2a4f;
-      --border: #23355f;
-      --text: #e2e8f0;
-      --text-dim: #94a3b8;
-      --accent: #0ea5e9;
-      --accent-hover: #38bdf8;
-      --green: #10b981;
-      --yellow: #f59e0b;
-      --red: #ef4444;
-      --magenta: #d946ef;
+      --bg: #ffffff;
+      --surface: #f8fbfd;
+      --surface-2: #eef7fa;
+      --surface-3: #e3f3f7;
+      --rule: #cfe2ea;
+      --rule-soft: #e7f0f4;
+      --text: #0f172a;
+      --text-dim: #475569;
+      --text-faint: #7b8b99;
+      --accent: #0e7490;
+      --accent-bright: #0891b2;
+      --accent-soft: rgba(34, 211, 238, 0.12);
+      --ink: #0f172a;
+      --warn: #b7791f;
+      --red: #b45353;
+      
       --font-sans: 'Inter', -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
@@ -34,37 +42,30 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--rule-soft);
       padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
+      z-index: 10;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .brand h1 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-    }
-
-    .brand span {
-      background: var(--border);
-      color: var(--text-dim);
-      font-size: 11px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: var(--font-mono);
+    .brand svg {
+      width: auto;
+      height: 32px;
     }
 
     .header-actions {
@@ -73,39 +74,60 @@
     }
 
     button {
-      background: var(--accent);
-      color: #ffffff;
-      border: none;
+      background: var(--bg);
+      border: 1px solid var(--rule);
+      color: var(--text);
       padding: 8px 16px;
       border-radius: 6px;
       font-weight: 500;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.2s;
+      transition: all 0.2s ease;
+      font-family: var(--font-mono);
     }
 
     button:hover {
-      background: var(--accent-hover);
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
+    
+    button:active {
+      transform: translateY(0);
     }
 
-    button.btn-secondary {
-      background: var(--border);
-      color: var(--text);
+    button.btn-primary {
+      background: linear-gradient(135deg, var(--ink), var(--accent));
+      color: #ffffff;
+      border: 1px solid rgba(34, 211, 238, 0.8);
+      box-shadow: 0 4px 14px 0 rgba(14, 116, 144, 0.15);
     }
 
-    button.btn-secondary:hover {
-      background: var(--surface-hover);
+    button.btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(14, 116, 144, 0.2);
+      background: linear-gradient(135deg, #0f172a, #0891b2);
     }
 
     button.btn-success {
-      background: var(--green);
+      background: var(--surface);
+      border-color: #34d399;
+      color: #059669;
     }
 
     button.btn-success:hover {
-      background: #059669;
+      background: #ecfdf5;
+    }
+
+    button.btn-danger {
+      background: var(--surface);
+      border-color: #f87171;
+      color: #dc2626;
+    }
+
+    button.btn-danger:hover {
+      background: #fef2f2;
     }
 
     .container {
@@ -116,33 +138,67 @@
 
     /* Sidebar */
     .sidebar {
-      width: 320px;
-      border-right: 1px solid var(--border);
+      width: 340px;
+      background: var(--surface);
+      border-right: 1px solid var(--rule-soft);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      z-index: 5;
     }
 
     .sidebar-header {
       padding: 16px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--rule-soft);
       display: flex;
-      gap: 10px;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .search-box {
-      background: rgba(0,0,0,0.2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px 12px;
+      background: #ffffff;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 10px 14px;
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
       width: 100%;
       outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .search-box:focus {
-      border-color: var(--accent);
+      border-color: var(--accent-bright);
+      box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
+    }
+
+    .filters {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .filters::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--rule);
+      color: var(--text-dim);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: var(--font-mono);
+    }
+
+    .filter-btn.active {
+      background: var(--surface-3);
+      color: var(--text);
+      border-color: var(--accent-bright);
     }
 
     .runs-list {
@@ -150,20 +206,31 @@
       overflow-y: auto;
     }
 
+    .runs-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .runs-list::-webkit-scrollbar-thumb {
+      background: var(--rule);
+      border-radius: 3px;
+    }
+
     .run-item {
       padding: 16px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--rule-soft);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, padding-left 0.2s;
+      position: relative;
     }
 
     .run-item:hover {
-      background: rgba(255, 255, 255, 0.02);
+      background: #ffffff;
+      padding-left: 20px;
     }
 
     .run-item.active {
-      background: var(--surface);
-      border-left: 3px solid var(--accent);
+      background: #ffffff;
+      border-left: 3px solid var(--accent-bright);
+      padding-left: 17px;
     }
 
     .run-item-header {
@@ -181,24 +248,24 @@
 
     .badge {
       font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 9999px;
+      padding: 3px 8px;
+      border-radius: 99px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.04em;
     }
 
-    .badge.completed { background: rgba(16, 185, 129, 0.15); color: var(--green); }
-    .badge.running { background: rgba(14, 165, 233, 0.15); color: var(--accent); }
-    .badge.waiting_on_human { background: rgba(245, 158, 11, 0.15); color: var(--yellow); }
-    .badge.failed { background: rgba(239, 68, 110, 0.15); color: var(--red); }
-    .badge.expired { background: rgba(217, 70, 239, 0.15); color: var(--magenta); }
+    .badge.completed { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge.running { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+    .badge.waiting_on_human { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+    .badge.failed { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge.expired { background: #fae8ff; color: #c026d3; border: 1px solid #f5d0fe; }
 
     .run-item-meta {
       display: flex;
       justify-content: space-between;
       font-size: 12px;
-      color: var(--text-dim);
+      color: var(--text-faint);
     }
 
     /* Detail view */
@@ -207,13 +274,14 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      background: rgba(0, 0, 0, 0.1);
+      position: relative;
+      background: #ffffff;
     }
 
     .detail-header {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 24px;
+      border-bottom: 1px solid var(--rule-soft);
+      padding: 24px 32px;
       flex-shrink: 0;
     }
 
@@ -226,52 +294,63 @@
 
     .detail-run-id {
       font-family: var(--font-mono);
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .detail-stats {
       display: flex;
-      gap: 24px;
+      gap: 16px;
     }
 
     .stat-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      padding: 10px 16px;
-      border-radius: 6px;
-      min-width: 120px;
+      background: #ffffff;
+      border: 1px solid var(--rule);
+      padding: 12px 16px;
+      border-radius: 8px;
+      min-width: 130px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.04);
     }
 
     .stat-label {
       font-size: 11px;
       text-transform: uppercase;
-      color: var(--text-dim);
-      margin-bottom: 4px;
-      font-weight: 500;
-    }
-
-    .stat-value {
-      font-size: 16px;
+      letter-spacing: 0.05em;
+      color: var(--text-faint);
+      margin-bottom: 6px;
       font-weight: 600;
       font-family: var(--font-mono);
     }
 
+    .stat-value {
+      font-size: 18px;
+      font-weight: 500;
+      font-family: var(--font-mono);
+      color: var(--accent-bright);
+    }
+
     /* Approval Banner */
     .approval-banner {
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px dashed var(--yellow);
+      background: #fffbeb;
+      border: 1px solid #fde68a;
       border-radius: 8px;
-      padding: 16px;
-      margin-top: 16px;
+      padding: 20px;
+      margin-top: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
     .approval-title {
       font-weight: 600;
-      color: var(--yellow);
+      color: #b45309;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -285,103 +364,194 @@
     }
 
     .approval-input {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px 12px;
+      background: #ffffff;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 10px 14px;
       color: var(--text);
       font-family: var(--font-mono);
       font-size: 13px;
-      width: 180px;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .approval-input:focus {
+      border-color: var(--warn);
     }
 
     /* Timeline */
     .timeline-container {
       flex: 1;
       overflow-y: auto;
-      padding: 24px;
+      padding: 32px;
+      scroll-behavior: smooth;
+    }
+
+    .timeline-container::-webkit-scrollbar {
+      width: 8px;
+    }
+    .timeline-container::-webkit-scrollbar-thumb {
+      background: var(--rule);
+      border-radius: 4px;
     }
 
     .timeline {
       position: relative;
-      padding-left: 24px;
-      margin-left: 8px;
-      border-left: 2px solid var(--border);
+      padding-left: 28px;
+      margin-left: 12px;
+      border-left: 2px solid var(--rule);
     }
 
     .timeline-item {
       position: relative;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
 
     .timeline-item::before {
       content: '';
       position: absolute;
-      left: -33px;
+      left: -37px;
       top: 4px;
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: var(--surface);
-      border: 3px solid var(--border);
+      background: #ffffff;
+      border: 3px solid var(--rule);
+      box-shadow: 0 0 0 4px #ffffff;
+      transition: border-color 0.3s, background 0.3s;
     }
 
-    .timeline-item.completed::before { border-color: var(--green); background: var(--bg); }
-    .timeline-item.started::before { border-color: var(--accent); background: var(--bg); }
-    .timeline-item.failed::before { border-color: var(--red); background: var(--bg); }
-    .timeline-item.warning::before { border-color: var(--yellow); background: var(--bg); }
+    .timeline-item:hover::before {
+      background: var(--surface-2);
+    }
+
+    .timeline-item.completed::before { border-color: #10b981; }
+    .timeline-item.started::before { border-color: var(--accent-bright); }
+    .timeline-item.failed::before { border-color: var(--red); }
+    .timeline-item.warning::before { border-color: var(--warn); }
 
     .timeline-time {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 4px;
+      color: var(--text-faint);
+      margin-bottom: 8px;
     }
 
     .timeline-content {
       background: var(--surface);
-      border: 1px solid var(--border);
+      border: 1px solid var(--rule);
       border-radius: 8px;
-      padding: 16px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .timeline-content:hover {
+      border-color: var(--accent-bright);
+      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.08);
     }
 
     .timeline-title {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .timeline-node {
       font-family: var(--font-mono);
       font-size: 11px;
-      background: rgba(255,255,255,0.06);
-      padding: 2px 6px;
+      background: #ffffff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: var(--text-dim);
+      border: 1px solid var(--rule);
+    }
+
+    .payload-container {
+      position: relative;
+      margin-top: 12px;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      background: var(--rule-soft);
+      border: 1px solid var(--rule);
       border-radius: 4px;
       color: var(--text-dim);
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+
+    .payload-container:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .copy-btn:hover {
+      background: var(--surface-3);
+      color: var(--text);
     }
 
     .timeline-payload {
       font-family: var(--font-mono);
       font-size: 13px;
-      color: var(--text-dim);
-      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid var(--rule) !important;
+      background: #ffffff !important;
+      margin: 0 !important;
+    }
+
+    /* LLM Markdown payload specific styling */
+    .timeline-markdown {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text);
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--rule);
+    }
+
+    .timeline-markdown p { margin-bottom: 1em; }
+    .timeline-markdown p:last-child { margin-bottom: 0; }
+    .timeline-markdown code {
+      font-family: var(--font-mono);
+      background: var(--surface);
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      border: 1px solid var(--rule-soft);
+    }
+    .timeline-markdown pre {
+      margin: 1em 0;
       padding: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--rule);
       border-radius: 6px;
       overflow-x: auto;
-      white-space: pre-wrap;
-      border: 1px solid rgba(255, 255, 255, 0.02);
     }
+    .timeline-markdown pre code { background: none; padding: 0; border: none; }
 
     .llm-metrics {
       display: flex;
       gap: 16px;
-      margin-top: 8px;
+      margin-top: 12px;
       font-size: 12px;
-      color: var(--accent);
+      color: var(--accent-bright);
       font-family: var(--font-mono);
+      background: var(--surface-2);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--rule);
     }
 
     /* Empty state */
@@ -391,33 +561,55 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--text-dim);
-      gap: 16px;
+      color: var(--text-faint);
+      gap: 20px;
     }
 
     .empty-state svg {
-      width: 48px;
-      height: 48px;
-      stroke: var(--border);
+      width: 56px;
+      height: 56px;
+      stroke: var(--rule);
+      transition: stroke 0.3s;
+    }
+    
+    .empty-state:hover svg {
+      stroke: var(--accent-bright);
     }
   </style>
 </head>
 <body>
   <header>
     <div class="brand">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      <h1>Kestrion Console</h1>
-      <span>v0.2.2</span>
+      <svg width="150" height="40" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" role="img">
+        <g>
+          <path d="M100,160 Q124,105 100,55 Q76,105 100,160 Z" fill="#0f172a" transform="rotate(-28 100 160)"/>
+          <path d="M100,160 Q120,101 100,42 Q80,101 100,160 Z" fill="#0e7490" transform="rotate(-8 100 160)"/>
+          <path d="M100,160 Q118,97 100,35 Q82,97 100,160 Z" fill="#22d3ee" transform="rotate(16 100 160)"/>
+          <circle cx="100" cy="160" r="8" fill="#0b1220"/>
+          <circle cx="100" cy="160" r="8" fill="none" stroke="#22d3ee" stroke-width="2"/>
+        </g>
+        <text x="228" y="128" font-family="Inter, -apple-system, sans-serif" font-size="70" font-weight="700" letter-spacing="-2" fill="#0f172a">kestrion</text>
+      </svg>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" onclick="loadRuns()">Refresh</button>
+      <button class="btn-secondary" onclick="loadRuns()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        Refresh
+      </button>
     </div>
   </header>
 
   <div class="container">
     <div class="sidebar">
       <div class="sidebar-header">
-        <input type="text" id="search" class="search-box" placeholder="Filter runs..." oninput="filterRuns()">
+        <input type="text" id="search" class="search-box" placeholder="Filter runs by ID..." oninput="filterRuns()">
+        <div class="filters" id="status-filters">
+          <button class="filter-btn active" data-status="all">All</button>
+          <button class="filter-btn" data-status="running">Running</button>
+          <button class="filter-btn" data-status="waiting_on_human">Waiting</button>
+          <button class="filter-btn" data-status="completed">Completed</button>
+          <button class="filter-btn" data-status="failed">Failed</button>
+        </div>
       </div>
       <div class="runs-list" id="runs-list">
         <!-- Runs will be loaded here -->
@@ -426,13 +618,13 @@
 
     <div class="detail-view" id="detail-view">
       <div class="empty-state" id="empty-state">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
         <p>Select a run from the sidebar to inspect its execution trace</p>
       </div>
 
       <div class="detail-header" id="detail-header" style="display: none;">
         <div class="detail-header-top">
-          <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
             <div class="detail-run-id" id="detail-run-id"></div>
             <span class="badge" id="detail-status"></span>
           </div>
@@ -445,19 +637,23 @@
               <div class="stat-label">Total Tokens</div>
               <div class="stat-value" id="detail-tokens">0</div>
             </div>
+            <button class="btn-danger" style="margin-left: 8px; height: fit-content; align-self: center;" onclick="deleteRun()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Delete Run
+            </button>
           </div>
         </div>
 
         <div class="approval-banner" id="approval-banner" style="display: none;">
           <div class="approval-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
             Human Approval Required
           </div>
-          <p id="approval-description"></p>
+          <p id="approval-description" style="font-size: 14px; line-height: 1.5; color: var(--text-dim);"></p>
           <div class="approval-form">
-            <label for="approval-role" style="font-size: 13px; color: var(--text-dim);">Approving Role:</label>
+            <label for="approval-role" style="font-size: 13px; color: var(--text-dim); font-weight: 500;">Approving Role:</label>
             <input type="text" id="approval-role" class="approval-input" value="__any__">
-            <button class="btn-success" onclick="approveRun()">Approve Tool Call</button>
+            <button class="btn-primary" onclick="approveRun()">Approve Tool Call</button>
           </div>
         </div>
       </div>
@@ -470,10 +666,25 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+
   <script>
     let currentRunId = null;
     let runsData = [];
     let pendingTool = null;
+    let currentFilterStatus = 'all';
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilterStatus = e.target.getAttribute('data-status');
+        filterRuns();
+      });
+    });
 
     async function loadRuns() {
       try {
@@ -489,14 +700,18 @@
     }
 
     function renderRunsList() {
-      const filter = document.getElementById('search').value.toLowerCase();
+      const filterText = document.getElementById('search').value.toLowerCase();
       const list = document.getElementById('runs-list');
       list.innerHTML = '';
 
-      const filtered = runsData.filter(r => r.run_id.toLowerCase().includes(filter));
+      const filtered = runsData.filter(r => {
+        const matchesText = r.run_id.toLowerCase().includes(filterText);
+        const matchesStatus = currentFilterStatus === 'all' || r.status === currentFilterStatus;
+        return matchesText && matchesStatus;
+      });
 
       if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--text-dim); font-size: 14px;">No runs found</div>';
+        list.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-faint); font-size: 14px;">No matching runs found</div>';
         return;
       }
 
@@ -510,11 +725,11 @@
         item.innerHTML = `
           <div class="run-item-header">
             <span class="run-id">${run.run_id}</span>
-            <span class="badge ${run.status}">${run.status}</span>
+            <span class="badge ${run.status}">${run.status.replace('_', ' ')}</span>
           </div>
           <div class="run-item-meta">
-            <span>Tokens: ${run.total_tokens}</span>
-            <span>Cost: $${(run.total_cost_usd || 0).toFixed(5)}</span>
+            <span>${date} &middot; Tokens: ${run.total_tokens}</span>
+            <span>$${(run.total_cost_usd || 0).toFixed(5)}</span>
           </div>
         `;
         list.appendChild(item);
@@ -526,6 +741,7 @@
     }
 
     function selectRun(runId) {
+      if (currentRunId === runId) return;
       currentRunId = runId;
       document.querySelectorAll('.run-item').forEach(el => el.classList.remove('active'));
       const activeEl = Array.from(document.querySelectorAll('.run-item')).find(el => el.querySelector('.run-id').innerText === runId);
@@ -541,26 +757,33 @@
     async function loadRunDetails(runId) {
       try {
         const runRes = await fetch(`/api/runs/${runId}`);
+        if (!runRes.ok) {
+           if(runRes.status === 404) {
+               clearDetailView();
+               return;
+           }
+           throw new Error("Network response was not ok");
+        }
         const state = await runRes.json();
 
         document.getElementById('detail-run-id').innerText = state.run_id;
         
         const statusBadge = document.getElementById('detail-status');
-        statusBadge.innerText = state.status;
+        statusBadge.innerText = state.status.replace('_', ' ');
         statusBadge.className = `badge ${state.status}`;
 
         document.getElementById('detail-cost').innerText = `$${(state.total_cost_usd || 0).toFixed(5)}`;
         document.getElementById('detail-tokens').innerText = state.total_tokens;
 
-        // Approval gating checks
         const approvalBanner = document.getElementById('approval-banner');
         if (state.status === 'waiting_on_human') {
           const pending = state.scratch._pending_approval;
           if (pending) {
             pendingTool = pending.tool;
+            const highlightedArgs = Prism.highlight(JSON.stringify(pending.kwargs, null, 2), Prism.languages.json, 'json');
             document.getElementById('approval-description').innerHTML = `
-              Tool <strong>${pending.tool}</strong> is waiting on approval.<br>
-              <strong>Arguments:</strong> <code style="background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 4px; font-family: var(--font-mono);">${JSON.stringify(pending.kwargs)}</code><br>
+              Agent wants to execute <strong>${pending.tool}</strong>.<br><br>
+              <div style="font-family: var(--font-mono); font-size: 13px; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid var(--rule);">${highlightedArgs}</div><br>
               <strong>Missing Roles:</strong> ${JSON.stringify(pending.missing_roles)}
             `;
             approvalBanner.style.display = 'flex';
@@ -572,7 +795,6 @@
           pendingTool = null;
         }
 
-        // Load timeline events
         const eventsRes = await fetch(`/api/runs/${runId}/events`);
         const events = await eventsRes.json();
         renderTimeline(events);
@@ -585,7 +807,7 @@
       const timeline = document.getElementById('timeline');
       timeline.innerHTML = '';
 
-      events.forEach(evt => {
+      events.forEach((evt, idx) => {
         const item = document.createElement('div');
         
         let typeClass = '';
@@ -600,21 +822,29 @@
         const date = new Date(evt.timestamp).toLocaleString();
         const payload = evt.payload;
         
-        let headerText = evt.type.toUpperCase();
+        let headerText = evt.type.toUpperCase().replace(/_/g, ' ');
         let payloadContent = '';
         let extraInfo = '';
+        let isMarkdown = false;
 
         if (type === 'message_received') {
           headerText = 'USER MESSAGE RECEIVED';
           payloadContent = payload.content;
         } else if (type === 'llm_call_completed') {
-          headerText = 'LLM CALL COMPLETED';
+          headerText = 'LLM GENERATION COMPLETED';
           extraInfo = `
             <div class="llm-metrics">
-              Stop Reason: ${payload.stop_reason || 'N/A'} | Tokens: ${evt.tokens_in} in / ${evt.tokens_out} out | Cost: $${evt.cost_usd.toFixed(5)}
+              <span><strong>Stop Reason:</strong> ${payload.stop_reason || 'N/A'}</span>
+              <span><strong>Tokens:</strong> ${evt.tokens_in} in / ${evt.tokens_out} out</span>
+              <span><strong>Cost:</strong> $${evt.cost_usd.toFixed(5)}</span>
             </div>
           `;
-          payloadContent = payload.text || JSON.stringify(payload);
+          if (payload.text) {
+             payloadContent = payload.text;
+             isMarkdown = true;
+          } else {
+             payloadContent = JSON.stringify(payload, null, 2);
+          }
         } else if (type === 'tool_call_started') {
           headerText = `TOOL CALL STARTED: ${payload.tool}`;
           payloadContent = JSON.stringify(payload.args, null, 2);
@@ -628,19 +858,46 @@
           headerText = `STATE TRANSITION`;
           payloadContent = `${payload.from} → ${payload.to}`;
         } else if (type === 'human_intervention') {
-          headerText = `HUMAN INTERVENTION REQUIRED`;
-          payloadContent = `Tool: ${payload.tool}\nMissing Roles: ${JSON.stringify(payload.missing_roles)}\nExpires: ${payload.expires_at || 'Never'}`;
+          headerText = `HUMAN APPROVAL REQUIRED`;
+          payloadContent = JSON.stringify(payload, null, 2);
         } else {
           payloadContent = JSON.stringify(payload, null, 2);
         }
 
         const nodeLabel = evt.node ? `<span class="timeline-node">${evt.node}</span>` : '';
+        
+        let formattedPayload = '';
+        if (payloadContent) {
+           const safeId = `payload-${evt.event_id}`;
+           if (isMarkdown || type === 'message_received' || type === 'state_transition') {
+              formattedPayload = `
+                <div class="payload-container">
+                    <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                    <div id="${safeId}" class="timeline-markdown">${escapeHTML(payloadContent).replace(/\n/g, '<br>')}</div>
+                </div>`;
+           } else {
+              try {
+                  const highlighted = Prism.highlight(payloadContent, Prism.languages.json, 'json');
+                  formattedPayload = `
+                  <div class="payload-container">
+                      <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                      <pre class="language-json timeline-payload"><code id="${safeId}" class="language-json">${highlighted}</code></pre>
+                  </div>`;
+              } catch(e) {
+                  formattedPayload = `
+                  <div class="payload-container">
+                      <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                      <pre class="timeline-payload" id="${safeId}">${escapeHTML(payloadContent)}</pre>
+                  </div>`;
+              }
+           }
+        }
 
         item.innerHTML = `
           <div class="timeline-time">${date}</div>
           <div class="timeline-content">
             <div class="timeline-title">${headerText} ${nodeLabel}</div>
-            ${payloadContent ? `<pre class="timeline-payload">${payloadContent}</pre>` : ''}
+            ${formattedPayload}
             ${extraInfo}
           </div>
         `;
@@ -651,34 +908,92 @@
     async function approveRun() {
       if (!currentRunId || !pendingTool) return;
       const role = document.getElementById('approval-role').value;
+      const btn = document.querySelector('.approval-form .btn-primary');
+      const originalText = btn.innerText;
+      btn.innerText = 'Approving...';
 
       try {
         const res = await fetch(`/api/runs/${currentRunId}/approve`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            tool: pendingTool,
-            role: role
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool: pendingTool, role: role })
         });
 
         const result = await res.json();
         if (result.success) {
-          alert('Approval recorded! You can now resume the agent run.');
+          alert('Approval recorded! The agent process can now resume this run.');
           loadRuns();
         } else {
           alert('Failed to approve: ' + result.error);
         }
       } catch (err) {
         alert('Error sending approval: ' + err);
+      } finally {
+        btn.innerText = originalText;
       }
     }
 
-    // Initialize
+    async function deleteRun() {
+        if (!currentRunId) return;
+        if (!confirm(`Are you sure you want to permanently delete run: ${currentRunId}?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/runs/${currentRunId}`, {
+                method: 'DELETE'
+            });
+            const result = await res.json();
+            if (result.success) {
+                clearDetailView();
+                loadRuns();
+            } else {
+                alert('Failed to delete run: ' + (result.error || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Error deleting run: ' + err);
+        }
+    }
+
+    function clearDetailView() {
+        currentRunId = null;
+        document.getElementById('empty-state').style.display = 'flex';
+        document.getElementById('detail-header').style.display = 'none';
+        document.getElementById('timeline-container').style.display = 'none';
+        document.querySelectorAll('.run-item').forEach(el => el.classList.remove('active'));
+    }
+
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        
+        let text = element.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const container = element.closest('.payload-container');
+            const btn = container.querySelector('.copy-btn');
+            if (btn) {
+                const oldText = btn.innerText;
+                btn.innerText = 'Copied!';
+                setTimeout(() => { btn.innerText = oldText; }, 2000);
+            }
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag)
+        );
+    }
+
     loadRuns();
-    // Auto-refresh runs list every 5 seconds
     setInterval(loadRuns, 5000);
   </script>
 </body>

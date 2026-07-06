@@ -138,6 +138,22 @@ def test_dashboard_api(temp_db_with_run):
             assert events_data[2]["payload"]["reason"] == "approval_granted"
             assert events_data[2]["payload"]["tool"] == "deploy"
             assert events_data[3]["type"] == "checkpoint_saved"
+            
+        # Test DELETE /api/runs/<run_id>
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/runs/{run_id}",
+            method="DELETE"
+        )
+        with urllib.request.urlopen(req) as res:
+            assert res.status == 200
+            data = json.loads(res.read().decode())
+            assert data["success"] is True
+            
+        # Verify run is deleted
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/runs") as res:
+            assert res.status == 200
+            data = json.loads(res.read().decode())
+            assert len(data) == 0
     finally:
         server.shutdown()
         server.server_close()

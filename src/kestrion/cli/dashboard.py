@@ -48,6 +48,16 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
 
         self.send_error(404, "Not Found")
 
+    def do_DELETE(self):
+        # API: delete run
+        if self.path.startswith("/api/runs/"):
+            parts = self.path.strip("/").split("/")
+            if len(parts) == 3:
+                self.handle_delete_run(parts[2])
+                return
+
+        self.send_error(404, "Not Found")
+
     def serve_static_file(self, filename, content_type):
         template_dir = Path(__file__).parent / "templates"
         file_path = template_dir / filename
@@ -168,6 +178,17 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
                 self.send_json({"success": True})
             else:
                 self.send_json({"success": False, "error": "Run not found"}, status=404)
+        except Exception as exc:
+            self.send_json({"success": False, "error": str(exc)}, status=500)
+
+    def handle_delete_run(self, run_id):
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.execute("DELETE FROM checkpoints WHERE run_id = ?", (run_id,))
+            conn.execute("DELETE FROM events WHERE run_id = ?", (run_id,))
+            conn.commit()
+            conn.close()
+            self.send_json({"success": True})
         except Exception as exc:
             self.send_json({"success": False, "error": str(exc)}, status=500)
 
