@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from datetime import datetime, timezone
 
-from kestrion.core.types import Event, EventType, AgentState, Checkpoint, new_id
+from kestrion.core.types import Event, EventType, AgentState, Checkpoint, RunStatus, new_id
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
 # PYTHONPATH setup
@@ -33,6 +33,11 @@ def temp_db_with_run():
         
         run_id = "test_run_123"
         state = AgentState(run_id=run_id, total_tokens=100, total_cost_usd=0.005)
+        state.status = RunStatus.WAITING_ON_HUMAN
+        state.scratch["_pending_approval"] = {
+            "tool": "deploy",
+            "role": "manager"
+        }
         
         # Save start event
         evt_start = Event.create(run_id=run_id, type=EventType.RUN_STARTED)
@@ -123,6 +128,16 @@ def test_dashboard_api(temp_db_with_run):
             assert res.status == 200
             data = json.loads(res.read().decode())
             assert data["scratch"]["_approved_tools"]["deploy"] == ["manager"]
+
+        # Verify that a HUMAN_INTERVENTION/approval_granted event was appended
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/runs/{run_id}/events") as res:
+            assert res.status == 200
+            events_data = json.loads(res.read().decode())
+            assert len(events_data) == 4
+            assert events_data[2]["type"] == "human_intervention"
+            assert events_data[2]["payload"]["reason"] == "approval_granted"
+            assert events_data[2]["payload"]["tool"] == "deploy"
+            assert events_data[3]["type"] == "checkpoint_saved"
     finally:
         server.shutdown()
         server.server_close()

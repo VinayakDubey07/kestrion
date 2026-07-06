@@ -142,11 +142,17 @@ class _AgentLoopNode:
 
                 summary_text = summary_response.text or ""
 
-                compacted_messages = [
-                    Message(role="user", content=f"[System Context: Summary of preceding conversation:\n{summary_text}]"),
-                    Message(role="assistant", content="Understood. I will continue the conversation using this context."),
-                    *to_keep
-                ]
+                if to_keep and to_keep[0].role in ("user", "tool"):
+                    compacted_messages = [
+                        Message(role="user", content=f"[System Context: Summary of preceding conversation:\n{summary_text}]"),
+                        Message(role="assistant", content="Understood. I will continue the conversation using this context."),
+                        *to_keep
+                    ]
+                else:
+                    compacted_messages = [
+                        Message(role="user", content=f"[System Context: Summary of preceding conversation:\n{summary_text}]"),
+                        *to_keep
+                    ]
 
                 compact_event = Event.create(
                     run_id=state.run_id,

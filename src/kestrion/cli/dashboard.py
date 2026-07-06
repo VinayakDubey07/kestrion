@@ -3,9 +3,7 @@ import sqlite3
 import asyncio
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from datetime import datetime, timezone
 
-from kestrion.core.types import Checkpoint, new_id
 from kestrion.core.engine import Engine
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
@@ -175,28 +173,12 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
 
     async def _persist_approval(self, run_id: str, tool: str, role: str) -> bool:
         store = SQLiteCheckpointStore(path=self.db_path)
-        checkpoint = await store.latest(run_id)
-        if checkpoint is None:
+        engine = Engine(nodes={}, tools={}, store=store, entry_node="")
+        try:
+            await engine.approve_pending_tool(run_id, tool=tool, role=role)
+            return True
+        except Exception:
             return False
-
-        state = checkpoint.state
-        Engine.record_approval(state, tool, role)
-        
-        # Advance the status back to RUNNING if it was waiting on human
-        # (This aligns with Engine.resume() checking whether wait is over)
-        from kestrion.core.types import RunStatus
-        if state.status == RunStatus.WAITING_ON_HUMAN:
-            state.status = RunStatus.RUNNING
-        
-        new_ckpt = Checkpoint(
-            checkpoint_id=new_id("ckpt"),
-            run_id=run_id,
-            state=state,
-            created_at=datetime.now(timezone.utc),
-            event_seq=state.last_event_seq
-        )
-        await store.save(new_ckpt)
-        return True
 
     def send_json(self, data, status=200):
         self.send_response(status)
