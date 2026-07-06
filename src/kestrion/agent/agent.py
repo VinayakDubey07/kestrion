@@ -91,6 +91,70 @@ class _AgentLoopNode:
         ]
 
         while True:
+            # Check if memory compaction is configured and needed
+            should_compact = False
+            if agent.max_history_turns is not None and len(messages) > agent.max_history_turns:
+                should_compact = True
+
+            if not should_compact and agent.max_history_tokens is not None:
+                # Estimate token count (chars // 4)
+                est_tokens = sum(len(m.content or "") for m in messages) // 4
+                if est_tokens > agent.max_history_tokens:
+                    should_compact = True
+
+            if should_compact and len(messages) > agent.keep_turns:
+                keep = agent.keep_turns
+                if keep % 2 != 0:
+                    keep += 1  # ensure it's even to avoid alternating role violations
+
+                to_compact = messages[:-keep]
+                to_keep = messages[-keep:]
+
+                # Query LLM for summary
+                summary_prompt = [
+                    *to_compact,
+                    Message(role="user", content="Summarize the preceding conversation turns concisely, retaining all key decisions, tasks, state, and context.")
+                ]
+
+                summary_response: LLMResponse = await agent._provider.complete(
+                    messages=summary_prompt,
+                    system=agent.system_prompt,
+                )
+
+                summary_event = Event.create(
+                    run_id=state.run_id,
+                    type=EventType.LLM_CALL_COMPLETED,
+                    payload={"stop_reason": summary_response.stop_reason},
+                    node=self.name,
+                    tokens_in=summary_response.tokens_in,
+                    tokens_out=summary_response.tokens_out,
+                    cost_usd=summary_response.cost_usd,
+                )
+                await agent._engine.record_event(state, summary_event)
+
+                summary_text = summary_response.text or ""
+
+                compacted_messages = [
+                    Message(role="user", content=f"[System Context: Summary of preceding conversation:\n{summary_text}]"),
+                    Message(role="assistant", content="Understood. I will continue the conversation using this context."),
+                    *to_keep
+                ]
+
+                compact_event = Event.create(
+                    run_id=state.run_id,
+                    type=EventType.CONTEXT_COMPACTED,
+                    payload={
+                        "original_turns": len(messages),
+                        "compacted_turns": len(compacted_messages),
+                        "summary": summary_text
+                    },
+                    node=self.name
+                )
+                await agent._engine.record_event(state, compact_event)
+
+                messages = compacted_messages
+                state.scratch["_messages"] = [_message_to_dict(m) for m in messages]
+
             response: LLMResponse = await agent._provider.complete(
                 messages=messages,
                 tools=[t.spec for t in agent._tools.values()],
@@ -367,10 +431,16 @@ class Agent:
         tools: list[Tool] | None = None,
         store: str = "sqlite:///kestrion_runs.db",
         system_prompt: str | None = None,
+        max_history_turns: int | None = None,
+        max_history_tokens: int | None = None,
+        keep_turns: int = 4,
     ):
         self._provider = provider
         self._tools: dict[str, Tool] = {t.spec.name: t for t in (tools or [])}
         self.system_prompt = system_prompt
+        self.max_history_turns = max_history_turns
+        self.max_history_tokens = max_history_tokens
+        self.keep_turns = keep_turns
         self._store = _store_from_url(store) if isinstance(store, str) else store
 
         loop_node = _AgentLoopNode(self)

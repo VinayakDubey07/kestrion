@@ -43,6 +43,7 @@ class EventType(str, Enum):
     RUN_FAILED = "run_failed"
     RUN_EXPIRED = "run_expired"   # approval deadline passed before all required roles approved
     HUMAN_INTERVENTION = "human_intervention"  # e.g. approve a kubectl apply
+    CONTEXT_COMPACTED = "context_compacted"
 
 
 @dataclass(frozen=True)
