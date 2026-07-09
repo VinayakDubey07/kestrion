@@ -133,6 +133,21 @@ result = await agent.resume(run_id)            # default: status -> EXPIRED if t
 result = await agent.resume(run_id, on_expired="raise")  # or raise RunExpiredError instead
 ```
 
+### Human-in-the-Loop Input (Ask for Input)
+
+While approval gates pause the engine for a binary yes/no decision, sometimes the agent needs a specific piece of information from a human (like an API key, 2FA code, or clarification). You can use the built-in `ask_human` tool (or raise `InputRequired` directly in your own tools). 
+
+When triggered, the engine suspends execution exactly like an approval, transitioning the run to `WAITING_ON_HUMAN`. You can then provide the text response back via the API to resume execution:
+
+```python
+from kestrion.agent.tools import ask_human
+
+# The agent invokes ask_human and the run halts.
+# The user's application queries the status and prompts the human for input:
+await agent.provide_input(run_id, text="My favorite color is Blue.", tool="ask_human")
+# The engine records the input and resumes execution cleanly!
+```
+
 ### Parallel tool calls
 
 If a model requests multiple tool calls in one turn, Kestrion runs them concurrently rather than
