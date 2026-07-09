@@ -3,11 +3,11 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: pre-alpha (`0.2.2`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, six agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, seven agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction), and a **DAG-based async scheduler** for multi-agent
-orchestraton are built and tested — 153 passing tests. Postgres support and rate-limited scheduler are built.
-implemented — see [Roadmap](#roadmap) below.
+handoff, memory/context compaction, human-in-the-loop input), and a **DAG-based async scheduler** for multi-agent
+orchestration are built and tested — 150 passing tests. Postgres support and rate-limited scheduler are built.
+See [Roadmap](#roadmap) below.
 
 ## Why Kestrion
 

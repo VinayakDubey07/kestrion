@@ -35,12 +35,14 @@ as an opt-in feature.
 kestrion/
 ├── core/
 │   ├── types.py      — data contracts: Event, AgentState, Checkpoint, ToolSpec, Node, NodeResult
-│   └── engine.py      — the execution loop, approval gating, event sourcing plumbing
+│   ├── engine.py      — the execution loop, approval gating, event sourcing plumbing
+│   └── errors.py      — control-flow exceptions: ApprovalRequired, InputRequired, RunExpiredError
 ├── store/
 │   └── sqlite_store.py — CheckpointStore implementation (Protocol defined in core/types.py)
 ├── agent/
 │   ├── agent.py        — Agent class, the ergonomic user-facing API
-│   └── decorators.py   — @tool, turning Python functions into Tool objects
+│   ├── decorators.py   — @tool, turning Python functions into Tool objects
+│   └── tools.py        — built-in tools (ask_human)
 └── llm/
     ├── base.py                — LLMProvider Protocol, Message/LLMResponse/ToolCallRequest types
     ├── anthropic_provider.py  — Anthropic Claude implementation

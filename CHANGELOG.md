@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [Unreleased]
+
+### Added
+- **Human-in-the-Loop Input (`ask_human`)**: Built-in tool that pauses the run to collect text input from the user. Includes `Agent.provide_input()` and `Engine.provide_input()` APIs.
+- New `InputRequired` and `InvalidToolInputError` exceptions in `kestrion.core.errors`.
+- Interactive demo script: `examples/ask_input_demo.py`.
+
+### Fixed
+- `_FunctionTool.call()` now filters out injected internal kwargs (`_state`) before invoking the wrapped function, preventing `TypeError` on tools that don't accept `**kwargs`.
+- `ApprovalRequired.kwargs` no longer leaks non-serializable `AgentState` objects into checkpoint storage.
+- Relaxed flaky text assertions in `test_live_ollama_agent.py` that depended on exact LLM output.
+
 ## [0.2.2] - 2026-07-06
 
 ### Added

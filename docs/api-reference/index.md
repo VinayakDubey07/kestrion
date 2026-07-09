@@ -35,17 +35,20 @@ design rationale, this is the API surface itself.
 - `kestrion.core.types.Tool` / `ToolResult` — the tool contract every `@tool` function and
   `MCPTool` satisfies
 - `kestrion.core.engine.Engine` — `start()`, `resume()`, `call_tool()`, `check_approval()`,
-  `record_approval()` (static)
-- `kestrion.core.engine.ApprovalRequired` / `RunExpiredError` — control-flow exceptions raised by
-  the engine, not meant to be caught by ordinary application code except at the top level
+  `record_approval()` (static), `provide_input()`
+- `kestrion.core.engine.ApprovalRequired` / `InputRequired` / `RunExpiredError` — control-flow
+  exceptions raised by the engine, not meant to be caught by ordinary application code except at
+  the top level
 
 ## Agent (`kestrion.agent`)
 
 The ergonomic, user-facing layer built on top of `core`.
 
 - `kestrion.agent.decorators.tool` — turns a function into a `Tool` via signature introspection
-- `kestrion.agent.agent.Agent` — `run()`, `run_with_history()`, `resume()`, `as_tool()`,
-  `as_handoff_target()`
+- `kestrion.agent.tools.ask_human` — built-in tool that pauses the run to collect text input from
+  a human; raises `InputRequired`
+- `kestrion.agent.agent.Agent` — `run()`, `run_with_history()`, `resume()`, `approve()`,
+  `provide_input()`, `as_tool()`, `as_handoff_target()`
 - `kestrion.agent.agent.SubAgentTool` — delegation (parent stays in control); returned by
   `Agent.as_tool()`
 - `kestrion.agent.agent.HandoffTool` / `HandoffCompleted` — full conversation transfer; returned by

@@ -42,6 +42,9 @@ Code, not just prose:
 - [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising six agentic
   features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction)
   against a real local model.
+- [`examples/ask_input_demo.py`](../examples/ask_input_demo.py) — interactive demo of the
+  human-in-the-loop `ask_human` tool: the agent pauses to ask the user a question, then resumes
+  with the answer.
 
 ## What's built vs. planned
 

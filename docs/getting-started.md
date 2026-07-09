@@ -129,6 +129,35 @@ kestrion dashboard --port 8000
 ```
 Open `http://localhost:8000` in your browser to access the console.
 
+## Asking the user for input
+
+Approval gates are binary — the run pauses for a yes/no decision. Sometimes an agent needs a
+specific piece of information from a human (a 2FA code, a preferred name, a clarification). The
+built-in `ask_human` tool handles this:
+
+```python
+from kestrion.agent.tools import ask_human
+
+agent = Agent(
+    provider=OllamaProvider(model="llama3.2"),
+    tools=[ask_human],
+    store="sqlite:///my_agent.db",
+)
+result = await agent.run("Write a poem about my favorite color")
+# result.status == RunStatus.WAITING_ON_HUMAN
+# result.state.scratch["_pending_input"]["question"] == "What is your favorite color?"
+```
+
+The run suspends cleanly — no thread blocked, everything checkpointed. When the human answers:
+
+```python
+final = await agent.provide_input(result.run_id, text="Blue")
+print(final.output)  # a poem about blue
+```
+
+You can also raise `InputRequired` directly in your own tools for the same pause-and-resume
+behavior without using the built-in `ask_human`.
+
 ## Where to go next
 
 - [Event Sourcing](concepts/event-sourcing.md) — why state is never mutated directly

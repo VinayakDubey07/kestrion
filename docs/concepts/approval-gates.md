@@ -157,6 +157,69 @@ await engine.approve_pending_tool(run_id, tool="deploy_to_prod", role="engineer"
 result = await engine.resume(run_id)
 ```
 
+## Input gates (human-in-the-loop text input)
+
+Approval gates are binary: "may this tool run?" Sometimes the agent needs a **specific piece of
+information** from the human — a 2FA code, a preferred name, a clarification. This is handled by a
+separate, parallel mechanism that uses the same engine pause infrastructure but stores different
+state.
+
+### The built-in `ask_human` tool
+
+```python
+from kestrion.agent.tools import ask_human
+
+agent = Agent(provider=..., tools=[ask_human], store=...)
+result = await agent.run("Write a poem about my favorite color")
+# result.status == RunStatus.WAITING_ON_HUMAN
+# result.state.scratch["_pending_input"]["question"] == "What is your favorite color?"
+```
+
+When triggered, `ask_human` raises `InputRequired` (not `ApprovalRequired`). The engine catches
+this in `_drive`, sets `state.status = WAITING_ON_HUMAN`, stores the question in
+`scratch["_pending_input"]`, checkpoints, and returns — identical mechanics to an approval pause.
+
+### Providing the answer
+
+```python
+# At the Agent level (recommended):
+final = await agent.provide_input(run_id, text="Blue")
+
+# Or at the Engine level:
+await engine.provide_input(run_id, "Blue", tool="ask_human")
+state = await engine.resume(run_id)
+```
+
+`provide_input` stores the human's text in `scratch["_human_inputs"][tool_name]`, clears
+`_pending_input`, transitions back to `RUNNING`, and checkpoints. On resume, the `ask_human` tool
+sees the stored answer and returns it as its output instead of raising again.
+
+### Building your own input-requesting tool
+
+You don't have to use `ask_human`. Any tool can raise `InputRequired` directly:
+
+```python
+from kestrion.core.errors import InputRequired
+
+@tool
+def get_2fa_code(service: str) -> str:
+    """Prompt the user for a 2FA code."""
+    raise InputRequired(tool_name="get_2fa_code", question=f"Enter the 2FA code for {service}")
+```
+
+The engine handles `InputRequired` identically regardless of which tool raises it.
+
+### Approval vs. Input — when to use which
+
+| Mechanism | Use when... | State key | Exception |
+|---|---|---|---|
+| Approval gate | You need permission to *run* a tool | `_pending_approval` | `ApprovalRequired` |
+| Input gate | You need *data* from the human | `_pending_input` | `InputRequired` |
+
+Attempting to `approve()` a run that's waiting for input (or `provide_input()` to a run waiting for
+approval) raises a clear error — they are distinct mechanisms that share the same engine pause
+infrastructure.
+
 ## Related
 
 - [Event Sourcing](event-sourcing.md) — why a pause is just "stop folding, record one event, return"
