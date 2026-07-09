@@ -9,6 +9,7 @@ this wire format) by passing a custom base_url.
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
@@ -48,8 +49,8 @@ class OpenAIProvider:
         self.max_tokens = max_tokens
         self._client = openai.AsyncOpenAI(api_key=api_key, base_url=base_url)
 
-    def _to_openai_messages(self, messages: list[Message], system: str | None) -> list[dict]:
-        out = []
+    def _to_openai_messages(self, messages: list[Message], system: str | None) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
         if system:
             out.append({"role": "system", "content": system})
         for m in messages:
@@ -95,7 +96,7 @@ class OpenAIProvider:
         if tools:
             kwargs["tools"] = self._to_openai_tools(tools)
 
-        response = await self._client.chat.completions.create(**kwargs)
+        response = await self._client.chat.completions.create(**kwargs)  # type: ignore[call-overload]
         choice = response.choices[0]
 
         tool_calls = []

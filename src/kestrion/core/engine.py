@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Callable, Literal
+from typing import Callable, Literal, Mapping
 
 from .types import (
     AgentState,
@@ -54,8 +54,8 @@ class Engine:
 
     def __init__(
         self,
-        nodes: dict[str, Node],
-        tools: dict[str, Tool],
+        nodes: Mapping[str, Node],
+        tools: Mapping[str, Tool],
         store: CheckpointStore,
         entry_node: str,
         approval_callback: Callable[[str, dict], bool] | None = None,

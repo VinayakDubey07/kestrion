@@ -93,7 +93,7 @@ def build_engine(store) -> Engine:
         "step_two": StepTwoNode(engine_ref),
     }
     tools = {"echo": EchoTool(), "mutate": MutatingTool()}
-    engine = Engine(nodes=nodes, tools=tools, store=store, entry_node="step_one")
+    engine = Engine(nodes=nodes, tools=tools, store=store, entry_node="step_one")  # type: ignore[arg-type]
     engine_ref["engine"] = engine
     return engine
 

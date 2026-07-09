@@ -13,6 +13,7 @@ paper over.
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING, Any
 
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
@@ -33,8 +34,8 @@ class OllamaProvider:
         self.model = model
         self.base_url = base_url.rstrip("/")
 
-    def _to_ollama_messages(self, messages: list[Message], system: str | None) -> list[dict]:
-        out = []
+    def _to_ollama_messages(self, messages: list[Message], system: str | None) -> list[dict[str, Any]]:
+        out: list[dict[str, Any]] = []
         if system:
             out.append({"role": "system", "content": system})
         for m in messages:

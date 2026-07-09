@@ -6,6 +6,7 @@ since someone running Ollama-only shouldn't need this SDK at all.
 
 from __future__ import annotations
 
+from typing import Any
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
 
@@ -54,7 +55,7 @@ class AnthropicProvider:
                     }],
                 })
             elif m.role == "assistant" and m.tool_calls:
-                blocks = []
+                blocks: list[dict[str, Any]] = []
                 if m.content:
                     blocks.append({"type": "text", "text": m.content})
                 for tc in m.tool_calls:
@@ -86,7 +87,7 @@ class AnthropicProvider:
         if tools:
             kwargs["tools"] = self._to_anthropic_tools(tools)
 
-        response = await self._client.messages.create(**kwargs)
+        response = await self._client.messages.create(**kwargs)  # type: ignore[call-overload]
 
         text_parts = []
         tool_calls = []

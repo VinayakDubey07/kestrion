@@ -70,7 +70,7 @@ class SQLiteCheckpointStore:
             ),
         )
         conn.commit()
-        seq = cur.lastrowid
+        seq = cur.lastrowid or 0
         conn.close()
         return seq
 

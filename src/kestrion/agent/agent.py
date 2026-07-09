@@ -126,6 +126,7 @@ class _AgentLoopNode:
 
                 summary_response: LLMResponse = await agent._provider.complete(
                     messages=summary_prompt,
+                    tools=[],
                     system=agent.system_prompt,
                 )
 

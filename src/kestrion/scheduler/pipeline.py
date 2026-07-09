@@ -28,7 +28,6 @@ from enum import Enum
 from typing import Any
 
 from kestrion.agent.agent import Agent, RunResult
-from kestrion.core.types import RunStatus
 
 from .rate_limiter import RateLimiter, RateLimiterConfig
 from .worker_pool import WorkerPool
@@ -213,7 +212,7 @@ class Pipeline:
 
             try:
                 run_result = await pool.submit(
-                    task.agent.run(task.prompt, run_id=task.run_id, _pipeline_task_name=task.name),
+                    task.agent.run(task.prompt, run_id=task.run_id),
                     estimated_tokens=task.estimated_tokens,
                 )
                 results[name] = TaskResult(

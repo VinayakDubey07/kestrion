@@ -101,9 +101,12 @@ class MCPClient:
             agent = Agent(provider=..., tools=tools)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._session: ClientSession | None = None
         self._exit_stack = AsyncExitStack()
+        self._connect_kind: str = ""
+        self._stdio_params: StdioServerParameters | None = None
+        self._http_url: str = ""
 
     @classmethod
     def stdio(cls, command: str, args: list[str] | None = None, env: dict[str, str] | None = None) -> "MCPClient":
@@ -128,6 +131,8 @@ class MCPClient:
 
     async def __aenter__(self) -> "MCPClient":
         if self._connect_kind == "stdio":
+            if not self._stdio_params:
+                raise RuntimeError("stdio params not initialized")
             read, write = await self._exit_stack.enter_async_context(stdio_client(self._stdio_params))
         else:
             read, write, _get_session_id = await self._exit_stack.enter_async_context(

@@ -31,7 +31,7 @@ from kestrion.llm.base import LLMProvider, LLMResponse, ToolCallRequest
 
 @dataclass
 class _Turn:
-    text: str = None
+    text: str | None = None
     tool_calls: list = field(default_factory=list)
 
 

@@ -179,7 +179,7 @@ def tool(
         )
 
         wrapped = _FunctionTool(f, spec)
-        functools.update_wrapper(wrapped, f)
+        functools.update_wrapper(wrapped, f)  # type: ignore[arg-type]
         return wrapped
 
     if func is not None:

@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Callable, Coroutine, TypeVar
+from typing import Any, Coroutine, TypeVar
 
-from .rate_limiter import RateLimiter, RateLimiterConfig
+from .rate_limiter import RateLimiter
 
 logger = logging.getLogger("kestrion.scheduler.worker_pool")
 
