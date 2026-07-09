@@ -76,7 +76,7 @@ def _build_parameters_schema(func: Callable) -> dict[str, Any]:
     required: list[str] = []
 
     for name, param in sig.parameters.items():
-        if name == "self":
+        if name == "self" or name.startswith("_"):
             continue
         properties[name] = _python_type_to_json_schema(param.annotation)
         if param.default is inspect.Parameter.empty:
@@ -97,20 +97,27 @@ class _FunctionTool(Tool):
         self._func = func
         self._is_async = inspect.iscoroutinefunction(func)
         self.spec = spec
+        self._sig_params = set(inspect.signature(func).parameters.keys())
 
     async def call(self, **kwargs) -> ToolResult:
+        # Filter out injected kwargs (like _state) that this function doesn't expect
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k in self._sig_params}
         start = time.monotonic()
         try:
             if self._is_async:
-                output = await self._func(**kwargs)
+                output = await self._func(**filtered_kwargs)
             else:
-                output = self._func(**kwargs)
+                output = self._func(**filtered_kwargs)
             return ToolResult(
                 tool_name=self.spec.name,
                 output=output,
                 duration_ms=(time.monotonic() - start) * 1000,
             )
         except Exception as exc:
+            # Re-raise control-flow exceptions that the engine relies on
+            from kestrion.core.errors import InputRequired, HandoffCompleted
+            if isinstance(exc, (InputRequired, HandoffCompleted)):
+                raise
             return ToolResult(
                 tool_name=self.spec.name,
                 output=None,

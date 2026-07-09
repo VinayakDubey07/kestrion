@@ -38,6 +38,8 @@ from .errors import (
     HandoffCompleted,
     InvalidRunStatusError,
     InvalidToolApprovalError,
+    InvalidToolInputError,
+    InputRequired,
     RunExpiredError,
 )
 
@@ -172,6 +174,11 @@ class Engine:
                 [RunStatus.WAITING_ON_HUMAN.value]
             )
 
+        if "_pending_input" in state.scratch and state.scratch["_pending_input"].get("tool"):
+            raise InvalidToolApprovalError(
+                f"Run {run_id!r} is waiting for human input, not approval. Use provide_input()."
+            )
+
         pending = state.scratch.get("_pending_approval") or {}
         pending_tool = pending.get("tool")
         if tool is None:
@@ -196,6 +203,71 @@ class Engine:
             node=state.current_node,
         )
         seq = await self.store.append_event(approval_event)
+        state.last_event_seq = seq
+
+        await self._checkpoint(state)
+        return state
+
+    async def provide_input(self, run_id: str, text: str, tool: str | None = None) -> AgentState:
+        """
+        Provide human input for a paused run.
+
+        Parameters
+        ----------
+        run_id:
+            Run ID currently in ``WAITING_ON_HUMAN`` status.
+        text:
+            The input string from the human to inject into the tool call.
+        tool:
+            Name of the tool awaiting input. Defaults to the pending tool in
+            ``state.scratch["_pending_input"]["tool"]``.
+
+        Returns
+        -------
+        The updated ``AgentState``. Call ``engine.resume(run_id)`` after this.
+        """
+        checkpoint = await self.store.latest(run_id)
+        if checkpoint is None:
+            raise CheckpointNotFoundError(run_id)
+
+        state = checkpoint.state
+
+        if state.status != RunStatus.WAITING_ON_HUMAN:
+            raise InvalidRunStatusError(
+                run_id,
+                state.status.value,
+                [RunStatus.WAITING_ON_HUMAN.value]
+            )
+
+        if "_pending_approval" in state.scratch and state.scratch["_pending_approval"].get("tool"):
+            raise InvalidToolInputError(
+                f"Run {run_id!r} is waiting for approval, not input. Use approve_tool()."
+            )
+
+        pending = state.scratch.get("_pending_input") or {}
+        pending_tool = pending.get("tool")
+        if tool is None:
+            if pending_tool is None:
+                raise InvalidToolInputError(
+                    f"Run {run_id!r} has no pending input request. Pass tool= explicitly."
+                )
+            tool = pending_tool
+        elif pending_tool is not None and tool != pending_tool:
+            raise InvalidToolInputError(
+                f"Tool {tool!r} does not match the pending tool {pending_tool!r} for run {run_id!r}."
+            )
+
+        # Record the input
+        inputs = state.scratch.setdefault("_human_inputs", {})
+        inputs[tool] = text
+
+        input_event = Event.create(
+            run_id=run_id,
+            type=EventType.HUMAN_INTERVENTION,
+            payload={"reason": "input_provided", "tool": tool, "text": text},
+            node=state.current_node,
+        )
+        seq = await self.store.append_event(input_event)
         state.last_event_seq = seq
 
         await self._checkpoint(state)
@@ -282,6 +354,25 @@ class Engine:
                 )
                 await self._checkpoint(state)
                 return state
+
+            except InputRequired as input_req:
+                state.status = RunStatus.WAITING_ON_HUMAN
+                state.scratch["_pending_input"] = {
+                    "tool": input_req.tool_name,
+                    "question": input_req.question,
+                    "resume_node": state.current_node,
+                }
+                await self._emit(
+                    state,
+                    EventType.HUMAN_INTERVENTION,
+                    {
+                        "reason": "input_required",
+                        "tool": input_req.tool_name,
+                        "question": input_req.question,
+                    },
+                )
+                await self._checkpoint(state)
+                return state
             except Exception as exc:
                 state.status = RunStatus.FAILED
                 await self._emit(state, EventType.RUN_FAILED, {"error": str(exc)})
@@ -358,10 +449,12 @@ class Engine:
         self.check_approval(state, tool_name, kwargs)
         tool = self.tools[tool_name]
 
+        # Emit original args, not including _state
         await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
+        kwargs["_state"] = state
         try:
             result = await tool.call(**kwargs)
-        except ApprovalRequired:
+        except ApprovalRequired as exc:
             # A tool's OWN call() can raise this directly — the
             # motivating case is SubAgentTool, where a sub-agent's run
             # pausing for approval needs to propagate to the parent as a
@@ -369,11 +462,12 @@ class Engine:
             # bypassing the generic except-Exception branch below, which
             # would otherwise emit a misleading TOOL_CALL_FAILED event
             # for what is actually a clean pause, not a failure.
+            exc.kwargs.pop("_state", None)
             raise
         except Exception as exc:
-            if isinstance(exc, HandoffCompleted):
+            if isinstance(exc, (HandoffCompleted, InputRequired)):
                 # Same reasoning as ApprovalRequired above — a successful
-                # handoff is not a tool failure. Since HandoffCompleted is in
+                # handoff or input request is not a tool failure. Since these are in
                 # core/errors.py, we can safely check isinstance here directly.
                 raise
             await self._emit(state, EventType.TOOL_CALL_FAILED, {"tool": tool_name, "error": str(exc)})

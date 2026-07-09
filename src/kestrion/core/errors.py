@@ -85,3 +85,19 @@ class HandoffCompleted(KestrionError):
         self.target_status = target_status
         self.target_output = target_output
         super().__init__(f"Handoff completed to run {target_run_id!r}")
+
+
+class InputRequired(KestrionError):
+    """
+    Raised when a node wants to call a tool that requires human input.
+    """
+
+    def __init__(self, tool_name: str, kwargs: dict[str, Any], question: str):
+        self.tool_name = tool_name
+        self.kwargs = kwargs
+        self.question = question
+        super().__init__(f"Input required for tool {tool_name!r}: {question}")
+
+
+class InvalidToolInputError(KestrionError):
+    """Raised when trying to provide input for a tool that is not currently waiting for it."""

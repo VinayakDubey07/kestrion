@@ -611,6 +611,36 @@ class Agent:
             return await self.resume(run_id)
         return None
 
+    async def provide_input(
+        self,
+        run_id: str,
+        text: str,
+        tool: str | None = None,
+        and_resume: bool = True,
+    ) -> "RunResult | None":
+        """
+        Provide input for a pending tool call on a paused run, then (by default)
+        resume execution immediately.
+
+        Parameters
+        ----------
+        run_id:
+            The run ID that is currently in ``WAITING_ON_HUMAN`` status.
+        text:
+            The input string provided by the human.
+        tool:
+            The name of the tool requesting input. Defaults to whatever tool is
+            currently pending in the run's state.
+        and_resume:
+            If ``True`` (the default), immediately call ``resume()`` and
+            return its ``RunResult`` after persisting the input.
+            If ``False``, persist the input and return ``None``.
+        """
+        state = await self._engine.provide_input(run_id, text, tool=tool)
+        if and_resume:
+            return await self.resume(run_id)
+        return None
+
     def as_tool(self, name: str, description: str) -> SubAgentTool:
         """
         Wraps this Agent as a Tool another Agent can call — the
