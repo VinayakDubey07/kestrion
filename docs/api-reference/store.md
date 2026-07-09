@@ -1,7 +1,6 @@
 # Storage
 
-`kestrion.core.types.CheckpointStore` is the Protocol; `SQLiteCheckpointStore` is the only
-implementation today. A Postgres-backed store is designed but not yet built — see
-[roadmap.md](https://github.com/VinayakDubey07/kestrion/blob/main/roadmap.md).
+`kestrion.core.types.CheckpointStore` is the Protocol. Kestrion provides two implementations out of the box: `SQLiteCheckpointStore` and `PostgresCheckpointStore`.
 
 ::: kestrion.store.sqlite_store
+::: kestrion.store.postgres_store

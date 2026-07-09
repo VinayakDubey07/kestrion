@@ -6,7 +6,7 @@ Status: pre-alpha (`0.2.2`), published on PyPI. Core engine, the `Agent`/`@tool`
 three LLM providers, a live-verified MCP client and server, a CLI, six agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
 handoff, memory/context compaction), and a **DAG-based async scheduler** for multi-agent
-orchestraton are built and tested — 149 passing tests. Postgres support is designed but not yet
+orchestraton are built and tested — 153 passing tests. Postgres support and rate-limited scheduler are built.
 implemented — see [Roadmap](#roadmap) below.
 
 ## Why Kestrion
@@ -293,13 +293,9 @@ for what to fill in before `kubectl apply`.
 - **Memory/context compaction is built.** Long-running conversations are automatically summarized
   by the agent when history thresholds (`max_history_turns` or `max_history_tokens`) are exceeded.
 - **No real concurrency control across multiple agent runs.** ~~Parallel tool calls *within* one
-  agent's turn are supported; running many separate agents at once against a shared rate limit is
-  not.~~ The `kestrion.scheduler` package now provides a `Pipeline` class with a DAG-based
-  runner, bounded `WorkerPool`, and shared token-bucket `RateLimiter` with exponential backoff.
-  See [`examples/pipeline_demo.py`](examples/pipeline_demo.py) and the new
-  `### Pipeline / multi-agent orchestration` section below.
-- **SQLite only.** A `CheckpointStore` Protocol exists so Postgres can be added without touching
-  the engine, but that implementation doesn't exist yet.
+- **Pipeline orchestration is built.** The `kestrion.scheduler` package provides a `Pipeline` class with a DAG-based runner, bounded `WorkerPool`, and shared token-bucket `RateLimiter` with exponential backoff. See [`examples/pipeline_demo.py`](examples/pipeline_demo.py) and the `### Pipeline / multi-agent orchestration` section.
+- **Postgres storage is built.** `src/kestrion/store/postgres_store.py` provides a production-ready alternative to SQLite.
+- **OpenAI/Anthropic APIs.** These providers are fully implemented according to the SDKs but not yet smoke-tested against a live API (only Ollama is live-verified).
 
 ## Examples
 
@@ -353,8 +349,7 @@ ruff check src/ tests/
 
 ## Roadmap
 
-Next up: Postgres-backed storage and further hardening. The scheduler is now built — see
-[`kestrion/scheduler/`](src/kestrion/scheduler/) and [`examples/pipeline_demo.py`](examples/pipeline_demo.py).
+Next up: Further hardening, OpenTelemetry exporters, and Human-in-the-Loop "Ask for Input". The scheduler and Postgres store are now built — see `src/kestrion/store/postgres_store.py` and `src/kestrion/scheduler/`.
 See [roadmap.md](roadmap.md) for the detailed, dated 3-month plan.
 
 ## License

@@ -137,9 +137,7 @@ class CheckpointStore(Protocol):
     async def events_since(self, run_id: str, seq: int) -> list[Event]: ...
 ```
 
-This is the seam where storage backends plug in. `SQLiteCheckpointStore` is the only
-implementation that exists today; a Postgres implementation is designed (it would need to satisfy
-exactly this Protocol) but not built.
+This is the seam where storage backends plug in. Kestrion provides `SQLiteCheckpointStore` and `PostgresCheckpointStore` out of the box. Both fully satisfy this Protocol.
 
 ### ToolSpec, Tool, ToolResult
 
@@ -426,11 +424,8 @@ they're either separate concerns or not yet built):
 - **CLI** — `kestrion init`, `kestrion run`, `kestrion deploy --target k8s` are now built
   (`cli/main.py`, `cli/deploy.py`). Not covered here because the CLI is an entry-point layer on
   top of the engine/agent, not a change to how either works.
-- **The scheduler / concurrent-execution layer** (`scheduler/`) — not yet built. Distinct from
-  parallel-tool-calls-within-one-run (built, see §4): this would rate-limit concurrent execution
-  across *multiple separate* agent runs sharing one provider quota.
-- **Postgres-backed storage** (`store/postgres_store.py` is an empty stub) — `CheckpointStore`
-  Protocol exists so this can be added without touching the engine.
+- **The scheduler / concurrent-execution layer** (`scheduler/`) — built! The `Pipeline` orchestrates DAG-based multi-agent execution, rate-limited via a token-bucket `RateLimiter` and bounded `WorkerPool`.
+- **Postgres-backed storage** (`store/postgres_store.py`) — built! The async `PostgresCheckpointStore` implements the `CheckpointStore` protocol for production-grade, distributed state persistence.
 - **A `Trace` viewer** for the event log — built! Developers can inspect events via the terminal timeline (`kestrion trace <run_id>`) or launch the web dashboard (`kestrion dashboard`).
 - **`core/errors.py`** — built! Exceptions are centralized under a semantic `KestrionError` class hierarchy, including `CheckpointNotFoundError`, `InvalidRunStatusError`, `InvalidStoreURLError`, `InvalidToolApprovalError`, `RunExpiredError`, `ApprovalRequired`, and `HandoffCompleted`. This also enables `core/engine.py` to import and check exceptions like `HandoffCompleted` cleanly without circular dependencies.
 - **`agent/graph.py`** — empty stub. Multi-step workflows are possible today via raw `Node`

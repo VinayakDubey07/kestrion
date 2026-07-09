@@ -84,9 +84,8 @@ class CheckpointStore(Protocol):
     async def events_since(self, run_id: str, seq: int) -> list[Event]: ...
 ```
 
-`SQLiteCheckpointStore` is the only implementation that exists today. A Postgres-backed store
-(planned, not yet built) would need to satisfy exactly this interface — nothing in `Engine` would
-need to change.
+`SQLiteCheckpointStore` and `PostgresCheckpointStore` are provided out of the box. Any custom store
+would need to satisfy exactly this interface — nothing in `Engine` would need to change.
 
 ## A real bug this design caught early
 
