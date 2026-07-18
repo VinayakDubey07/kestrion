@@ -1,0 +1,51 @@
+name: Bug Report
+description: Create a report to help us improve Kestrion
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible so we can reproduce and fix the issue quickly.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: When I run the agent, it crashes with a KeyError...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug? Please include code snippets if applicable.
+      placeholder: |
+        1. Initialize Kestrion Agent with...
+        2. Call `agent.run()` with...
+        3. See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment details
+      description: Please provide information about your environment.
+      value: |
+        - OS: [e.g. macOS 14.2]
+        - Python version: [e.g. 3.11]
+        - Kestrion version: [e.g. 0.3.0]
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context or logs
+      description: Add any other context about the problem here, such as stack traces or Kestrion Dashboard logs.
