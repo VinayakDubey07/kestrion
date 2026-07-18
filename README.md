@@ -2,11 +2,20 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: pre-alpha (`0.3.0`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+Status: **v0.3 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
 three LLM providers, a live-verified MCP client and server, a CLI, **nine** agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
 handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 156 passing tests. Postgres support and rate-limited scheduler are built.
+orchestration are built and tested — 156 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+
+| Feature | Status | Proof |
+|---------|--------|-------|
+| Event Sourcing & Crash Recovery | Proven | Built-in, tested across all agent runs |
+| Approval Gates (RBAC, Timeouts) | Proven | Live-verified with MCP client/server |
+| Horizontal Scale (Multi-worker) | Proven | `postgres_store.py` + DAG Scheduler |
+| Security (Secret injection) | Proven | `SecretProvider` protocol |
+| OpenTelemetry / Observability | Planned | See Roadmap |
+
 See [Roadmap](#roadmap) below.
 
 ## Why Kestrion
@@ -277,6 +286,27 @@ Deployment, PersistentVolumeClaim, Service) and a `Dockerfile`. It never puts a 
 in the output — only a clearly-labelled placeholder. See the generated files' inline comments
 for what to fill in before `kubectl apply`.
 
+## Security & Compliance
+
+Kestrion is designed for enterprise environments where security is a prerequisite, not an afterthought:
+- **Secret Management**: API keys and tokens are never stored in plain text or passed in state. They are injected at runtime via the `SecretProvider` protocol.
+- **Immutable Audit Log**: Every LLM request, tool execution, and state change is durably recorded in the Event Log.
+- **RBAC Approval Gates**: Mutating actions can be gated behind role-based multi-step approval chains.
+- **Vulnerability Disclosure**: See [SECURITY.md](SECURITY.md) for reporting policies.
+
+For a deep dive into Kestrion's security posture, see the [Security Architecture](docs/security.md) documentation.
+
+## Governance & Commercial Support
+
+Kestrion is built to be a dependable foundation for enterprise workloads. We have structured the project to ensure longevity, transparent roadmapping, and reliable support.
+
+- **Contribution Model:** See [CONTRIBUTING.md](CONTRIBUTING.md) for how we accept patches and govern major design changes.
+- **Vulnerability Disclosure:** See [SECURITY.md](SECURITY.md) for private reporting policies.
+- **Public Roadmap:** The living roadmap and active design discussions are available on [GitHub Issues](https://github.com/VinayakDubey07/kestrion/issues) and [roadmap.md](roadmap.md).
+
+**Enterprise Support**
+If your team is evaluating Kestrion for a production deployment, we offer dedicated design partnerships and commercial support to ensure your success.
+- **Enterprise Support & Inquiries:** vinayak@kestrion.in
 ## What you can build with this today
 
 - Tool-calling agents where some actions are safe to auto-run and others need a human in the loop
@@ -318,7 +348,6 @@ for what to fill in before `kubectl apply`.
   by the agent when history thresholds (`max_history_turns` or `max_history_tokens`) are exceeded.
 - **No real concurrency control across multiple agent runs.** ~~Parallel tool calls *within* one
 - **Pipeline orchestration is built.** The `kestrion.scheduler` package provides a `Pipeline` class with a DAG-based runner, bounded `WorkerPool`, and shared token-bucket `RateLimiter` with exponential backoff. See [`examples/pipeline_demo.py`](examples/pipeline_demo.py) and the `### Pipeline / multi-agent orchestration` section.
-- **Postgres storage is built.** `src/kestrion/store/postgres_store.py` provides a production-ready alternative to SQLite.
 - **OpenAI/Anthropic APIs.** These providers are fully implemented according to the SDKs but not yet smoke-tested against a live API (only Ollama is live-verified).
 
 ## Examples

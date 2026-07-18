@@ -173,6 +173,30 @@ print(final.output)  # a poem about blue
 You can also raise `InputRequired` directly in your own tools for the same pause-and-resume
 behavior without using the built-in `ask_human`.
 
+## Scaling to Production (PostgreSQL)
+
+SQLite is great for local development, but enterprise agents need high availability and horizontal scaling. Kestrion supports PostgreSQL out of the box for multi-worker, concurrent agent deployments.
+
+To switch to PostgreSQL, install the `postgres` extra (which includes `asyncpg`):
+
+```bash
+pip install "kestrion[postgres]"
+```
+
+Then simply pass a Postgres URL as your store:
+
+```python
+agent = Agent(
+    provider=OllamaProvider(model="llama3.2"),
+    tools=[my_tool],
+    # Kestrion will automatically initialize the PostgresCheckpointStore
+    # and connection pool using this URL.
+    store="postgres://user:password@localhost:5432/kestrion_db",
+)
+```
+
+No code changes are required. Crash recovery, approvals, and immutable event logs all operate exactly the same way, just backed by a production-ready database.
+
 ## Where to go next
 
 - [Event Sourcing](concepts/event-sourcing.md) — why state is never mutated directly

@@ -21,6 +21,7 @@ nav:
       - Approval Gates: concepts/approval-gates.md
       - Sub-agents vs. Handoff: concepts/sub-agents-vs-handoff.md
   - Architecture: architecture.md
+  - Security & Compliance: security.md
   - API Reference:
       - Overview: api-reference/index.md
       - Core: api-reference/core.md

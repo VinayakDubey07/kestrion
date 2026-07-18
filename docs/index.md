@@ -26,6 +26,7 @@ The "why" behind the design, not just the "how":
 - **[Architecture](architecture.md)** — the full module-by-module account of how Kestrion is
   built, including the real bugs found during development and the design rules they led to. The
   most detailed single document in this set.
+- **[Security & Compliance](security.md)** — enterprise security posture, secrets management, immutable audit logs, and RBAC approvals.
 - **[API Reference](api-reference/index.md)** — generated from docstrings; the exact signatures
   and behavior of every public class and function.
 

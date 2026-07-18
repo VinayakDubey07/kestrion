@@ -24,7 +24,7 @@ import uuid
 from dataclasses import asdict, dataclass
 
 from kestrion.core.engine import Engine
-from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, Tool, ToolResult, ToolSpec
+from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, TelemetryProvider, Tool, ToolResult, ToolSpec
 from kestrion.core.errors import (
     ApprovalRequired,
     CheckpointNotFoundError,
@@ -68,14 +68,18 @@ class RunResult:
 
 def _store_from_url(url: str):
     """
-    Parses a store= string into a concrete CheckpointStore. Only sqlite
-    is implemented today; this function is the seam where postgres://
-    gets added later without changing any Agent call sites.
+    Parses a store= string into a concrete CheckpointStore.
     """
     if url.startswith("sqlite:///"):
         path = url[len("sqlite:///"):]
+        from kestrion.store.sqlite_store import SQLiteCheckpointStore
         return SQLiteCheckpointStore(path=path)
-    raise InvalidStoreURLError(f"Unsupported store URL scheme: {url!r}. Supported: sqlite:///path/to/file.db")
+    if url.startswith("postgres://") or url.startswith("postgresql://"):
+        from kestrion.store.postgres_store import PostgresCheckpointStore
+        return PostgresCheckpointStore(dsn=url)
+    raise InvalidStoreURLError(
+        f"Unsupported store URL scheme: {url!r}. Supported: sqlite:///, postgres://, postgresql://"
+    )
 
 
 class _AgentLoopNode:
@@ -390,6 +394,7 @@ class Agent:
         max_history_turns: int | None = None,
         max_history_tokens: int | None = None,
         keep_turns: int = 4,
+        telemetry: TelemetryProvider | None = None,
     ):
         self._provider = provider
         self._tools: dict[str, Tool] = {t.spec.name: t for t in (tools or [])}
@@ -405,7 +410,12 @@ class Agent:
             tools=self._tools,
             store=self._store,
             entry_node="agent_loop",
+            telemetry=telemetry,
         )
+
+    async def _ensure_store_setup(self):
+        if hasattr(self._store, "setup"):
+            await self._store.setup()
 
     async def run(self, prompt: str, run_id: str | None = None, **initial_scratch) -> RunResult:
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
@@ -429,6 +439,7 @@ class Agent:
         are passed through as initial scratch values, allowing callers to
         tag runs with metadata without needing a separate API.
         """
+        await self._ensure_store_setup()
         run_id = run_id or f"run_{uuid.uuid4().hex[:12]}"
         state = await self._engine.start(run_id=run_id, _messages=messages, **initial_scratch)
         return RunResult(
@@ -439,6 +450,7 @@ class Agent:
         )
 
     async def resume(self, run_id: str) -> RunResult:
+        await self._ensure_store_setup()
         state = await self._engine.resume(run_id)
         return RunResult(
             run_id=state.run_id,
@@ -499,6 +511,7 @@ class Agent:
             If the run is not found, is not in ``WAITING_ON_HUMAN`` status,
             or the supplied ``tool`` name does not match the pending tool.
         """
+        await self._ensure_store_setup()
         # ── 1. Load latest checkpoint ──────────────────────────────────────
         checkpoint = await self._store.latest(run_id)
         if checkpoint is None:

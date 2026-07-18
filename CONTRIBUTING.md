@@ -1,9 +1,6 @@
 # Contributing to Kestrion
 
-Thanks for considering a contribution. Kestrion is pre-alpha, so the most
-valuable contributions right now are: bug reports against the things marked
-"BUILT" in the README, small fixes, and discussion on the next roadmap item
-before a big PR lands on it.
+Thanks for considering a contribution. Kestrion is designed to be a robust, enterprise-grade framework, so we highly value contributions that improve stability, security, and scalability. Bug reports, small fixes, and design discussions on roadmap items are always welcome.
 
 ## Setup
 

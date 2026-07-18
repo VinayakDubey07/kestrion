@@ -174,6 +174,16 @@ class CheckpointStore(Protocol):
     async def events_since(self, run_id: str, seq: int) -> list[Event]: ...
 
 
+@runtime_checkable
+class TelemetryProvider(Protocol):
+    """
+    Hook for observability. Implementations (like OTel) receive every
+    event exactly as it's folded into the durable log, allowing them to
+    emit traces, metrics, and logs to external systems.
+    """
+    async def on_event(self, event: Event) -> None: ...
+
+
 # ---------------------------------------------------------------------------
 # Tools — MCP-compatible from day one, not bolted on later
 # ---------------------------------------------------------------------------

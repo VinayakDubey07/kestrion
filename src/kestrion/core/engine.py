@@ -27,6 +27,7 @@ from .types import (
     EventType,
     Node,
     RunStatus,
+    TelemetryProvider,
     Tool,
     ToolResult,
     new_id,
@@ -64,6 +65,7 @@ class Engine:
         approval_callback: Callable[[str, dict], bool] | None = None,
         max_steps: int = 100,
         secrets: SecretProvider | None = None,
+        telemetry: TelemetryProvider | None = None,
     ):
         self.nodes = nodes
         self.tools = tools
@@ -71,6 +73,7 @@ class Engine:
         self.entry_node = entry_node
         self.max_steps = max_steps
         self.secrets = secrets or EnvVarSecretProvider()
+        self.telemetry = telemetry
         # sync hook the host app can override; default = auto-deny.
         # In production this is what a UI "approve kubectl apply" button
         # calls into, or a Slack approval workflow, etc.
@@ -578,6 +581,9 @@ class Engine:
         """
         seq = await self.store.append_event(event)
         state.last_event_seq = seq
+        if self.telemetry:
+            import asyncio
+            asyncio.create_task(self.telemetry.on_event(event))
         self._fold(state, event)
 
     # ------------------------------------------------------------------
@@ -588,6 +594,11 @@ class Engine:
         evt = Event.create(run_id=state.run_id, type=type, payload=payload, node=state.current_node)
         seq = await self.store.append_event(evt)
         state.last_event_seq = seq
+        if self.telemetry:
+            # We don't await this directly to avoid blocking the engine's core loop
+            # on external I/O (like an OTel exporter sending over the network).
+            import asyncio
+            asyncio.create_task(self.telemetry.on_event(evt))
         return evt
 
     def _fold(self, state: AgentState, evt: Event) -> None:
