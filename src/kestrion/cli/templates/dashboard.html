@@ -7,9 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <!-- Light theme PrismJS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-  
+
   <style>
     :root {
       --bg: #ffffff;
@@ -27,7 +26,7 @@
       --ink: #0f172a;
       --warn: #b7791f;
       --red: #b45353;
-      
+      --green: #059669;
       --font-sans: 'Inter', -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
@@ -45,11 +44,12 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── Header ─────────────────────────────────────────────── */
     header {
       background: rgba(255, 255, 255, 0.88);
       backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--rule-soft);
-      padding: 16px 24px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -57,532 +57,368 @@
       z-index: 10;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand svg { width: auto; height: 32px; }
 
-    .brand svg {
-      width: auto;
-      height: 32px;
-    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
 
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    button {
-      background: var(--bg);
-      border: 1px solid var(--rule);
-      color: var(--text);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-weight: 500;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
+    .live-indicator {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; color: var(--green);
       font-family: var(--font-mono);
     }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+      50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+    }
 
-    button:hover {
-      background: var(--surface-2);
-      transform: translateY(-1px);
+    .kbd-hint {
+      font-size: 11px; color: var(--text-faint); font-family: var(--font-mono);
+      cursor: pointer; padding: 4px 8px; border: 1px solid var(--rule); border-radius: 4px;
     }
-    
-    button:active {
-      transform: translateY(0);
+    .kbd-hint:hover { background: var(--surface-2); color: var(--text); }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    button {
+      background: var(--bg); border: 1px solid var(--rule); color: var(--text);
+      padding: 7px 14px; border-radius: 6px; font-weight: 500; font-size: 12px;
+      cursor: pointer; display: flex; align-items: center; gap: 5px;
+      transition: all 0.15s ease; font-family: var(--font-mono);
     }
+    button:hover { background: var(--surface-2); transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
 
     button.btn-primary {
       background: linear-gradient(135deg, var(--ink), var(--accent));
-      color: #ffffff;
-      border: 1px solid rgba(34, 211, 238, 0.8);
-      box-shadow: 0 4px 14px 0 rgba(14, 116, 144, 0.15);
+      color: #ffffff; border: 1px solid rgba(34, 211, 238, 0.8);
+      box-shadow: 0 4px 14px rgba(14, 116, 144, 0.15);
     }
-
     button.btn-primary:hover {
       box-shadow: 0 6px 20px rgba(14, 116, 144, 0.2);
       background: linear-gradient(135deg, #0f172a, #0891b2);
     }
+    button.btn-success { background: var(--surface); border-color: #34d399; color: #059669; }
+    button.btn-success:hover { background: #ecfdf5; }
+    button.btn-danger { background: var(--surface); border-color: #f87171; color: #dc2626; }
+    button.btn-danger:hover { background: #fef2f2; }
+    button.btn-sm { padding: 4px 10px; font-size: 11px; }
 
-    button.btn-success {
-      background: var(--surface);
-      border-color: #34d399;
-      color: #059669;
+    /* ── Analytics Bar ──────────────────────────────────────── */
+    .analytics-bar {
+      display: flex; gap: 12px; padding: 14px 24px; background: var(--surface);
+      border-bottom: 1px solid var(--rule-soft); flex-shrink: 0; overflow-x: auto;
+      align-items: stretch;
+    }
+    .analytics-card {
+      background: #ffffff; border: 1px solid var(--rule); border-radius: 8px;
+      padding: 12px 16px; min-width: 120px; flex: 1;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .analytics-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+    .analytics-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-faint); font-weight: 600; font-family: var(--font-mono);
+      margin-bottom: 4px;
+    }
+    .analytics-value {
+      font-size: 20px; font-weight: 700; font-family: var(--font-mono);
+      color: var(--accent); letter-spacing: -0.02em;
+    }
+    .analytics-value.green { color: var(--green); }
+    .analytics-value.warn { color: var(--warn); }
+
+    .status-chart {
+      display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+      margin-top: 8px; background: var(--rule-soft);
+    }
+    .status-chart-segment {
+      height: 100%; transition: width 0.5s ease;
+    }
+    .status-chart-segment.completed { background: #34d399; }
+    .status-chart-segment.running { background: #38bdf8; }
+    .status-chart-segment.waiting { background: #fbbf24; }
+    .status-chart-segment.failed { background: #f87171; }
+    .status-chart-segment.expired { background: #c084fc; }
+
+    .chart-legend {
+      display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap;
+    }
+    .chart-legend-item {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; font-family: var(--font-mono); color: var(--text-dim);
+    }
+    .chart-legend-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
     }
 
-    button.btn-success:hover {
-      background: #ecfdf5;
-    }
+    /* ── Layout ─────────────────────────────────────────────── */
+    .container { display: flex; flex: 1; overflow: hidden; }
 
-    button.btn-danger {
-      background: var(--surface);
-      border-color: #f87171;
-      color: #dc2626;
-    }
-
-    button.btn-danger:hover {
-      background: #fef2f2;
-    }
-
-    .container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* Sidebar */
+    /* ── Sidebar ────────────────────────────────────────────── */
     .sidebar {
-      width: 340px;
-      background: var(--surface);
-      border-right: 1px solid var(--rule-soft);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      z-index: 5;
+      width: 320px; background: var(--surface); border-right: 1px solid var(--rule-soft);
+      display: flex; flex-direction: column; flex-shrink: 0; z-index: 5;
     }
-
     .sidebar-header {
-      padding: 16px;
-      border-bottom: 1px solid var(--rule-soft);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      padding: 12px 14px; border-bottom: 1px solid var(--rule-soft);
+      display: flex; flex-direction: column; gap: 10px;
     }
-
     .search-box {
-      background: #ffffff;
-      border: 1px solid var(--rule);
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-size: 13px;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #ffffff; border: 1px solid var(--rule); border-radius: 8px;
+      padding: 9px 12px; color: var(--text); font-size: 13px; width: 100%;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     }
+    .search-box:focus { border-color: var(--accent-bright); box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2); }
 
-    .search-box:focus {
-      border-color: var(--accent-bright);
-      box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2);
-    }
-
-    .filters {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-
-    .filters::-webkit-scrollbar {
-      height: 4px;
-    }
-
+    .filters { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+    .filters::-webkit-scrollbar { height: 3px; }
     .filter-btn {
-      background: transparent;
-      border: 1px solid var(--rule);
-      color: var(--text-dim);
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 99px;
-      cursor: pointer;
-      white-space: nowrap;
-      font-family: var(--font-mono);
+      background: transparent; border: 1px solid var(--rule); color: var(--text-dim);
+      font-size: 11px; padding: 3px 8px; border-radius: 99px; cursor: pointer;
+      white-space: nowrap; font-family: var(--font-mono);
     }
+    .filter-btn.active { background: var(--surface-3); color: var(--text); border-color: var(--accent-bright); }
 
-    .filter-btn.active {
-      background: var(--surface-3);
-      color: var(--text);
-      border-color: var(--accent-bright);
-    }
-
-    .runs-list {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .runs-list::-webkit-scrollbar {
-      width: 6px;
-    }
-    .runs-list::-webkit-scrollbar-thumb {
-      background: var(--rule);
-      border-radius: 3px;
-    }
+    .runs-list { flex: 1; overflow-y: auto; }
+    .runs-list::-webkit-scrollbar { width: 5px; }
+    .runs-list::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
 
     .run-item {
-      padding: 16px;
-      border-bottom: 1px solid var(--rule-soft);
-      cursor: pointer;
-      transition: background 0.2s, padding-left 0.2s;
-      position: relative;
+      padding: 12px 14px; border-bottom: 1px solid var(--rule-soft);
+      cursor: pointer; transition: background 0.15s, padding-left 0.15s; position: relative;
     }
+    .run-item:hover { background: #ffffff; padding-left: 18px; }
+    .run-item.active { background: #ffffff; border-left: 3px solid var(--accent-bright); padding-left: 14px; }
 
-    .run-item:hover {
-      background: #ffffff;
-      padding-left: 20px;
-    }
-
-    .run-item.active {
-      background: #ffffff;
-      border-left: 3px solid var(--accent-bright);
-      padding-left: 17px;
-    }
-
-    .run-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .run-id {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .run-id-sub {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-faint);
-      margin: 2px 16px 0;
-    }
+    .run-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .run-id { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+    .run-id-sub { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); margin: 1px 0 0 0; }
 
     .badge {
-      font-size: 10px;
-      padding: 3px 8px;
-      border-radius: 99px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      font-size: 9px; padding: 2px 7px; border-radius: 99px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.04em;
     }
-
     .badge.completed { background: #d1fae5; color: #059669; border: 1px solid #a7f3d0; }
     .badge.running { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
     .badge.waiting_on_human { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
     .badge.failed { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
     .badge.expired { background: #fae8ff; color: #c026d3; border: 1px solid #f5d0fe; }
+    .badge.pending { background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--rule); }
 
-    .run-item-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      color: var(--text-faint);
+    .run-item-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+    .event-count-badge {
+      font-family: var(--font-mono); font-size: 9px; background: var(--surface-2);
+      border: 1px solid var(--rule); padding: 1px 5px; border-radius: 4px;
+      color: var(--text-faint); margin-left: 6px;
     }
 
-    /* Detail view */
-    .detail-view {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
-      background: #ffffff;
-    }
+    /* ── Detail View ───────────────────────────────────────── */
+    .detail-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: #ffffff; }
 
     .detail-header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--rule-soft);
-      padding: 24px 32px;
-      flex-shrink: 0;
+      background: var(--surface); border-bottom: 1px solid var(--rule-soft);
+      padding: 20px 28px; flex-shrink: 0;
     }
+    .detail-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .detail-run-id { font-family: var(--font-mono); font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 
-    .detail-header-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-
-    .detail-run-id {
-      font-family: var(--font-mono);
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .detail-stats {
-      display: flex;
-      gap: 16px;
-    }
-
+    .detail-stats { display: flex; gap: 10px; flex-wrap: wrap; }
     .stat-card {
-      background: #ffffff;
-      border: 1px solid var(--rule);
-      padding: 12px 16px;
-      border-radius: 8px;
-      min-width: 130px;
-      transition: transform 0.2s;
+      background: #ffffff; border: 1px solid var(--rule); padding: 10px 14px;
+      border-radius: 8px; min-width: 110px; transition: transform 0.15s;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
-    
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.04);
-    }
-
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
     .stat-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-faint);
-      margin-bottom: 6px;
-      font-weight: 600;
-      font-family: var(--font-mono);
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-faint); margin-bottom: 4px; font-weight: 600; font-family: var(--font-mono);
     }
+    .stat-value { font-size: 16px; font-weight: 500; font-family: var(--font-mono); color: var(--accent-bright); }
 
-    .stat-value {
-      font-size: 18px;
-      font-weight: 500;
-      font-family: var(--font-mono);
-      color: var(--accent-bright);
-    }
+    .detail-actions { display: flex; gap: 8px; align-items: center; }
 
-    /* Approval Banner */
-    .approval-banner {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    /* ── Approval/Input Banners ─────────────────────────────── */
+    .approval-banner, .input-banner {
+      border-radius: 8px; padding: 16px 20px; margin-top: 16px;
+      display: flex; flex-direction: column; gap: 12px;
     }
+    .approval-banner { background: #fffbeb; border: 1px solid #fde68a; }
+    .input-banner { background: #eff6ff; border: 1px solid #bfdbfe; }
 
-    .approval-title {
-      font-weight: 600;
-      color: #b45309;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 15px;
+    .banner-title {
+      font-weight: 600; display: flex; align-items: center; gap: 8px; font-size: 14px;
     }
+    .approval-banner .banner-title { color: #b45309; }
+    .input-banner .banner-title { color: #1d4ed8; }
 
-    .approval-form {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .banner-form { display: flex; align-items: center; gap: 10px; }
+    .banner-input {
+      background: #ffffff; border: 1px solid var(--rule); border-radius: 6px;
+      padding: 8px 12px; color: var(--text); font-family: var(--font-mono);
+      font-size: 12px; flex: 1; max-width: 400px; outline: none; transition: border-color 0.2s;
     }
+    .banner-input:focus { border-color: var(--accent-bright); box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.15); }
 
-    .approval-input {
-      background: #ffffff;
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      width: 200px;
-      outline: none;
-      transition: border-color 0.2s;
+    /* ── Tabs ───────────────────────────────────────────────── */
+    .detail-tabs {
+      display: flex; border-bottom: 1px solid var(--rule-soft); background: var(--surface);
+      padding: 0 28px; flex-shrink: 0;
     }
-    .approval-input:focus {
-      border-color: var(--warn);
+    .detail-tab {
+      padding: 10px 16px; cursor: pointer; font-size: 12px; font-weight: 600;
+      color: var(--text-dim); border-bottom: 2px solid transparent;
+      font-family: var(--font-mono); transition: color 0.15s, border-color 0.15s;
     }
+    .detail-tab:hover { color: var(--text); }
+    .detail-tab.active { color: var(--accent-bright); border-color: var(--accent-bright); }
 
-    /* Timeline */
-    .timeline-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 32px;
-      scroll-behavior: smooth;
-    }
+    /* ── Timeline ──────────────────────────────────────────── */
+    .timeline-container { flex: 1; overflow-y: auto; padding: 28px; scroll-behavior: smooth; }
+    .timeline-container::-webkit-scrollbar { width: 6px; }
+    .timeline-container::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
 
-    .timeline-container::-webkit-scrollbar {
-      width: 8px;
-    }
-    .timeline-container::-webkit-scrollbar-thumb {
-      background: var(--rule);
-      border-radius: 4px;
-    }
-
-    .timeline {
-      position: relative;
-      padding-left: 28px;
-      margin-left: 12px;
-      border-left: 2px solid var(--rule);
-    }
-
-    .timeline-item {
-      position: relative;
-      margin-bottom: 32px;
-    }
-
+    .timeline { position: relative; padding-left: 24px; margin-left: 10px; border-left: 2px solid var(--rule); }
+    .timeline-item { position: relative; margin-bottom: 24px; }
     .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: -37px;
-      top: 4px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 3px solid var(--rule);
-      box-shadow: 0 0 0 4px #ffffff;
-      transition: border-color 0.3s, background 0.3s;
+      content: ''; position: absolute; left: -33px; top: 4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #ffffff; border: 3px solid var(--rule);
+      box-shadow: 0 0 0 3px #ffffff; transition: border-color 0.2s, background 0.2s;
     }
-
-    .timeline-item:hover::before {
-      background: var(--surface-2);
-    }
-
+    .timeline-item:hover::before { background: var(--surface-2); }
     .timeline-item.completed::before { border-color: #10b981; }
     .timeline-item.started::before { border-color: var(--accent-bright); }
     .timeline-item.failed::before { border-color: var(--red); }
     .timeline-item.warning::before { border-color: var(--warn); }
 
-    .timeline-time {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-faint);
-      margin-bottom: 8px;
-    }
+    .timeline-time { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); margin-bottom: 6px; }
+    .timeline-seq { font-family: var(--font-mono); font-size: 10px; color: var(--accent); margin-left: 8px; }
 
     .timeline-content {
-      background: var(--surface);
-      border: 1px solid var(--rule);
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+      padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
+    .timeline-content:hover { border-color: var(--accent-bright); box-shadow: 0 4px 12px rgba(8, 145, 178, 0.08); }
 
-    .timeline-content:hover {
-      border-color: var(--accent-bright);
-      box-shadow: 0 4px 12px rgba(8, 145, 178, 0.08);
-    }
-
-    .timeline-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
+    .timeline-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     .timeline-node {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      background: #ffffff;
-      padding: 3px 8px;
-      border-radius: 6px;
-      color: var(--text-dim);
-      border: 1px solid var(--rule);
+      font-family: var(--font-mono); font-size: 10px; background: #ffffff;
+      padding: 2px 6px; border-radius: 6px; color: var(--text-dim); border: 1px solid var(--rule);
     }
 
-    .payload-container {
-      position: relative;
-      margin-top: 12px;
-    }
-
+    .payload-container { position: relative; margin-top: 10px; }
     .copy-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      padding: 4px 8px;
-      font-size: 11px;
-      background: var(--rule-soft);
-      border: 1px solid var(--rule);
-      border-radius: 4px;
-      color: var(--text-dim);
-      opacity: 0;
-      transition: opacity 0.2s, background 0.2s;
-      cursor: pointer;
+      position: absolute; top: 6px; right: 6px; padding: 3px 7px; font-size: 10px;
+      background: var(--rule-soft); border: 1px solid var(--rule); border-radius: 4px;
+      color: var(--text-dim); opacity: 0; transition: opacity 0.15s, background 0.15s; cursor: pointer;
     }
-
-    .payload-container:hover .copy-btn {
-      opacity: 1;
-    }
-
-    .copy-btn:hover {
-      background: var(--surface-3);
-      color: var(--text);
-    }
+    .payload-container:hover .copy-btn { opacity: 1; }
+    .copy-btn:hover { background: var(--surface-3); color: var(--text); }
 
     .timeline-payload {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      border-radius: 8px;
-      overflow-x: auto;
-      border: 1px solid var(--rule) !important;
-      background: #ffffff !important;
-      margin: 0 !important;
+      font-family: var(--font-mono); font-size: 12px; border-radius: 6px;
+      overflow-x: auto; border: 1px solid var(--rule) !important;
+      background: #ffffff !important; margin: 0 !important;
     }
-
-    /* LLM Markdown payload specific styling */
     .timeline-markdown {
-      font-family: var(--font-sans);
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--text);
-      background: #ffffff;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid var(--rule);
+      font-family: var(--font-sans); font-size: 13px; line-height: 1.6; color: var(--text);
+      background: #ffffff; padding: 14px; border-radius: 6px; border: 1px solid var(--rule);
     }
-
-    .timeline-markdown p { margin-bottom: 1em; }
+    .timeline-markdown p { margin-bottom: 0.8em; }
     .timeline-markdown p:last-child { margin-bottom: 0; }
-    .timeline-markdown code {
-      font-family: var(--font-mono);
-      background: var(--surface);
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-size: 0.9em;
-      border: 1px solid var(--rule-soft);
-    }
-    .timeline-markdown pre {
-      margin: 1em 0;
-      padding: 12px;
-      background: #f8fafc;
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      overflow-x: auto;
-    }
+    .timeline-markdown code { font-family: var(--font-mono); background: var(--surface); padding: 2px 4px; border-radius: 4px; font-size: 0.9em; border: 1px solid var(--rule-soft); }
+    .timeline-markdown pre { margin: 0.8em 0; padding: 10px; background: #f8fafc; border: 1px solid var(--rule); border-radius: 6px; overflow-x: auto; }
     .timeline-markdown pre code { background: none; padding: 0; border: none; }
 
     .llm-metrics {
-      display: flex;
-      gap: 16px;
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--accent-bright);
-      font-family: var(--font-mono);
-      background: var(--surface-2);
-      padding: 8px 12px;
-      border-radius: 6px;
+      display: flex; gap: 14px; margin-top: 10px; font-size: 11px;
+      color: var(--accent-bright); font-family: var(--font-mono);
+      background: var(--surface-2); padding: 6px 10px; border-radius: 6px;
       border: 1px solid var(--rule);
     }
 
-    /* Empty state */
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-faint);
-      gap: 20px;
+    /* ── Chat ──────────────────────────────────────────────── */
+    .chat-container {
+      flex: 1; overflow-y: auto; padding: 28px; display: flex;
+      flex-direction: column; gap: 16px;
     }
+    .chat-container::-webkit-scrollbar { width: 6px; }
+    .chat-container::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
 
-    .empty-state svg {
-      width: 56px;
-      height: 56px;
-      stroke: var(--rule);
-      transition: stroke 0.3s;
+    .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+    .chat-bubble.user { align-self: flex-end; background: linear-gradient(135deg, var(--ink), var(--accent)); color: #ffffff; border-bottom-right-radius: 4px; }
+    .chat-bubble.assistant { align-self: flex-start; background: var(--surface); border: 1px solid var(--rule); border-bottom-left-radius: 4px; }
+    .chat-bubble.system { align-self: center; background: var(--surface-2); border: 1px solid var(--rule); font-style: italic; color: var(--text-dim); max-width: 90%; }
+    .chat-meta { font-size: 10px; font-weight: 700; margin-bottom: 6px; opacity: 0.7; font-family: var(--font-mono); }
+    .chat-content { white-space: pre-wrap; word-break: break-word; }
+    .chat-tool-call { margin-top: 8px; font-family: var(--font-mono); font-size: 11px; background: rgba(0,0,0,0.06); padding: 8px; border-radius: 6px; }
+
+    /* ── Empty State ───────────────────────────────────────── */
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: var(--text-faint); gap: 16px;
     }
-    
-    .empty-state:hover svg {
-      stroke: var(--accent-bright);
+    .empty-state svg { width: 48px; height: 48px; stroke: var(--rule); transition: stroke 0.3s; }
+    .empty-state:hover svg { stroke: var(--accent-bright); }
+
+    /* ── Modal ─────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
     }
+    .modal {
+      background: #ffffff; border-radius: 12px; padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15); min-width: 420px; max-width: 600px;
+      width: 90%;
+    }
+    .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .modal label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; font-family: var(--font-mono); }
+    .modal select, .modal input[type="text"] {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 6px;
+      font-family: var(--font-mono); font-size: 13px; margin-bottom: 16px; outline: none;
+      background: var(--surface);
+    }
+    .modal select:focus, .modal input[type="text"]:focus { border-color: var(--accent-bright); box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.15); }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+    /* ── Compare View ──────────────────────────────────────── */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .compare-card {
+      background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+      padding: 20px;
+    }
+    .compare-card h4 { font-family: var(--font-mono); font-size: 14px; margin-bottom: 12px; color: var(--accent); }
+    .compare-stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--rule-soft); font-size: 13px; }
+    .compare-stat:last-child { border-bottom: none; }
+    .compare-stat-label { color: var(--text-dim); }
+    .compare-stat-value { font-family: var(--font-mono); font-weight: 600; }
+
+    /* ── Shortcuts Help ────────────────────────────────────── */
+    .shortcuts-grid { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; align-items: center; }
+    .shortcut-key {
+      font-family: var(--font-mono); font-size: 12px; background: var(--surface);
+      padding: 3px 8px; border-radius: 4px; border: 1px solid var(--rule);
+      text-align: center; font-weight: 600;
+    }
+    .shortcut-desc { font-size: 13px; color: var(--text-dim); }
+
+    /* ── Skeleton Loader ───────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton-text { height: 14px; margin-bottom: 8px; }
+    .skeleton-card { height: 60px; }
   </style>
 </head>
 <body>
@@ -600,12 +436,32 @@
       </svg>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" onclick="loadRuns()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+      <div class="live-indicator"><div class="live-dot"></div>LIVE</div>
+      <button onclick="loadRuns()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         Refresh
       </button>
+      <button onclick="showCompareModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Compare
+      </button>
+      <span class="kbd-hint" onclick="showShortcutsModal()">?</span>
     </div>
   </header>
+
+  <!-- Analytics Bar -->
+  <div class="analytics-bar" id="analytics-bar">
+    <div class="analytics-card"><div class="analytics-label">Total Runs</div><div class="analytics-value" id="a-total-runs">—</div></div>
+    <div class="analytics-card"><div class="analytics-label">Active</div><div class="analytics-value" id="a-active">—</div></div>
+    <div class="analytics-card"><div class="analytics-label">Success Rate</div><div class="analytics-value green" id="a-success-rate">—</div></div>
+    <div class="analytics-card"><div class="analytics-label">Total Tokens</div><div class="analytics-value" id="a-total-tokens">—</div></div>
+    <div class="analytics-card"><div class="analytics-label">Total Cost</div><div class="analytics-value" id="a-total-cost">—</div></div>
+    <div class="analytics-card" style="min-width: 200px; flex: 2;">
+      <div class="analytics-label">Status Distribution</div>
+      <div class="status-chart" id="status-chart"></div>
+      <div class="chart-legend" id="chart-legend"></div>
+    </div>
+  </div>
 
   <div class="container">
     <div class="sidebar">
@@ -619,49 +475,70 @@
           <button class="filter-btn" data-status="failed">Failed</button>
         </div>
       </div>
-      <div class="runs-list" id="runs-list">
-        <!-- Runs will be loaded here -->
-      </div>
+      <div class="runs-list" id="runs-list"></div>
     </div>
 
     <div class="detail-view" id="detail-view">
       <div class="empty-state" id="empty-state">
         <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-        <p>Select a run from the sidebar to inspect its execution trace</p>
+        <p>Select a run to inspect its execution trace</p>
+        <p style="font-size: 12px; font-family: var(--font-mono);">Use ↑↓ keys to navigate, Enter to select</p>
       </div>
 
       <div class="detail-header" id="detail-header" style="display: none;">
         <div class="detail-header-top">
-          <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
             <div class="detail-run-id" id="detail-run-id"></div>
             <span class="badge" id="detail-status"></span>
           </div>
-          <div class="detail-stats">
-            <div class="stat-card">
-              <div class="stat-label">Total Cost</div>
-              <div class="stat-value" id="detail-cost">$0.00</div>
+          <div class="detail-actions">
+            <div class="detail-stats" id="detail-stats">
+              <div class="stat-card"><div class="stat-label">Cost</div><div class="stat-value" id="detail-cost">$0.00</div></div>
+              <div class="stat-card"><div class="stat-label">Tokens</div><div class="stat-value" id="detail-tokens">0</div></div>
+              <div class="stat-card"><div class="stat-label">Duration</div><div class="stat-value" id="detail-duration">—</div></div>
+              <div class="stat-card"><div class="stat-label">Events</div><div class="stat-value" id="detail-events">0</div></div>
             </div>
-            <div class="stat-card">
-              <div class="stat-label">Total Tokens</div>
-              <div class="stat-value" id="detail-tokens">0</div>
-            </div>
-            <button class="btn-danger" style="margin-left: 8px; height: fit-content; align-self: center;" onclick="deleteRun()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              Delete Run
-            </button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="btn-primary btn-sm" onclick="showForkModal()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+            Fork
+          </button>
+          <button class="btn-sm" onclick="exportRun()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export JSON
+          </button>
+          <button class="btn-danger btn-sm" onclick="deleteRun()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete
+          </button>
+        </div>
+
+        <!-- Approval Banner -->
+        <div class="approval-banner" id="approval-banner" style="display: none;">
+          <div class="banner-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
+            Human Approval Required
+          </div>
+          <p id="approval-description" style="font-size: 13px; line-height: 1.5; color: var(--text-dim);"></p>
+          <div class="banner-form">
+            <label for="approval-role" style="font-size: 12px; color: var(--text-dim); font-weight: 500; margin-bottom: 0;">Role:</label>
+            <input type="text" id="approval-role" class="banner-input" value="__any__" style="max-width: 180px;">
+            <button class="btn-primary btn-sm" onclick="approveRun()">Approve</button>
           </div>
         </div>
 
-        <div class="approval-banner" id="approval-banner" style="display: none;">
-          <div class="approval-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg>
-            Human Approval Required
+        <!-- Input Banner -->
+        <div class="input-banner" id="input-banner" style="display: none;">
+          <div class="banner-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            Human Input Required
           </div>
-          <p id="approval-description" style="font-size: 14px; line-height: 1.5; color: var(--text-dim);"></p>
-          <div class="approval-form">
-            <label for="approval-role" style="font-size: 13px; color: var(--text-dim); font-weight: 500;">Approving Role:</label>
-            <input type="text" id="approval-role" class="approval-input" value="__any__">
-            <button class="btn-primary" onclick="approveRun()">Approve Tool Call</button>
+          <p id="input-question" style="font-size: 13px; line-height: 1.5; color: var(--text-dim);"></p>
+          <div class="banner-form">
+            <input type="text" id="input-text" class="banner-input" placeholder="Type your response...">
+            <button class="btn-primary btn-sm" onclick="submitInput()">Submit</button>
           </div>
         </div>
       </div>
@@ -671,17 +548,15 @@
         <div class="detail-tab" onclick="switchTab('chat')">Chat History</div>
       </div>
 
-      <div class="chat-container" id="chat-container" style="display: none;">
-        <!-- Chat messages will be loaded here -->
-      </div>
-
+      <div class="chat-container" id="chat-container" style="display: none;"></div>
       <div class="timeline-container" id="timeline-container" style="display: none;">
-        <div class="timeline" id="timeline">
-          <!-- Events will be loaded here -->
-        </div>
+        <div class="timeline" id="timeline"></div>
       </div>
     </div>
   </div>
+
+  <!-- Modals container -->
+  <div id="modal-root"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
@@ -689,11 +564,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
 
   <script>
+    // ── State ─────────────────────────────────────────────────────────
     let currentRunId = null;
     let runsData = [];
+    let currentEvents = [];
     let pendingTool = null;
+    let pendingInputTool = null;
     let currentFilterStatus = 'all';
 
+    // ── Filter buttons ────────────────────────────────────────────────
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -703,14 +582,101 @@
       });
     });
 
+    // ── Keyboard shortcuts ────────────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+      // Don't intercept when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+      if (e.key === '?') { showShortcutsModal(); return; }
+      if (e.key === 'r') { loadRuns(); return; }
+      if (e.key === 'Escape') { closeModal(); return; }
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        navigateRuns(e.key === 'ArrowDown' ? 1 : -1);
+        return;
+      }
+      if (e.key === 'Enter' && !currentRunId) {
+        const firstItem = document.querySelector('.run-item');
+        if (firstItem) firstItem.click();
+        return;
+      }
+    });
+
+    function navigateRuns(direction) {
+      const items = Array.from(document.querySelectorAll('.run-item'));
+      if (items.length === 0) return;
+
+      const activeIndex = items.findIndex(el => el.classList.contains('active'));
+      let nextIndex;
+
+      if (activeIndex === -1) {
+        nextIndex = direction > 0 ? 0 : items.length - 1;
+      } else {
+        nextIndex = activeIndex + direction;
+        if (nextIndex < 0) nextIndex = items.length - 1;
+        if (nextIndex >= items.length) nextIndex = 0;
+      }
+
+      items[nextIndex].click();
+      items[nextIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    // ── Analytics ─────────────────────────────────────────────────────
+    async function loadAnalytics() {
+      try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
+
+        document.getElementById('a-total-runs').textContent = data.total_runs.toLocaleString();
+        const active = (data.status_counts.running || 0) + (data.status_counts.waiting_on_human || 0);
+        document.getElementById('a-active').textContent = active.toLocaleString();
+        document.getElementById('a-success-rate').textContent = data.success_rate + '%';
+        document.getElementById('a-total-tokens').textContent = data.total_tokens.toLocaleString();
+        document.getElementById('a-total-cost').textContent = '$' + data.total_cost_usd.toFixed(4);
+
+        // Status distribution chart
+        const chartEl = document.getElementById('status-chart');
+        const legendEl = document.getElementById('chart-legend');
+        chartEl.innerHTML = '';
+        legendEl.innerHTML = '';
+
+        const total = data.total_runs || 1;
+        const statusColors = {
+          completed: { bg: '#34d399', label: 'Completed' },
+          running: { bg: '#38bdf8', label: 'Running' },
+          waiting_on_human: { bg: '#fbbf24', label: 'Waiting' },
+          failed: { bg: '#f87171', label: 'Failed' },
+          expired: { bg: '#c084fc', label: 'Expired' },
+        };
+
+        Object.entries(data.status_counts).forEach(([status, count]) => {
+          const pct = (count / total * 100).toFixed(1);
+          const seg = document.createElement('div');
+          seg.className = 'status-chart-segment';
+          seg.style.width = pct + '%';
+          seg.style.background = (statusColors[status] || {}).bg || '#94a3b8';
+          seg.title = `${status}: ${count} (${pct}%)`;
+          chartEl.appendChild(seg);
+
+          const legendItem = document.createElement('div');
+          legendItem.className = 'chart-legend-item';
+          legendItem.innerHTML = `<div class="chart-legend-dot" style="background: ${(statusColors[status] || {}).bg || '#94a3b8'};"></div>${(statusColors[status] || {}).label || status} ${count}`;
+          legendEl.appendChild(legendItem);
+        });
+      } catch (err) {
+        console.error('Failed to load analytics:', err);
+      }
+    }
+
+    // ── Runs list ─────────────────────────────────────────────────────
     async function loadRuns() {
       try {
         const res = await fetch('/api/runs');
         runsData = await res.json();
         renderRunsList();
-        if (currentRunId) {
-          loadRunDetails(currentRunId);
-        }
+        if (currentRunId) loadRunDetails(currentRunId);
+        loadAnalytics();
       } catch (err) {
         console.error('Failed to load runs:', err);
       }
@@ -728,7 +694,7 @@
       });
 
       if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-faint); font-size: 14px;">No matching runs found</div>';
+        list.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-faint); font-size: 13px;">No matching runs</div>';
         return;
       }
 
@@ -738,17 +704,18 @@
         item.onclick = () => selectRun(run.run_id);
 
         const date = new Date(run.timestamp || Date.now()).toLocaleTimeString();
-
         const displayName = run.task_name || run.run_id;
-        const subLabel = run.task_name ? `<span class="run-id-sub">${run.run_id}</span>` : ``;
+        const subLabel = run.task_name ? `<span class="run-id-sub">${run.run_id}</span>` : '';
+        const evtBadge = run.event_count ? `<span class="event-count-badge">${run.event_count} events</span>` : '';
+
         item.innerHTML = `
           <div class="run-item-header">
-            <span class="run-id">${displayName}</span>
-            <span class="badge ${run.status}">${run.status.replace('_', ' ')}</span>
+            <span class="run-id">${displayName}${evtBadge}</span>
+            <span class="badge ${run.status}">${run.status.replace(/_/g, ' ')}</span>
           </div>
           ${subLabel}
           <div class="run-item-meta">
-            <span>${date} &middot; Tokens: ${run.total_tokens}</span>
+            <span>${date} · ${run.total_tokens.toLocaleString()} tokens</span>
             <span>$${(run.total_cost_usd || 0).toFixed(5)}</span>
           </div>
         `;
@@ -756,16 +723,12 @@
       });
     }
 
-    function filterRuns() {
-      renderRunsList();
-    }
+    function filterRuns() { renderRunsList(); }
 
     function selectRun(runId) {
       if (currentRunId === runId) return;
       currentRunId = runId;
-      document.querySelectorAll('.run-item').forEach(el => el.classList.remove('active'));
-      const activeEl = Array.from(document.querySelectorAll('.run-item')).find(el => el.querySelector('.run-id').innerText === runId);
-      if (activeEl) activeEl.classList.add('active');
+      renderRunsList(); // re-render to update active state
 
       document.getElementById('empty-state').style.display = 'none';
       document.getElementById('detail-header').style.display = 'block';
@@ -774,65 +737,85 @@
       loadRunDetails(runId);
     }
 
+    // ── Run details ───────────────────────────────────────────────────
     async function loadRunDetails(runId) {
       try {
         const runRes = await fetch(`/api/runs/${runId}`);
-        if (!runRes.ok) {
-           if(runRes.status === 404) {
-               clearDetailView();
-               return;
-           }
-           throw new Error("Network response was not ok");
-        }
+        if (!runRes.ok) { if (runRes.status === 404) { clearDetailView(); } return; }
         const state = await runRes.json();
 
         document.getElementById('detail-run-id').innerText = state.run_id;
-        
         const statusBadge = document.getElementById('detail-status');
-        statusBadge.innerText = state.status.replace('_', ' ');
+        statusBadge.innerText = state.status.replace(/_/g, ' ');
         statusBadge.className = `badge ${state.status}`;
 
         document.getElementById('detail-cost').innerText = `$${(state.total_cost_usd || 0).toFixed(5)}`;
-        document.getElementById('detail-tokens').innerText = state.total_tokens;
+        document.getElementById('detail-tokens').innerText = (state.total_tokens || 0).toLocaleString();
 
-        const approvalBanner = document.getElementById('approval-banner');
-        if (state.status === 'waiting_on_human') {
-          const pending = state.scratch._pending_approval;
-          if (pending) {
-            pendingTool = pending.tool;
-            const highlightedArgs = Prism.highlight(JSON.stringify(pending.kwargs, null, 2), Prism.languages.json, 'json');
-            document.getElementById('approval-description').innerHTML = `
-              Agent wants to execute <strong>${pending.tool}</strong>.<br><br>
-              <div style="font-family: var(--font-mono); font-size: 13px; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid var(--rule);">${highlightedArgs}</div><br>
-              <strong>Missing Roles:</strong> ${JSON.stringify(pending.missing_roles)}
-            `;
-            approvalBanner.style.display = 'flex';
-          } else {
-            approvalBanner.style.display = 'none';
-          }
+        // Duration
+        if (state._first_event_ts && state._last_event_ts) {
+          const start = new Date(state._first_event_ts);
+          const end = new Date(state._last_event_ts);
+          const diffMs = end - start;
+          if (diffMs < 1000) document.getElementById('detail-duration').innerText = diffMs + 'ms';
+          else if (diffMs < 60000) document.getElementById('detail-duration').innerText = (diffMs / 1000).toFixed(1) + 's';
+          else document.getElementById('detail-duration').innerText = (diffMs / 60000).toFixed(1) + 'm';
         } else {
-          approvalBanner.style.display = 'none';
-          pendingTool = null;
+          document.getElementById('detail-duration').innerText = '—';
         }
 
-        const eventsRes = await fetch(`/api/runs/${runId}/events`);
-        const events = await eventsRes.json();
-        renderTimeline(events);
+        // Approval banner
+        const approvalBanner = document.getElementById('approval-banner');
+        const inputBanner = document.getElementById('input-banner');
+        approvalBanner.style.display = 'none';
+        inputBanner.style.display = 'none';
+        pendingTool = null;
+        pendingInputTool = null;
 
+        if (state.status === 'waiting_on_human') {
+          const pendingApproval = state.scratch._pending_approval;
+          const pendingInput = state.scratch._pending_input;
+
+          if (pendingInput && pendingInput.tool) {
+            pendingInputTool = pendingInput.tool;
+            document.getElementById('input-question').innerHTML = `
+              Tool <strong>${pendingInput.tool}</strong> is asking: <em>${escapeHTML(pendingInput.question || 'Please provide input.')}</em>
+            `;
+            inputBanner.style.display = 'flex';
+          } else if (pendingApproval) {
+            pendingTool = pendingApproval.tool;
+            const highlightedArgs = Prism.highlight(JSON.stringify(pendingApproval.kwargs, null, 2), Prism.languages.json, 'json');
+            document.getElementById('approval-description').innerHTML = `
+              Agent wants to execute <strong>${pendingApproval.tool}</strong>.<br><br>
+              <div style="font-family: var(--font-mono); font-size: 12px; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid var(--rule);">${highlightedArgs}</div><br>
+              <strong>Missing Roles:</strong> ${JSON.stringify(pendingApproval.missing_roles)}
+            `;
+            approvalBanner.style.display = 'flex';
+          }
+        }
+
+        // Events
+        const eventsRes = await fetch(`/api/runs/${runId}/events`);
+        currentEvents = await eventsRes.json();
+        document.getElementById('detail-events').innerText = currentEvents.length;
+        renderTimeline(currentEvents);
+
+        // Chat
         const messages = (state.scratch && state.scratch._messages) ? state.scratch._messages : [];
         renderChat(messages);
-        
+
         document.getElementById('detail-tabs').style.display = 'flex';
         if (document.querySelectorAll('.detail-tab')[0].classList.contains('active')) {
-            switchTab('timeline');
+          switchTab('timeline');
         } else {
-            switchTab('chat');
+          switchTab('chat');
         }
       } catch (err) {
         console.error('Failed to load details:', err);
       }
     }
 
+    // ── Tab switching ─────────────────────────────────────────────────
     function switchTab(tabId) {
       document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
       if (tabId === 'timeline') {
@@ -846,44 +829,43 @@
       }
     }
 
+    // ── Chat rendering ────────────────────────────────────────────────
     function renderChat(messages) {
       const container = document.getElementById('chat-container');
       container.innerHTML = '';
       if (!messages || messages.length === 0) {
-        container.innerHTML = '<div style="text-align:center; color: var(--text-dim); margin-top: 40px;">No chat history available.</div>';
+        container.innerHTML = '<div style="text-align:center; color: var(--text-dim); margin-top: 40px; font-size: 13px;">No chat history available.</div>';
         return;
       }
-      
+
       messages.forEach(msg => {
         const bubble = document.createElement('div');
         const roleClass = msg.role === 'user' ? 'user' : (msg.role === 'assistant' ? 'assistant' : 'system');
         bubble.className = `chat-bubble ${roleClass}`;
-        
+
         let html = `<div class="chat-meta">${msg.role.toUpperCase()}</div>`;
-        
         if (msg.content) {
-            html += `<div class="chat-content">${escapeHTML(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)).replace(/\\n/g, '<br>')}</div>`;
+          html += `<div class="chat-content">${escapeHTML(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)).replace(/\\n/g, '<br>')}</div>`;
         }
-        
         if (msg.tool_calls && msg.tool_calls.length > 0) {
-            msg.tool_calls.forEach(tc => {
-                html += `<div class="chat-tool-call"><strong>🔧 Tool Call:</strong> ${tc.name}<br>${escapeHTML(JSON.stringify(tc.arguments))}</div>`;
-            });
+          msg.tool_calls.forEach(tc => {
+            html += `<div class="chat-tool-call"><strong>Tool Call:</strong> ${tc.name}<br>${escapeHTML(JSON.stringify(tc.arguments))}</div>`;
+          });
         }
-        
         bubble.innerHTML = html;
         container.appendChild(bubble);
       });
       container.scrollTop = container.scrollHeight;
     }
 
+    // ── Timeline rendering ────────────────────────────────────────────
     function renderTimeline(events) {
       const timeline = document.getElementById('timeline');
       timeline.innerHTML = '';
 
-      events.forEach((evt, idx) => {
+      events.forEach((evt) => {
         const item = document.createElement('div');
-        
+
         let typeClass = '';
         const type = evt.type;
         if (type.includes('started')) typeClass = 'started';
@@ -895,7 +877,7 @@
 
         const date = new Date(evt.timestamp).toLocaleString();
         const payload = evt.payload;
-        
+
         let headerText = evt.type.toUpperCase().replace(/_/g, ' ');
         let payloadContent = '';
         let extraInfo = '';
@@ -908,67 +890,66 @@
           headerText = 'LLM GENERATION COMPLETED';
           extraInfo = `
             <div class="llm-metrics">
-              <span><strong>Stop Reason:</strong> ${payload.stop_reason || 'N/A'}</span>
+              <span><strong>Stop:</strong> ${payload.stop_reason || 'N/A'}</span>
               <span><strong>Tokens:</strong> ${evt.tokens_in} in / ${evt.tokens_out} out</span>
               <span><strong>Cost:</strong> $${evt.cost_usd.toFixed(5)}</span>
-            </div>
-          `;
-          if (payload.text) {
-             payloadContent = payload.text;
-             isMarkdown = true;
-          } else {
-             payloadContent = JSON.stringify(payload, null, 2);
-          }
+            </div>`;
+          if (payload.text) { payloadContent = payload.text; isMarkdown = true; }
+          else { payloadContent = JSON.stringify(payload, null, 2); }
         } else if (type === 'tool_call_started') {
-          headerText = `TOOL CALL STARTED: ${payload.tool}`;
+          headerText = `TOOL CALL: ${payload.tool}`;
           payloadContent = JSON.stringify(payload.args, null, 2);
         } else if (type === 'tool_call_completed') {
-          headerText = `TOOL CALL COMPLETED: ${payload.tool}`;
+          headerText = `TOOL COMPLETED: ${payload.tool}`;
           payloadContent = typeof payload.output === 'string' ? payload.output : JSON.stringify(payload.output, null, 2);
         } else if (type === 'tool_call_failed') {
-          headerText = `TOOL CALL FAILED: ${payload.tool}`;
+          headerText = `TOOL FAILED: ${payload.tool}`;
           payloadContent = payload.error;
         } else if (type === 'state_transition') {
-          headerText = `STATE TRANSITION`;
+          headerText = 'STATE TRANSITION';
           payloadContent = `${payload.from} → ${payload.to}`;
         } else if (type === 'human_intervention') {
-          headerText = `HUMAN APPROVAL REQUIRED`;
+          headerText = `HUMAN: ${(payload.reason || '').toUpperCase().replace(/_/g, ' ')}`;
           payloadContent = JSON.stringify(payload, null, 2);
+        } else if (type === 'context_compacted') {
+          headerText = 'CONTEXT COMPACTED';
+          payloadContent = `${payload.original_turns} turns → ${payload.compacted_turns} turns`;
         } else {
           payloadContent = JSON.stringify(payload, null, 2);
         }
 
         const nodeLabel = evt.node ? `<span class="timeline-node">${evt.node}</span>` : '';
-        
+        const seqLabel = evt.seq ? `<span class="timeline-seq">seq #${evt.seq}</span>` : '';
+
         let formattedPayload = '';
         if (payloadContent) {
-           const safeId = `payload-${evt.event_id}`;
-           if (isMarkdown || type === 'message_received' || type === 'state_transition') {
+          const safeId = `payload-${evt.event_id}`;
+          if (isMarkdown || type === 'message_received' || type === 'state_transition' || type === 'context_compacted') {
+            formattedPayload = `
+              <div class="payload-container">
+                <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                <div id="${safeId}" class="timeline-markdown">${escapeHTML(payloadContent).replace(/\n/g, '<br>')}</div>
+              </div>`;
+          } else {
+            try {
+              const highlighted = Prism.highlight(payloadContent, Prism.languages.json, 'json');
               formattedPayload = `
                 <div class="payload-container">
-                    <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
-                    <div id="${safeId}" class="timeline-markdown">${escapeHTML(payloadContent).replace(/\n/g, '<br>')}</div>
+                  <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                  <pre class="language-json timeline-payload"><code id="${safeId}" class="language-json">${highlighted}</code></pre>
                 </div>`;
-           } else {
-              try {
-                  const highlighted = Prism.highlight(payloadContent, Prism.languages.json, 'json');
-                  formattedPayload = `
-                  <div class="payload-container">
-                      <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
-                      <pre class="language-json timeline-payload"><code id="${safeId}" class="language-json">${highlighted}</code></pre>
-                  </div>`;
-              } catch(e) {
-                  formattedPayload = `
-                  <div class="payload-container">
-                      <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
-                      <pre class="timeline-payload" id="${safeId}">${escapeHTML(payloadContent)}</pre>
-                  </div>`;
-              }
-           }
+            } catch(e) {
+              formattedPayload = `
+                <div class="payload-container">
+                  <button class="copy-btn" onclick="copyToClipboard('${safeId}')">Copy</button>
+                  <pre class="timeline-payload" id="${safeId}">${escapeHTML(payloadContent)}</pre>
+                </div>`;
+            }
+          }
         }
 
         item.innerHTML = `
-          <div class="timeline-time">${date}</div>
+          <div class="timeline-time">${date} ${seqLabel}</div>
           <div class="timeline-content">
             <div class="timeline-title">${headerText} ${nodeLabel}</div>
             ${formattedPayload}
@@ -979,96 +960,197 @@
       });
     }
 
+    // ── Actions ───────────────────────────────────────────────────────
     async function approveRun() {
       if (!currentRunId || !pendingTool) return;
       const role = document.getElementById('approval-role').value;
-      const btn = document.querySelector('.approval-form .btn-primary');
-      const originalText = btn.innerText;
-      btn.innerText = 'Approving...';
-
       try {
         const res = await fetch(`/api/runs/${currentRunId}/approve`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tool: pendingTool, role: role })
         });
-
         const result = await res.json();
-        if (result.success) {
-          alert('Approval recorded! The agent process can now resume this run.');
-          loadRuns();
-        } else {
-          alert('Failed to approve: ' + result.error);
-        }
-      } catch (err) {
-        alert('Error sending approval: ' + err);
-      } finally {
-        btn.innerText = originalText;
-      }
+        if (result.success) { alert('Approval recorded! Resume the agent process to continue.'); loadRuns(); }
+        else { alert('Failed: ' + result.error); }
+      } catch (err) { alert('Error: ' + err); }
+    }
+
+    async function submitInput() {
+      if (!currentRunId) return;
+      const text = document.getElementById('input-text').value;
+      if (!text) { alert('Please enter a response.'); return; }
+      try {
+        const res = await fetch(`/api/runs/${currentRunId}/input`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, tool: pendingInputTool })
+        });
+        const result = await res.json();
+        if (result.success) { document.getElementById('input-text').value = ''; alert('Input submitted! Resume the agent process to continue.'); loadRuns(); }
+        else { alert('Failed: ' + result.error); }
+      } catch (err) { alert('Error: ' + err); }
     }
 
     async function deleteRun() {
-        if (!currentRunId) return;
-        if (!confirm(`Are you sure you want to permanently delete run: ${currentRunId}?`)) {
-            return;
-        }
+      if (!currentRunId) return;
+      if (!confirm(`Permanently delete run ${currentRunId}?`)) return;
+      try {
+        const res = await fetch(`/api/runs/${currentRunId}`, { method: 'DELETE' });
+        const result = await res.json();
+        if (result.success) { clearDetailView(); loadRuns(); }
+        else { alert('Failed: ' + (result.error || 'Unknown error')); }
+      } catch (err) { alert('Error: ' + err); }
+    }
 
-        try {
-            const res = await fetch(`/api/runs/${currentRunId}`, {
-                method: 'DELETE'
-            });
-            const result = await res.json();
-            if (result.success) {
-                clearDetailView();
-                loadRuns();
-            } else {
-                alert('Failed to delete run: ' + (result.error || 'Unknown error'));
-            }
-        } catch (err) {
-            alert('Error deleting run: ' + err);
-        }
+    function exportRun() {
+      if (!currentRunId) return;
+      window.open(`/api/runs/${currentRunId}/export`, '_blank');
     }
 
     function clearDetailView() {
-        currentRunId = null;
-        document.getElementById('empty-state').style.display = 'flex';
-        document.getElementById('detail-header').style.display = 'none';
-        document.getElementById('timeline-container').style.display = 'none';
-        document.getElementById('chat-container').style.display = 'none';
-        document.getElementById('detail-tabs').style.display = 'none';
-        document.querySelectorAll('.run-item').forEach(el => el.classList.remove('active'));
+      currentRunId = null;
+      document.getElementById('empty-state').style.display = 'flex';
+      document.getElementById('detail-header').style.display = 'none';
+      document.getElementById('timeline-container').style.display = 'none';
+      document.getElementById('chat-container').style.display = 'none';
+      document.getElementById('detail-tabs').style.display = 'none';
+      renderRunsList();
     }
 
-    function copyToClipboard(elementId) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        let text = element.innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            const container = element.closest('.payload-container');
-            const btn = container.querySelector('.copy-btn');
-            if (btn) {
-                const oldText = btn.innerText;
-                btn.innerText = 'Copied!';
-                setTimeout(() => { btn.innerText = oldText; }, 2000);
-            }
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
+    // ── Fork Modal ────────────────────────────────────────────────────
+    function showForkModal() {
+      if (!currentRunId || currentEvents.length === 0) { alert('No events to fork from.'); return; }
+
+      const options = currentEvents.map(e =>
+        `<option value="${e.seq}">seq #${e.seq} — ${e.type.replace(/_/g, ' ')} (${new Date(e.timestamp).toLocaleTimeString()})</option>`
+      ).join('');
+
+      showModal(`
+        <h3>Fork Run</h3>
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px;">
+          Create a new run that is a clone of <strong>${currentRunId}</strong> up to a specific event.
+        </p>
+        <label>Fork at event:</label>
+        <select id="fork-seq">${options}</select>
+        <label>New Run ID (optional):</label>
+        <input type="text" id="fork-new-id" placeholder="Auto-generated if empty">
+        <div class="modal-actions">
+          <button onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="executeFork()">Fork Run</button>
+        </div>
+      `);
+    }
+
+    async function executeFork() {
+      const atSeq = parseInt(document.getElementById('fork-seq').value);
+      const newId = document.getElementById('fork-new-id').value || null;
+      try {
+        const res = await fetch(`/api/runs/${currentRunId}/fork`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ at_seq: atSeq, new_run_id: newId })
         });
+        const result = await res.json();
+        if (result.success) {
+          closeModal();
+          alert(`Fork created: ${result.forked_run_id}`);
+          await loadRuns();
+          selectRun(result.forked_run_id);
+        } else { alert('Fork failed: ' + result.error); }
+      } catch (err) { alert('Error: ' + err); }
+    }
+
+    // ── Compare Modal ─────────────────────────────────────────────────
+    function showCompareModal() {
+      if (runsData.length < 2) { alert('Need at least 2 runs to compare.'); return; }
+
+      const options = runsData.map(r =>
+        `<option value="${r.run_id}">${r.task_name || r.run_id} (${r.status})</option>`
+      ).join('');
+
+      showModal(`
+        <h3>Compare Runs</h3>
+        <label>Run A:</label>
+        <select id="compare-a">${options}</select>
+        <label>Run B:</label>
+        <select id="compare-b">${runsData.length > 1 ? runsData.map((r, i) =>
+          `<option value="${r.run_id}" ${i === 1 ? 'selected' : ''}>${r.task_name || r.run_id} (${r.status})</option>`
+        ).join('') : options}</select>
+        <div id="compare-results"></div>
+        <div class="modal-actions">
+          <button onclick="closeModal()">Close</button>
+          <button class="btn-primary" onclick="executeCompare()">Compare</button>
+        </div>
+      `);
+    }
+
+    function executeCompare() {
+      const idA = document.getElementById('compare-a').value;
+      const idB = document.getElementById('compare-b').value;
+      const runA = runsData.find(r => r.run_id === idA);
+      const runB = runsData.find(r => r.run_id === idB);
+      if (!runA || !runB) return;
+
+      document.getElementById('compare-results').innerHTML = `
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h4>${runA.task_name || runA.run_id}</h4>
+            <div class="compare-stat"><span class="compare-stat-label">Status</span><span class="compare-stat-value"><span class="badge ${runA.status}">${runA.status.replace(/_/g, ' ')}</span></span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Tokens</span><span class="compare-stat-value">${runA.total_tokens.toLocaleString()}</span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Cost</span><span class="compare-stat-value">$${(runA.total_cost_usd || 0).toFixed(5)}</span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Events</span><span class="compare-stat-value">${runA.event_count || '—'}</span></div>
+          </div>
+          <div class="compare-card">
+            <h4>${runB.task_name || runB.run_id}</h4>
+            <div class="compare-stat"><span class="compare-stat-label">Status</span><span class="compare-stat-value"><span class="badge ${runB.status}">${runB.status.replace(/_/g, ' ')}</span></span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Tokens</span><span class="compare-stat-value">${runB.total_tokens.toLocaleString()}</span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Cost</span><span class="compare-stat-value">$${(runB.total_cost_usd || 0).toFixed(5)}</span></div>
+            <div class="compare-stat"><span class="compare-stat-label">Events</span><span class="compare-stat-value">${runB.event_count || '—'}</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Shortcuts Modal ───────────────────────────────────────────────
+    function showShortcutsModal() {
+      showModal(`
+        <h3>Keyboard Shortcuts</h3>
+        <div class="shortcuts-grid" style="margin-top: 16px;">
+          <span class="shortcut-key">↑ / ↓</span><span class="shortcut-desc">Navigate runs</span>
+          <span class="shortcut-key">Enter</span><span class="shortcut-desc">Select first run</span>
+          <span class="shortcut-key">r</span><span class="shortcut-desc">Refresh runs</span>
+          <span class="shortcut-key">Esc</span><span class="shortcut-desc">Close modal</span>
+          <span class="shortcut-key">?</span><span class="shortcut-desc">Show this help</span>
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
+          <button onclick="closeModal()">Close</button>
+        </div>
+      `);
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────────
+    function showModal(html) {
+      const root = document.getElementById('modal-root');
+      root.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+    }
+    function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+
+    // ── Utilities ─────────────────────────────────────────────────────
+    function copyToClipboard(elementId) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+      navigator.clipboard.writeText(element.innerText).then(() => {
+        const container = element.closest('.payload-container');
+        const btn = container.querySelector('.copy-btn');
+        if (btn) { const old = btn.innerText; btn.innerText = 'Copied!'; setTimeout(() => { btn.innerText = old; }, 1500); }
+      }).catch(err => console.error('Failed to copy:', err));
     }
 
     function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, 
-            tag => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                "'": '&#39;',
-                '"': '&quot;'
-            }[tag] || tag)
-        );
+      return str.replace(/[&<>'"]/g,
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
     }
 
+    // ── Init ──────────────────────────────────────────────────────────
     loadRuns();
     setInterval(loadRuns, 5000);
   </script>

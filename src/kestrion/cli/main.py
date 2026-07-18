@@ -110,6 +110,77 @@ def cmd_init(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# kestrion list
+# ---------------------------------------------------------------------------
+
+def cmd_list(args: argparse.Namespace) -> int:
+    import sqlite3
+    import json
+    
+    db_path = args.store or "kestrion_runs.db"
+    db_file = Path(db_path)
+    if not db_file.exists():
+        if not args.store and Path("agent_runs.db").exists():
+            db_path = "agent_runs.db"
+        else:
+            print(f"error: database file '{db_path}' not found", file=sys.stderr)
+            return 1
+
+    try:
+        conn = sqlite3.connect(db_path)
+        query = """
+            SELECT c.run_id, c.created_at, c.state_blob
+            FROM checkpoints c
+            INNER JOIN (
+                SELECT run_id, MAX(event_seq) as max_seq
+                FROM checkpoints
+                GROUP BY run_id
+            ) latest ON c.run_id = latest.run_id AND c.event_seq = latest.max_seq
+            ORDER BY c.created_at DESC
+        """
+        rows = conn.execute(query).fetchall()
+    except Exception as exc:
+        print(f"error listing runs: {exc}", file=sys.stderr)
+        return 1
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+    # ANSI colors
+    C_GREEN = "\033[92m"
+    C_YELLOW = "\033[93m"
+    C_RED = "\033[91m"
+    C_MAGENTA = "\033[95m"
+    C_CYAN = "\033[96m"
+    C_RESET = "\033[0m"
+    C_BOLD = "\033[1m"
+    
+    print(f"{C_BOLD}{'RUN ID':<36} | {'STATUS':<16} | {'COST':<8} | {'TOKENS':<8} | {'TIMESTAMP'}{C_RESET}")
+    print("-" * 100)
+    
+    for row in rows:
+        run_id, created_at, state_blob = row
+        try:
+            state = json.loads(state_blob)
+            status = state.get("status", "unknown")
+            cost = state.get("total_cost_usd", 0.0)
+            tokens = state.get("total_tokens", 0)
+            
+            color = C_RESET
+            if status == "completed": color = C_GREEN
+            elif status == "waiting_on_human": color = C_YELLOW
+            elif status == "failed": color = C_RED
+            elif status == "expired": color = C_MAGENTA
+            elif status == "running": color = C_CYAN
+            
+            print(f"{run_id:<36} | {color}{status.upper():<16}{C_RESET} | ${cost:<7.5f} | {tokens:<8} | {created_at}")
+        except (json.JSONDecodeError, TypeError):
+            print(f"{run_id:<36} | {'UNKNOWN':<16} | ${0.0:<7.5f} | {0:<8} | {created_at}")
+            
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # kestrion run
 # ---------------------------------------------------------------------------
 
@@ -143,6 +214,53 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     # If the module has a main() coroutine, run it; otherwise the
     # exec_module above already ran the module's top-level code.
+    if hasattr(module, "main") and asyncio.iscoroutinefunction(module.main):
+        try:
+            asyncio.run(module.main())
+        except KeyboardInterrupt:
+            print("\ninterrupted")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# kestrion resume
+# ---------------------------------------------------------------------------
+
+def cmd_resume(args: argparse.Namespace) -> int:
+    script = Path(args.file)
+    if not script.exists():
+        print(f"error: {script} not found", file=sys.stderr)
+        return 1
+
+    # Load the module from the file path
+    spec = importlib.util.spec_from_file_location("__kestrion_agent__", script)
+    if spec is None or spec.loader is None:
+        print(f"error: could not load {script}", file=sys.stderr)
+        return 1
+
+    # Add the script's directory to sys.path so relative imports work
+    sys.path.insert(0, str(script.parent.resolve()))
+    module = importlib.util.module_from_spec(spec)
+
+    # Intercept Agent.run to transparently call Agent.resume instead
+    from kestrion.agent.agent import Agent
+    async def fake_run(self, *a, **kw):
+        print(f"Resuming run {args.run_id}...")
+        return await self.resume(args.run_id)
+    
+    Agent.run = fake_run
+
+    try:
+        spec.loader.exec_module(module)
+    except SystemExit:
+        return 0
+    except Exception as exc:
+        print(f"error running {script}: {exc}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
     if hasattr(module, "main") and asyncio.iscoroutinefunction(module.main):
         try:
             asyncio.run(module.main())
@@ -255,6 +373,11 @@ def cmd_trace(args: argparse.Namespace) -> int:
     print("-" * 80)
 
     for evt in events:
+        if args.type and evt.type.value != args.type:
+            continue
+        if args.node and evt.node != args.node:
+            continue
+
         ts = evt.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         evt_type = evt.type.value.upper()
         
@@ -364,7 +487,12 @@ def build_parser() -> argparse.ArgumentParser:
               kestrion dashboard                start the web dashboard
         """),
     )
-    parser.add_argument("--version", action="version", version="%(prog)s 0.2.2")
+    try:
+        import importlib.metadata
+        version = importlib.metadata.version("kestrion")
+    except Exception:
+        version = "0.3.0"
+    parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
 
     sub = parser.add_subparsers(dest="command", metavar="<command>")
 
@@ -396,6 +524,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_trace = sub.add_parser("trace", help="inspect a run's event timeline")
     p_trace.add_argument("run_id", help="the run ID to trace")
     p_trace.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
+    p_trace.add_argument("--type", help="filter events by type (e.g. tool_call_started)")
+    p_trace.add_argument("--node", help="filter events by node (e.g. agent_loop)")
+
+    # list
+    p_list = sub.add_parser("list", help="list all runs in the database")
+    p_list.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
+
+    # resume
+    p_resume = sub.add_parser("resume", help="resume a paused or crashed run")
+    p_resume.add_argument("run_id", help="the run ID to resume")
+    p_resume.add_argument("file", help="path to the agent Python file")
+    p_resume.add_argument("-v", "--verbose", action="store_true", help="show full tracebacks on error")
 
     # dashboard
     p_dash = sub.add_parser("dashboard", help="start the web dashboard server")
@@ -427,6 +567,8 @@ def main() -> None:
         "trace": cmd_trace,
         "dashboard": cmd_dashboard,
         "fork": cmd_fork,
+        "list": cmd_list,
+        "resume": cmd_resume,
     }
     sys.exit(handlers[args.command](args))
 
