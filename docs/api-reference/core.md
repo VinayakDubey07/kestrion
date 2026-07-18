@@ -9,3 +9,7 @@ docstrings.
 ::: kestrion.core.engine
 
 ::: kestrion.core.errors
+
+::: kestrion.core.secrets
+
+::: kestrion.core.nodes

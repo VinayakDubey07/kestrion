@@ -541,6 +541,9 @@ class Engine:
             state.history.append({"type": "llm_response", **evt.payload})
             state.total_tokens += evt.tokens_in + evt.tokens_out
             state.total_cost_usd += evt.cost_usd
+        elif evt.type == EventType.CONTEXT_COMPACTED:
+            summary_text = evt.payload.get("summary", "")
+            state.history = [{"type": "summary", "content": summary_text}]
 
     async def _checkpoint(self, state: AgentState) -> Checkpoint:
         checkpoint = Checkpoint(

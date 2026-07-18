@@ -98,6 +98,10 @@ rather than letting `pickle` silently paper over a problem that JSON can't repre
 [architecture document](../architecture.md#7-design-decisions-and-the-bugs-that-shaped-them) for
 the full account of this and other bugs found during development.
 
+## Bounded Checkpoint Bloat via Compaction
+
+To support extremely long-running Enterprise agents, Kestrion solves the issue of unbounded checkpoint blobs via context compaction. When the `SummarizationNode` determines that the conversation history has exceeded the configured limits, it emits an `EventType.CONTEXT_COMPACTED` event. The `Engine._fold` hook naturally listens for this event, and truncates the older entries in `state.history`, replacing them with a single `{type: "summary", content: "..."}` record. This ensures that the serialized size of a `Checkpoint` always stays strictly bounded, guaranteeing O(1) performance and stable memory usage even for infinite-looping agents.
+
 ## Related
 
 - [Event Sourcing](event-sourcing.md) — the model checkpoints are snapshots *of*

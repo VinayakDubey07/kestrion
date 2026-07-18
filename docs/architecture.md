@@ -430,6 +430,8 @@ they're either separate concerns or not yet built):
 - **Postgres-backed storage** (`store/postgres_store.py`) — built! The async `PostgresCheckpointStore` implements the `CheckpointStore` protocol for production-grade, distributed state persistence.
 - **A `Trace` viewer** for the event log — built! Developers can inspect events via the terminal timeline (`kestrion trace <run_id>`) or launch the web dashboard (`kestrion dashboard`).
 - **`core/errors.py`** — built! Exceptions are centralized under a semantic `KestrionError` class hierarchy, including `CheckpointNotFoundError`, `InvalidRunStatusError`, `InvalidStoreURLError`, `InvalidToolApprovalError`, `RunExpiredError`, `ApprovalRequired`, and `HandoffCompleted`. This also enables `core/engine.py` to import and check exceptions like `HandoffCompleted` cleanly without circular dependencies.
+- **Enterprise Secret Management** (`core/secrets.py`) — built! Resolves credentials at runtime (via `EnvVarSecretProvider` or custom providers) and intercepts them during `Engine.call_tool` before they ever hit `AgentState.scratch` or the event log, preventing leaks into the durable SQLite/Postgres stores.
+- **Advanced Context Window Management** (`core/nodes.py`, `_fold`) — built! Solves the massive DB serialization bloat of long-running agents. The `SummarizationNode` watches conversation length and triggers an `EventType.CONTEXT_COMPACTED` event. The `Engine._fold` hook cleanly replaces the massive `history` list with a bounded `{"type": "summary", "content": "..."}` block, ensuring O(1) storage scale.
 - **`agent/graph.py`** — empty stub. Multi-step workflows are possible today via raw `Node`
   classes directly; this would add a more ergonomic builder API on top.
 
