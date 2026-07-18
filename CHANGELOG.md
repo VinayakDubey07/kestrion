@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Enterprise Secret Management (`SecretProvider`)**: Inject credentials safely via `EnvVarSecretProvider` or custom classes without leaking into the durable database or event log.
 - **Advanced Context Window Management (`SummarizationNode`)**: Bounded database blob growth via O(1) serialization overhead. `AgentState.history` cleanly truncates older turns and saves a summary marker directly in the engine event loop.
 - **Human-in-the-Loop Input (`ask_human`)**: Built-in tool that pauses the run to collect text input from the user. Includes `Agent.provide_input()` and `Engine.provide_input()` APIs.
+- **PostgreSQL Checkpoint Store**: Added `PostgresCheckpointStore` for production-grade, distributed state persistence. Enabled by passing a `postgres://` connection string.
+- **OpenTelemetry Integration**: Added `OpenTelemetryProvider` to emit nested spans for agent runs, LLM calls, and tool execution.
+- **Vision / Multi-modal Support**: Native processing of `TextBlock` and `ImageBlock` types inside agent event loops and provider mappings (Anthropic, OpenAI, Ollama).
+- **Time-Travel Debugging (Forking)**: Added the `fork` command to clone agent runs from a specific event sequence for debugging.
+- **CLI Interactive & Chat Dashboard**: Built REPL terminal chat (`kestrion chat`) and Live Chat UI in the visual dashboard.
 - New `InputRequired` and `InvalidToolInputError` exceptions in `kestrion.core.errors`.
 - Interactive demo script: `examples/ask_input_demo.py`.
 

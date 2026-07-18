@@ -1,8 +1,8 @@
 # Kestrion — Roadmap (Next 3 Months)
 
-**Baseline:** `v0.2.2`, live on PyPI. 128 passing tests. Core engine, `Agent`/`@tool` API, 3 LLM
+**Baseline:** `v0.3.0`, live on PyPI. 162 passing tests. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
-and 4 of 6 planned agentic features (approval chains, timeouts, parallel tool calls, sub-agents)
+and all 10 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, and native vision/multi-modal support)
 are built and tested.
 
 **Pace assumption:** weekday evenings + weekend mornings, ~10-13 hrs/week — the same pace
@@ -146,8 +146,8 @@ Since we've moved significantly faster than the original 3-month pace, these are
 
 1. ~~**Postgres-backed Storage (`store/postgres_store.py`)**~~ **(BUILT)**
    - Moving beyond SQLite for distributed, multi-worker deployments. The `CheckpointStore` protocol is already designed to swap this in seamlessly without touching the core engine.
-2. **OpenTelemetry (OTel) Exporters**
-   - Automatically export Kestrion's rich event log (token counts, LLM costs, tool execution times) as standard OTel traces to Datadog, Honeycomb, or Jaeger.
+2. ~~**OpenTelemetry (OTel) Exporters**~~ **(BUILT)**
+   - ~~Automatically export Kestrion's rich event log (token counts, LLM costs, tool execution times) as standard OTel traces to Datadog, Honeycomb, or Jaeger.~~ Enabled via `telemetry/otel.py` and `OpenTelemetryProvider`.
 3. ~~**Human-in-the-Loop "Ask for Input"**~~ **(BUILT)**
    - Built-in `ask_human` tool, `InputRequired` exception, `Engine.provide_input()` and `Agent.provide_input()` APIs. Live-verified with Ollama. Test: `tests/unit/test_human_input.py`.
 4. ~~**Time-Travel Debugging & Run Forking**~~ **(BUILT)**
@@ -156,5 +156,5 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - A pub/sub mechanism to easily hook into engine events (e.g., `on("waiting_on_human") -> send_slack_message()`).
 6. **Token Streaming**
    - `Agent.stream()` method that yields tokens in real-time for chat UIs, while still durably committing the full event block when finished.
-7. **Vision / Multi-modal Support**
-   - Expand the LLM protocol to support injecting images into the `AgentState` so agents can reason over screenshots and diagrams.
+7. ~~**Vision / Multi-modal Support**~~ **(BUILT)**
+   - ~~Expand the LLM protocol to support injecting images into the `AgentState` so agents can reason over screenshots and diagrams.~~ Implemented via `TextBlock` and `ImageBlock` classes and standard provider mappings.

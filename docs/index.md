@@ -40,12 +40,13 @@ Code, not just prose:
   timeouts, secrets, retries.
 - [`examples/mcp_server.py`](../examples/mcp_server.py) — a worked example exposing a Kestrion
   agent as an MCP server over stdio.
-- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising six agentic
-  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction)
+- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising ten agentic
+  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction, human input, secrets, custom context windows, and OTel tracing)
   against a real local model.
 - [`examples/ask_input_demo.py`](../examples/ask_input_demo.py) — interactive demo of the
   human-in-the-loop `ask_human` tool: the agent pauses to ask the user a question, then resumes
   with the answer.
+- [`examples/pipeline_demo.py`](../examples/pipeline_demo.py) — concurrent execution of multiple agents coordinated via a DAG scheduler with token-bucket rate limits.
 
 ## What's built vs. planned
 

@@ -2,7 +2,7 @@
 
 This document describes how Kestrion is actually built — the core abstractions, how they compose,
 and the specific design decisions behind the durability guarantees the project is built around.
-It reflects the code as it exists at `0.1.0`, not the aspirational end state. Where something is
+It reflects the code as it exists at `v0.3.0`, not the aspirational end state. Where something is
 designed but not implemented, that's called out explicitly rather than glossed over.
 
 ## 1. The central idea: state is derived, never mutated
@@ -36,18 +36,35 @@ kestrion/
 ├── core/
 │   ├── types.py      — data contracts: Event, AgentState, Checkpoint, ToolSpec, Node, NodeResult
 │   ├── engine.py      — the execution loop, approval gating, event sourcing plumbing
-│   └── errors.py      — control-flow exceptions: ApprovalRequired, InputRequired, RunExpiredError
+│   ├── errors.py      — control-flow exceptions: ApprovalRequired, InputRequired, RunExpiredError
+│   ├── secrets.py     — secret injection logic (SecretProvider)
+│   └── nodes.py       — SummarizationNode for context compaction
 ├── store/
-│   └── sqlite_store.py — CheckpointStore implementation (Protocol defined in core/types.py)
+│   ├── sqlite_store.py — SQLite CheckpointStore implementation
+│   ├── postgres_store.py — PostgreSQL CheckpointStore implementation
+│   └── memory_store.py — In-memory CheckpointStore implementation
 ├── agent/
 │   ├── agent.py        — Agent class, the ergonomic user-facing API
 │   ├── decorators.py   — @tool, turning Python functions into Tool objects
 │   └── tools.py        — built-in tools (ask_human)
-└── llm/
-    ├── base.py                — LLMProvider Protocol, Message/LLMResponse/ToolCallRequest types
-    ├── anthropic_provider.py  — Anthropic Claude implementation
-    ├── openai_provider.py     — OpenAI implementation
-    └── ollama_provider.py     — local-model implementation via Ollama's HTTP API
+├── llm/
+│   ├── base.py                — LLMProvider Protocol, ContentBlock, Message/LLMResponse types
+│   ├── anthropic_provider.py  — Anthropic Claude implementation
+│   ├── openai_provider.py     — OpenAI implementation
+│   └── ollama_provider.py     — local-model implementation via Ollama's HTTP API
+├── scheduler/
+│   ├── pipeline.py     — DAG-based async pipeline scheduler
+│   ├── worker_pool.py  — task worker pool
+│   └── rate_limiter.py — rate-limiter logic for API endpoints
+├── telemetry/
+│   └── otel.py        — OpenTelemetry integration
+├── cli/
+│   ├── main.py        — CLI parser and command handlers
+│   ├── deploy.py      — Kubernetes manifest generator
+│   └── dashboard.py   — HTTP backend for the visual dashboard
+└── mcp/
+    ├── client.py      — Model Context Protocol client
+    └── server.py      — Model Context Protocol server UIs
 ```
 
 Two architectural rules hold across every module boundary in this list:
@@ -83,7 +100,8 @@ happened — nothing in the codebase ever mutates an `Event` after creation, onl
 
 `EventType` is a closed enum: `RUN_STARTED`, `MESSAGE_RECEIVED`, `LLM_CALL_STARTED`,
 `LLM_CALL_COMPLETED`, `TOOL_CALL_STARTED`, `TOOL_CALL_COMPLETED`, `TOOL_CALL_FAILED`,
-`STATE_TRANSITION`, `CHECKPOINT_SAVED`, `RUN_COMPLETED`, `RUN_FAILED`, `HUMAN_INTERVENTION`.
+`STATE_TRANSITION`, `CHECKPOINT_SAVED`, `RUN_COMPLETED`, `RUN_FAILED`, `RUN_EXPIRED`,
+`HUMAN_INTERVENTION`, `CONTEXT_COMPACTED`.
 
 Token/cost fields live directly on `Event`, not bolted on as separate logging — this is what makes
 cost tracking "free": any code path that records an event for any reason gets cost accounting for
@@ -95,7 +113,7 @@ free if it populates those fields.
 @dataclass
 class AgentState:
     run_id: str
-    status: RunStatus              # PENDING | RUNNING | WAITING_ON_HUMAN | COMPLETED | FAILED
+    status: RunStatus              # PENDING | RUNNING | WAITING_ON_HUMAN | COMPLETED | FAILED | EXPIRED
     current_node: str | None
     scratch: dict[str, Any]        # arbitrary node-writable working memory
     history: list[dict[str, Any]]  # summarized tool/LLM history, NOT the full event log
@@ -158,7 +176,7 @@ class Tool(ABC):
 
 `requires_approval` is the single field that drives the entire human-in-the-loop mechanism — see
 §4. `parameters` is a JSON schema, deliberately the same shape MCP tools use, so that an MCP-backed
-tool (once Phase 3 is built) and a `@tool`-decorated Python function look structurally identical to
+tool (which is fully integrated) and a `@tool`-decorated Python function look structurally identical to
 the engine.
 
 ### Node, NodeResult

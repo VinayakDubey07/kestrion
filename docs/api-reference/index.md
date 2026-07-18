@@ -28,8 +28,7 @@ design rationale, this is the API surface itself.
 - `kestrion.core.types.AgentState` — derived state; `to_dict()`/`from_dict()` for checkpoint
   serialization
 - `kestrion.core.types.Checkpoint` — a point-in-time `AgentState` snapshot
-- `kestrion.core.types.CheckpointStore` — the storage Protocol (`SQLiteCheckpointStore` is the only
-  implementation today)
+- `kestrion.core.types.CheckpointStore` — the storage Protocol
 - `kestrion.core.types.ToolSpec` — `requires_approval` (`bool | str | list[str]`),
   `approval_timeout_seconds`, `required_roles()`
 - `kestrion.core.types.Tool` / `ToolResult` — the tool contract every `@tool` function and
@@ -57,6 +56,7 @@ The ergonomic, user-facing layer built on top of `core`.
 ## LLM providers (`kestrion.llm`)
 
 - `kestrion.llm.base.LLMProvider` — the Protocol every provider satisfies
+- `kestrion.llm.base.ContentBlock`, `TextBlock`, `ImageBlock` — types for native multimodal inputs
 - `kestrion.llm.base.Message`, `LLMResponse`, `ToolCallRequest` — normalized types shared across
   providers
 - `kestrion.llm.anthropic_provider.AnthropicProvider`
@@ -72,5 +72,16 @@ The ergonomic, user-facing layer built on top of `core`.
 
 ## Storage (`kestrion.store`)
 
-- `kestrion.store.sqlite_store.SQLiteCheckpointStore` — the reference `CheckpointStore`
-  implementation
+- `kestrion.store.sqlite_store.SQLiteCheckpointStore` — SQLite persistence backend
+- `kestrion.store.postgres_store.PostgresCheckpointStore` — production PostgreSQL persistence backend
+- `kestrion.store.memory_store.MemoryCheckpointStore` — transient in-memory store for unit tests
+
+## Telemetry (`kestrion.telemetry`)
+
+- `kestrion.telemetry.otel.OpenTelemetryProvider` — telemetry provider that exports traces/spans for runs, steps, LLM queries, and tool executions to OpenTelemetry compatible backends
+
+## Scheduler (`kestrion.scheduler`)
+
+- `kestrion.scheduler.pipeline.Pipeline` — DAG-based async coordinator for multi-agent workflows
+- `kestrion.scheduler.worker_pool.WorkerPool` — execution queue with worker-level constraints
+- `kestrion.scheduler.rate_limiter.TokenBucketRateLimiter` — rate limit adapter for vendor APIs

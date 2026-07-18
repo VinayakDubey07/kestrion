@@ -120,8 +120,10 @@ class OllamaProvider:
             except httpx.HTTPStatusError as exc:
                 last_error = exc
                 if exc.response.status_code < 500:
-                    # Don't retry on 4xx errors (client errors)
-                    break
+                    # Don't retry on 4xx errors (client errors), raise immediately
+                    raise LLMConnectionError(
+                        f"Ollama returned client error {exc.response.status_code}. Details: {exc.response.text}"
+                    ) from exc
             
             attempt += 1
             if attempt <= self.max_retries:

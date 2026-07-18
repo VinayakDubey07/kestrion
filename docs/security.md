@@ -85,3 +85,21 @@ If the required approvals are not recorded within one hour, the engine automatic
 ## Telemetry & OpenTelemetry (OTel)
 
 For real-time security monitoring, Kestrion supports exporting its immutable event stream directly into OpenTelemetry (OTel) compatible backends (Datadog, Splunk, Jaeger). This allows enterprise SOC teams to monitor agent behavior and anomalies using their existing observability stack.
+
+By instantiating an `OpenTelemetryProvider` and passing it to the `Agent` or the `Engine` at startup, execution metrics and tracing metadata are automatically dispatched to the configured collector:
+
+```python
+from kestrion.telemetry.otel import OpenTelemetryProvider
+
+# Connects to your standard OTel collector or vendor agent (e.g. Datadog agent)
+otel_telemetry = OpenTelemetryProvider(service_name="kestrion-prod-agent")
+
+agent = Agent(
+    provider=provider,
+    tools=tools,
+    store="postgres://...",
+    telemetry=otel_telemetry,
+)
+```
+
+Every run event, tool execution, and inference query is traced under nested span contexts (`kestrion.run.*`, `kestrion.llm.*`, `kestrion.tool.*`), enabling deep observability and real-time security auditing.

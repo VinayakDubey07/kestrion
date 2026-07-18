@@ -33,10 +33,7 @@ across Python 3.10–3.12.
   `src/kestrion/` should have a corresponding test under `tests/`.
 * **Match the existing style.** `ruff` enforces formatting/lint; there's no
   separate style guide to memorize.
-* **If you're touching a "PLANNED" area** (MCP integration, scheduler, CLI,
-  Postgres store — see the Roadmap in the README), open an issue first to
-  align on approach before writing a large PR. These are open design
-  questions, not just unimplemented stubs.
+* **If you're making major changes to core components** (like the scheduler, CLI, telemetry providers, or persistence engines), open an issue first to align on the technical approach before writing a large PR.
 * **Update `CHANGELOG.md`** under an "Unreleased" heading for any
   user-facing change.
 
