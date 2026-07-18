@@ -1,7 +1,6 @@
 import pytest
-from datetime import datetime, timezone
 from kestrion.core.engine import Engine
-from kestrion.core.types import AgentState, Event, EventType, RunStatus, Node, NodeResult
+from kestrion.core.types import AgentState, EventType, RunStatus, Node, NodeResult
 from kestrion.store.memory_store import MemoryCheckpointStore
 
 class DummyNode(Node):
@@ -18,11 +17,11 @@ async def test_engine_fork():
     run_id = "run_original"
     state = AgentState(run_id=run_id, status=RunStatus.RUNNING, current_node="dummy")
     
-    evt1 = await engine._emit(state, EventType.RUN_STARTED, {"entry_node": "dummy"})
-    evt2 = await engine._emit(state, EventType.LLM_CALL_STARTED, {})
-    evt3 = await engine._emit(state, EventType.LLM_CALL_COMPLETED, {"content": "Hello"})
-    evt4 = await engine._emit(state, EventType.TOOL_CALL_STARTED, {"tool": "dummy"})
-    evt5 = await engine._emit(state, EventType.TOOL_CALL_COMPLETED, {"output": "Done"})
+    await engine._emit(state, EventType.RUN_STARTED, {"entry_node": "dummy"})
+    await engine._emit(state, EventType.LLM_CALL_STARTED, {})
+    await engine._emit(state, EventType.LLM_CALL_COMPLETED, {"content": "Hello"})
+    await engine._emit(state, EventType.TOOL_CALL_STARTED, {"tool": "dummy"})
+    await engine._emit(state, EventType.TOOL_CALL_COMPLETED, {"output": "Done"})
     
     # Fork at seq 3 (which corresponds to evt3)
     forked_run_id = await engine.fork(run_id, at_seq=3, new_run_id="run_forked")
