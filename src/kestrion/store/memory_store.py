@@ -8,7 +8,7 @@ from __future__ import annotations
 import copy
 from typing import Dict, List
 
-from kestrion.core.types import Checkpoint, Event, EventType
+from kestrion.core.types import Checkpoint, Event
 
 
 class MemoryCheckpointStore:

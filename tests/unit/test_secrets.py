@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from kestrion.agent.decorators import tool

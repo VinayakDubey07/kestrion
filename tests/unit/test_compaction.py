@@ -1,6 +1,6 @@
 import pytest
 from kestrion.agent.agent import Agent
-from kestrion.llm.base import LLMResponse, ToolCallRequest
+from kestrion.llm.base import LLMResponse
 
 class FakeSummarizingProvider:
     def __init__(self):
@@ -38,7 +38,7 @@ async def test_compaction_truncates_history(tmp_store):
     ]
     
     # This single run will trigger compaction immediately because len(messages) = 5 > 2
-    res = await agent.run_with_history(messages, run_id="run_compact_1")
+    await agent.run_with_history(messages, run_id="run_compact_1")
     state = (await agent._engine.store.latest("run_compact_1")).state
     
     # History should be truncated and prepended with a summary

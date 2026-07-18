@@ -6,10 +6,9 @@ the higher-level `Agent` wrapper.
 
 from __future__ import annotations
 
-from typing import Any
 
 from kestrion.core.types import AgentState, Event, EventType, NodeResult
-from kestrion.llm.base import LLMProvider, Message
+from kestrion.llm.base import LLMProvider
 
 try:
     import tiktoken
