@@ -636,7 +636,7 @@ class Agent:
             return its ``RunResult`` after persisting the input.
             If ``False``, persist the input and return ``None``.
         """
-        state = await self._engine.provide_input(run_id, text, tool=tool)
+        await self._engine.provide_input(run_id, text, tool=tool)
         if and_resume:
             return await self.resume(run_id)
         return None

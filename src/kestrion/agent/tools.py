@@ -1,5 +1,3 @@
-from typing import Any
-
 from kestrion.core.errors import InputRequired
 from kestrion.core.types import AgentState
 from .decorators import tool

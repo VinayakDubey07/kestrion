@@ -1,10 +1,9 @@
 import pytest
-from unittest.mock import AsyncMock
 
 from kestrion.agent.tools import ask_human
 from kestrion.core.engine import Engine
 from kestrion.core.types import AgentState, RunStatus, NodeResult
-from kestrion.core.errors import InvalidToolInputError, InvalidToolApprovalError
+from kestrion.core.errors import InvalidToolApprovalError
 
 class MockNode:
     name = "mock_node"
