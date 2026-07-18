@@ -87,7 +87,7 @@ class OpenAIProvider:
                                     "url": f"data:{b.media_type};base64,{b.data}"
                                 }
                             })
-                    out.append({"role": m.role, "content": blocks})
+                    out.append({"role": m.role, "content": blocks}) # type: ignore[dict-item]
                 else:
                     out.append({"role": m.role, "content": m.content or ""})
         return out

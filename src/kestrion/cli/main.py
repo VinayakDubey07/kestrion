@@ -253,7 +253,7 @@ def cmd_resume(args: argparse.Namespace) -> int:
         print(f"Resuming run {args.run_id}...")
         return await self.resume(args.run_id)
     
-    Agent.run = fake_run
+    Agent.run = fake_run  # type: ignore[method-assign]
 
     try:
         spec.loader.exec_module(module)
@@ -322,7 +322,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
             agent = self
             raise RuntimeError("__STOP_KESTRION_CHAT__")
             
-        Agent.run = fake_run
+        Agent.run = fake_run  # type: ignore[method-assign]
         try:
             asyncio.run(module.main())
         except RuntimeError as e:
@@ -331,7 +331,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
         except Exception:
             pass
         finally:
-            Agent.run = original_run
+            Agent.run = original_run  # type: ignore[method-assign]
             
     if not agent:
         print(f"error: could not find an Agent instance in {script}", file=sys.stderr)
@@ -385,7 +385,7 @@ def cmd_chat(args: argparse.Namespace) -> int:
                             print(f"Tool: {tc['name']}({tc['arguments']})")
                             tc_name = tc["name"]
                             
-                    approve_input = input(f"Approve this action? [y/N]: ")
+                    approve_input = input("Approve this action? [y/N]: ")
                     if approve_input.lower().startswith('y'):
                         await agent.approve(run_id, tc_name, True)
                         print(f"{C_GREEN}Approved! Resuming...{C_RESET}")

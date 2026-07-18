@@ -42,7 +42,6 @@ from kestrion.llm.base import (
     TextBlock,
     ImageBlock,
 )
-from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
 
 def _message_to_dict(m: Message) -> dict:
@@ -60,7 +59,7 @@ def _message_from_dict(d: dict) -> Message:
     
     raw_content = d.get("content")
     if isinstance(raw_content, list):
-        content = []
+        content: list[ContentBlock] = []
         for block in raw_content:
             if block.get("type") == "text":
                 content.append(TextBlock(text=block.get("text", "")))
@@ -70,7 +69,7 @@ def _message_from_dict(d: dict) -> Message:
                 # Fallback for unknown block types
                 content.append(TextBlock(text=str(block)))
     else:
-        content = raw_content
+        content = raw_content  # type: ignore[assignment]
 
     return Message(
         role=d["role"],

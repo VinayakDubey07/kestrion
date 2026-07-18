@@ -75,7 +75,7 @@ class OllamaProvider:
                             text_parts.append(b.text)
                         elif isinstance(b, ImageBlock):
                             images.append(b.data)
-                    out_msg = {"role": m.role, "content": "\n".join(text_parts)}
+                    out_msg: dict[str, Any] = {"role": m.role, "content": "\n".join(text_parts)}
                     if images:
                         out_msg["images"] = images
                     out.append(out_msg)

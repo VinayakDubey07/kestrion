@@ -16,7 +16,7 @@ class MemoryCheckpointStore:
 
     def __init__(self):
         # run_id -> list of Events
-        self.events: Dict[str, List[Event]] = {}
+        self.events: Dict[str, List[tuple[int, Event]]] = {}
         # run_id -> latest Checkpoint
         self.checkpoints: Dict[str, Checkpoint] = {}
         self._seq = 0

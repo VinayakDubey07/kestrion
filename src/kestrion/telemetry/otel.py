@@ -55,10 +55,11 @@ class OpenTelemetryProvider:
             self._active_runs[event.run_id] = span
 
         elif event.type in (EventType.RUN_COMPLETED, EventType.RUN_FAILED, EventType.RUN_EXPIRED):
-            span = self._active_runs.pop(event.run_id, None)
-            if span:
-                span.set_attribute("kestrion.status", event.type.value)
-                span.end()
+            run_span = self._active_runs.get(event.run_id)
+            if run_span:
+                del self._active_runs[event.run_id]
+                run_span.set_attribute("kestrion.status", event.type.value)
+                run_span.end()
 
         # LLM calls
         elif event.type == EventType.LLM_CALL_STARTED:
@@ -67,14 +68,15 @@ class OpenTelemetryProvider:
             self._active_llms[event.run_id] = span
             
         elif event.type == EventType.LLM_CALL_COMPLETED:
-            span = self._active_llms.pop(event.run_id, None)
-            if span:
-                span.set_attribute("llm.usage.prompt_tokens", event.tokens_in)
-                span.set_attribute("llm.usage.completion_tokens", event.tokens_out)
-                span.set_attribute("kestrion.cost_usd", event.cost_usd)
+            llm_span = self._active_llms.get(event.run_id)
+            if llm_span:
+                del self._active_llms[event.run_id]
+                llm_span.set_attribute("llm.usage.prompt_tokens", event.tokens_in)
+                llm_span.set_attribute("llm.usage.completion_tokens", event.tokens_out)
+                llm_span.set_attribute("kestrion.cost_usd", event.cost_usd)
                 if stop_reason := event.payload.get("stop_reason"):
-                    span.set_attribute("llm.stop_reason", stop_reason)
-                span.end()
+                    llm_span.set_attribute("llm.stop_reason", stop_reason)
+                llm_span.end()
 
         # Tool calls
         elif event.type == EventType.TOOL_CALL_STARTED:
@@ -86,9 +88,10 @@ class OpenTelemetryProvider:
 
         elif event.type in (EventType.TOOL_CALL_COMPLETED, EventType.TOOL_CALL_FAILED):
             tool_name = event.payload.get("tool", "unknown")
-            span = self._active_tools.pop((event.run_id, tool_name), None)
-            if span:
+            tool_span = self._active_tools.get((event.run_id, tool_name))
+            if tool_span:
+                del self._active_tools[(event.run_id, tool_name)]
                 if event.type == EventType.TOOL_CALL_FAILED:
-                    span.set_status(trace.Status(trace.StatusCode.ERROR))
-                    span.set_attribute("kestrion.error_msg", str(event.payload.get("error", "")))
-                span.end()
+                    tool_span.set_status(trace.Status(trace.StatusCode.ERROR))
+                    tool_span.set_attribute("kestrion.error_msg", str(event.payload.get("error", "")))
+                tool_span.end()

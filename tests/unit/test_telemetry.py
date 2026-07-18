@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from kestrion.core.engine import Engine
-from kestrion.core.types import AgentState, Event, EventType, RunStatus
+from kestrion.core.types import Event, EventType
 from kestrion.store.memory_store import MemoryCheckpointStore
 from kestrion.telemetry.otel import OpenTelemetryProvider
 
