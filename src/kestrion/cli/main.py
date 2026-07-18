@@ -167,11 +167,16 @@ def cmd_list(args: argparse.Namespace) -> int:
             tokens = state.get("total_tokens", 0)
             
             color = C_RESET
-            if status == "completed": color = C_GREEN
-            elif status == "waiting_on_human": color = C_YELLOW
-            elif status == "failed": color = C_RED
-            elif status == "expired": color = C_MAGENTA
-            elif status == "running": color = C_CYAN
+            if status == "completed":
+                color = C_GREEN
+            elif status == "waiting_on_human":
+                color = C_YELLOW
+            elif status == "failed":
+                color = C_RED
+            elif status == "expired":
+                color = C_MAGENTA
+            elif status == "running":
+                color = C_CYAN
             
             print(f"{run_id:<36} | {color}{status.upper():<16}{C_RESET} | ${cost:<7.5f} | {tokens:<8} | {created_at}")
         except (json.JSONDecodeError, TypeError):

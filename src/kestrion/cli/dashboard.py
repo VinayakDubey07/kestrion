@@ -3,7 +3,7 @@ import sqlite3
 import asyncio
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse
 
 from kestrion.core.engine import Engine
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
