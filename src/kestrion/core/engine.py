@@ -18,6 +18,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Callable, Literal, Mapping
 
+from .secrets import SecretProvider, EnvVarSecretProvider
 from .types import (
     AgentState,
     Checkpoint,
@@ -62,12 +63,14 @@ class Engine:
         entry_node: str,
         approval_callback: Callable[[str, dict], bool] | None = None,
         max_steps: int = 100,
+        secrets: SecretProvider | None = None,
     ):
         self.nodes = nodes
         self.tools = tools
         self.store = store
         self.entry_node = entry_node
         self.max_steps = max_steps
+        self.secrets = secrets or EnvVarSecretProvider()
         # sync hook the host app can override; default = auto-deny.
         # In production this is what a UI "approve kubectl apply" button
         # calls into, or a Slack approval workflow, etc.
@@ -468,9 +471,10 @@ class Engine:
         self.check_approval(state, tool_name, kwargs)
         tool = self.tools[tool_name]
 
-        # Emit original args, not including _state
+        # Emit original args, not including _state or _secrets
         await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
         kwargs["_state"] = state
+        kwargs["_secrets"] = self.secrets
         try:
             result = await tool.call(**kwargs)
         except ApprovalRequired as exc:
@@ -478,10 +482,9 @@ class Engine:
             # motivating case is SubAgentTool, where a sub-agent's run
             # pausing for approval needs to propagate to the parent as a
             # pause, not get logged as a tool failure. Re-raise as-is,
-            # bypassing the generic except-Exception branch below, which
-            # would otherwise emit a misleading TOOL_CALL_FAILED event
-            # for what is actually a clean pause, not a failure.
+            # but clean injected internal objects out of kwargs so they don't break JSON serialization.
             exc.kwargs.pop("_state", None)
+            exc.kwargs.pop("_secrets", None)
             raise
         except Exception as exc:
             if isinstance(exc, (HandoffCompleted, InputRequired)):
