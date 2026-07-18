@@ -38,6 +38,23 @@ class LLMResponse:
 
 
 @dataclass(frozen=True)
+class ContentBlock:
+    """Base for multimodal content blocks."""
+    type: str
+
+@dataclass(frozen=True)
+class TextBlock(ContentBlock):
+    text: str
+    type: str = field(default="text", init=False)
+
+@dataclass(frozen=True)
+class ImageBlock(ContentBlock):
+    data: str  # Base64 encoded string
+    media_type: str = "image/jpeg"
+    type: str = field(default="image", init=False)
+
+
+@dataclass(frozen=True)
 class Message:
     """
     A single turn in the conversation sent to the provider. Kept
@@ -45,7 +62,7 @@ class Message:
     linkage. Providers translate this into their own wire format.
     """
     role: str                      # "user" | "assistant" | "tool"
-    content: str | None = None
+    content: str | list[ContentBlock] | None = None
     tool_call_id: str | None = None      # set when role == "tool" (a tool result)
     tool_calls: list[ToolCallRequest] = field(default_factory=list)  # set when role == "assistant" and it called tools
 

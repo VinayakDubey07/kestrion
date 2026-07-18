@@ -12,7 +12,7 @@ import json
 from typing import Any
 
 from kestrion.core.types import ToolSpec
-from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
+from kestrion.llm.base import LLMResponse, Message, ToolCallRequest, TextBlock, ImageBlock
 
 try:
     import openai
@@ -57,9 +57,14 @@ class OpenAIProvider:
             if m.role == "tool":
                 out.append({"role": "tool", "tool_call_id": m.tool_call_id, "content": m.content or ""})
             elif m.role == "assistant" and m.tool_calls:
+                content = ""
+                if isinstance(m.content, str):
+                    content = m.content
+                elif isinstance(m.content, list):
+                    content = "".join(b.text for b in m.content if isinstance(b, TextBlock))
                 out.append({
                     "role": "assistant",
-                    "content": m.content,
+                    "content": content,
                     "tool_calls": [
                         {
                             "id": tc.id,
@@ -70,7 +75,21 @@ class OpenAIProvider:
                     ],
                 })
             else:
-                out.append({"role": m.role, "content": m.content or ""})
+                if isinstance(m.content, list):
+                    blocks = []
+                    for b in m.content:
+                        if isinstance(b, TextBlock):
+                            blocks.append({"type": "text", "text": b.text})
+                        elif isinstance(b, ImageBlock):
+                            blocks.append({
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{b.media_type};base64,{b.data}"
+                                }
+                            })
+                    out.append({"role": m.role, "content": blocks})
+                else:
+                    out.append({"role": m.role, "content": m.content or ""})
         return out
 
     def _to_openai_tools(self, tools: list[ToolSpec]) -> list[dict]:

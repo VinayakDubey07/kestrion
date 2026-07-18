@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 from kestrion.core.types import ToolSpec
-from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
+from kestrion.llm.base import LLMResponse, Message, ToolCallRequest, TextBlock, ImageBlock
 
 try:
     import anthropic
@@ -56,13 +56,36 @@ class AnthropicProvider:
                 })
             elif m.role == "assistant" and m.tool_calls:
                 blocks: list[dict[str, Any]] = []
-                if m.content:
+                if isinstance(m.content, str):
                     blocks.append({"type": "text", "text": m.content})
+                elif isinstance(m.content, list):
+                    for b in m.content:
+                        if isinstance(b, TextBlock):
+                            blocks.append({"type": "text", "text": b.text})
+                        elif isinstance(b, ImageBlock):
+                            # Usually assistant wouldn't return an image, but just in case
+                            pass
                 for tc in m.tool_calls:
                     blocks.append({"type": "tool_use", "id": tc.id, "name": tc.name, "input": tc.arguments})
                 out.append({"role": "assistant", "content": blocks})
             else:
-                out.append({"role": m.role, "content": m.content or ""})
+                if isinstance(m.content, list):
+                    blocks = []
+                    for b in m.content:
+                        if isinstance(b, TextBlock):
+                            blocks.append({"type": "text", "text": b.text})
+                        elif isinstance(b, ImageBlock):
+                            blocks.append({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": b.media_type,
+                                    "data": b.data,
+                                }
+                            })
+                    out.append({"role": m.role, "content": blocks})
+                else:
+                    out.append({"role": m.role, "content": m.content or ""})
         return out
 
     def _to_anthropic_tools(self, tools: list[ToolSpec]) -> list[dict]:

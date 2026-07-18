@@ -33,7 +33,15 @@ from kestrion.core.errors import (
     InvalidStoreURLError,
     InvalidToolApprovalError,
 )
-from kestrion.llm.base import LLMProvider, LLMResponse, Message, ToolCallRequest
+from kestrion.llm.base import (
+    LLMProvider,
+    LLMResponse,
+    Message,
+    ToolCallRequest,
+    ContentBlock,
+    TextBlock,
+    ImageBlock,
+)
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
 
@@ -49,9 +57,24 @@ def _message_to_dict(m: Message) -> dict:
 
 def _message_from_dict(d: dict) -> Message:
     tool_calls = [ToolCallRequest(**tc) for tc in d.get("tool_calls", [])]
+    
+    raw_content = d.get("content")
+    if isinstance(raw_content, list):
+        content = []
+        for block in raw_content:
+            if block.get("type") == "text":
+                content.append(TextBlock(text=block.get("text", "")))
+            elif block.get("type") == "image":
+                content.append(ImageBlock(data=block.get("data", ""), media_type=block.get("media_type", "image/jpeg")))
+            else:
+                # Fallback for unknown block types
+                content.append(TextBlock(text=str(block)))
+    else:
+        content = raw_content
+
     return Message(
         role=d["role"],
-        content=d.get("content"),
+        content=content,
         tool_call_id=d.get("tool_call_id"),
         tool_calls=tool_calls,
     )
@@ -417,7 +440,7 @@ class Agent:
         if hasattr(self._store, "setup"):
             await self._store.setup()
 
-    async def run(self, prompt: str, run_id: str | None = None, **initial_scratch) -> RunResult:
+    async def run(self, prompt: str | list[ContentBlock], run_id: str | None = None, **initial_scratch) -> RunResult:
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
         return await self.run_with_history(initial_messages, run_id=run_id, **initial_scratch)
 

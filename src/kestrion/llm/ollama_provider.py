@@ -18,7 +18,7 @@ from typing import Any
 
 from kestrion.core.errors import LLMConnectionError
 from kestrion.core.types import ToolSpec
-from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
+from kestrion.llm.base import LLMResponse, Message, ToolCallRequest, TextBlock, ImageBlock
 
 try:
     import httpx
@@ -53,16 +53,34 @@ class OllamaProvider:
                 # Ollama's chat API expects tool results as role="tool" content.
                 out.append({"role": "tool", "content": m.content or ""})
             elif m.role == "assistant" and m.tool_calls:
+                content = ""
+                if isinstance(m.content, str):
+                    content = m.content
+                elif isinstance(m.content, list):
+                    content = "".join(b.text for b in m.content if isinstance(b, TextBlock))
                 out.append({
                     "role": "assistant",
-                    "content": m.content or "",
+                    "content": content,
                     "tool_calls": [
                         {"function": {"name": tc.name, "arguments": tc.arguments}}
                         for tc in m.tool_calls
                     ],
                 })
             else:
-                out.append({"role": m.role, "content": m.content or ""})
+                if isinstance(m.content, list):
+                    text_parts = []
+                    images = []
+                    for b in m.content:
+                        if isinstance(b, TextBlock):
+                            text_parts.append(b.text)
+                        elif isinstance(b, ImageBlock):
+                            images.append(b.data)
+                    out_msg = {"role": m.role, "content": "\n".join(text_parts)}
+                    if images:
+                        out_msg["images"] = images
+                    out.append(out_msg)
+                else:
+                    out.append({"role": m.role, "content": m.content or ""})
         return out
 
     def _to_ollama_tools(self, tools: list[ToolSpec]) -> list[dict]:
