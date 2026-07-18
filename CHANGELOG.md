@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OpenTelemetry Integration**: Added `OpenTelemetryProvider` to emit nested spans for agent runs, LLM calls, and tool execution.
 - **Vision / Multi-modal Support**: Native processing of `TextBlock` and `ImageBlock` types inside agent event loops and provider mappings (Anthropic, OpenAI, Ollama).
 - **Time-Travel Debugging (Forking)**: Added the `fork` command to clone agent runs from a specific event sequence for debugging.
-- **CLI Interactive & Chat Dashboard**: Built REPL terminal chat (`kestrion chat`) and Live Chat UI in the visual dashboard.
+- **CLI Interactive & Chat Dashboard**: Built REPL terminal chat (`kestrion chat`), Live Chat UI in the visual dashboard, and interactive trace visualization (Mermaid flowchart diagrams in both CLI and dashboard).
 - New `InputRequired` and `InvalidToolInputError` exceptions in `kestrion.core.errors`.
 - Interactive demo script: `examples/ask_input_demo.py`.
 

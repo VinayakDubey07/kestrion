@@ -122,12 +122,18 @@ To see a colorized, step-by-step event timeline of a run directly in your termin
 kestrion trace <run_id>
 ```
 
+You can also output the execution trace as a Mermaid flowchart diagram to visualize state transitions, tool invocations, and LLM calls:
+```bash
+kestrion trace <run_id> --mermaid
+```
+Copy and paste this output into any Markdown editor or visualizer (like GitHub, VS Code, or mermaid.live) to render the graph.
+
 ### 2. Web Dashboard & Approvals
 To launch an interactive web dashboard where you can view runs, inspect event payloads/costs, and approve pending gated tools via a visual interface:
 ```bash
 kestrion dashboard --port 8000
 ```
-Open `http://localhost:8000` in your browser to access the console.
+Open `http://localhost:8000` in your browser. Inside the run details section, select the **Visual Trace** tab to see the Mermaid flowchart layout of your agent's run rendered live and interactively.
 
 ### 3. Interactive Chat (Terminal & Web)
 If you want to have a live, multi-turn conversation with your agent, you can launch Kestrion in Interactive Mode.

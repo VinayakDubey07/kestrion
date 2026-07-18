@@ -286,6 +286,9 @@ kestrion deploy --target k8s --name my-agent --image registry.example.com/my-age
 # Print the event timeline trace of a run
 kestrion trace run_id --store kestrion_runs.db
 
+# Output execution trace as a Mermaid flowchart diagram
+kestrion trace run_id --store kestrion_runs.db --mermaid
+
 # Time-travel debug: fork a run at a specific event sequence
 kestrion fork run_id --at-seq 5
 
