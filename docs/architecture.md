@@ -423,7 +423,7 @@ they're either separate concerns or not yet built):
   but at a higher layer than this document covers. The client wraps MCP-sourced tools as Kestrion
   `Tool` objects; the server exposes a full `Agent` loop as one MCP tool via `serve_agent()`.
   See the README's MCP sections for usage.
-- **CLI** — `kestrion init`, `kestrion run`, `kestrion deploy --target k8s` are now built
+- **CLI** — `kestrion init`, `kestrion run`, `kestrion deploy --target k8s`, and `kestrion fork` are now built
   (`cli/main.py`, `cli/deploy.py`). Not covered here because the CLI is an entry-point layer on
   top of the engine/agent, not a change to how either works.
 - **The scheduler / concurrent-execution layer** (`scheduler/`) — built! The `Pipeline` orchestrates DAG-based multi-agent execution, rate-limited via a token-bucket `RateLimiter` and bounded `WorkerPool`.
@@ -432,6 +432,7 @@ they're either separate concerns or not yet built):
 - **`core/errors.py`** — built! Exceptions are centralized under a semantic `KestrionError` class hierarchy, including `CheckpointNotFoundError`, `InvalidRunStatusError`, `InvalidStoreURLError`, `InvalidToolApprovalError`, `RunExpiredError`, `ApprovalRequired`, and `HandoffCompleted`. This also enables `core/engine.py` to import and check exceptions like `HandoffCompleted` cleanly without circular dependencies.
 - **Enterprise Secret Management** (`core/secrets.py`) — built! Resolves credentials at runtime (via `EnvVarSecretProvider` or custom providers) and intercepts them during `Engine.call_tool` before they ever hit `AgentState.scratch` or the event log, preventing leaks into the durable SQLite/Postgres stores.
 - **Advanced Context Window Management** (`core/nodes.py`, `_fold`) — built! Solves the massive DB serialization bloat of long-running agents. The `SummarizationNode` watches conversation length and triggers an `EventType.CONTEXT_COMPACTED` event. The `Engine._fold` hook cleanly replaces the massive `history` list with a bounded `{"type": "summary", "content": "..."}` block, ensuring O(1) storage scale.
+- **Time-Travel Debugging (Run Forking)** (`Engine.fork`) — built! Uses the immutable event log to seamlessly branch off past checkpoints (`kestrion fork <run_id> --at-seq <seq>`), allowing developers to debug failures and replay runs without starting over.
 - **`agent/graph.py`** — empty stub. Multi-step workflows are possible today via raw `Node`
   classes directly; this would add a more ergonomic builder API on top.
 

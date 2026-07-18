@@ -315,6 +315,36 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_fork(args: argparse.Namespace) -> int:
+    db_path = args.store or "kestrion_runs.db"
+    db_file = Path(db_path)
+    if not db_file.exists():
+        if not args.store and Path("agent_runs.db").exists():
+            db_path = "agent_runs.db"
+            db_file = Path(db_path)
+        else:
+            print(f"error: database file '{db_path}' not found", file=sys.stderr)
+            return 1
+
+    from kestrion.store.sqlite_store import SQLiteCheckpointStore
+    from kestrion.core.engine import Engine
+    
+    store = SQLiteCheckpointStore(path=db_path)
+    # A dummy engine is sufficient since fork relies purely on the event log and store
+    engine = Engine(nodes={}, tools={}, store=store, entry_node="dummy")
+    
+    try:
+        new_run_id = asyncio.run(engine.fork(args.run_id, args.at_seq))
+        print(f"Successfully forked run '{args.run_id}' up to sequence {args.at_seq}.")
+        print(f"New Run ID: {new_run_id}")
+        print(f"You can trace it using: kestrion trace {new_run_id}")
+    except Exception as exc:
+        print(f"error forking run: {exc}", file=sys.stderr)
+        return 1
+        
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Main / argument parsing
 # ---------------------------------------------------------------------------
@@ -373,6 +403,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_dash.add_argument("--port", type=int, default=8000, help="port to bind the server to (default: 8000)")
     p_dash.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
 
+    # fork
+    p_fork = sub.add_parser("fork", help="time-travel by branching off a past run")
+    p_fork.add_argument("run_id", help="the run ID to fork")
+    p_fork.add_argument("--at-seq", type=int, required=True, help="the event sequence count to fork at")
+    p_fork.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
+
     return parser
 
 
@@ -390,6 +426,7 @@ def main() -> None:
         "deploy": cmd_deploy,
         "trace": cmd_trace,
         "dashboard": cmd_dashboard,
+        "fork": cmd_fork,
     }
     sys.exit(handlers[args.command](args))
 

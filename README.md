@@ -259,6 +259,9 @@ kestrion deploy --target k8s --name my-agent --image registry.example.com/my-age
 # Print the event timeline trace of a run
 kestrion trace run_id --store kestrion_runs.db
 
+# Time-travel debug: fork a run at a specific event sequence
+kestrion fork run_id --at-seq 5
+
 # Launch the visual web dashboard
 kestrion dashboard --port 8000
 ```

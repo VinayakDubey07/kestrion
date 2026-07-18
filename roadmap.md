@@ -150,7 +150,7 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - Automatically export Kestrion's rich event log (token counts, LLM costs, tool execution times) as standard OTel traces to Datadog, Honeycomb, or Jaeger.
 3. ~~**Human-in-the-Loop "Ask for Input"**~~ **(BUILT)**
    - Built-in `ask_human` tool, `InputRequired` exception, `Engine.provide_input()` and `Agent.provide_input()` APIs. Live-verified with Ollama. Test: `tests/unit/test_human_input.py`.
-4. **Time-Travel Debugging & Run Forking**
+4. ~~**Time-Travel Debugging & Run Forking**~~ **(BUILT)**
    - `kestrion fork <run_id> --at-seq <seq>` — branch off a past checkpoint, tweak the prompt or tool output, and replay without starting over.
 5. **Event Subscriptions & Webhooks**
    - A pub/sub mechanism to easily hook into engine events (e.g., `on("waiting_on_human") -> send_slack_message()`).

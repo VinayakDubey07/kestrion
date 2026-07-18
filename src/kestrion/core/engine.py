@@ -136,6 +136,69 @@ class Engine:
 
         return await self._drive(state)
 
+    async def fork(self, run_id: str, at_seq: int, new_run_id: str | None = None) -> str:
+        """
+        Create a new run that is an exact clone of `run_id` up to the
+        specified event count (`at_seq`). Returns the new run ID.
+        """
+        new_run_id = new_run_id or new_id(f"{run_id}_fork")
+        
+        all_events = await self.store.events_since(run_id, 0)
+        fork_events = all_events[:at_seq]
+        
+        if not fork_events:
+            raise ValueError(f"No events found for run {run_id!r} to fork at sequence {at_seq}")
+
+        # The first event MUST be RUN_STARTED, which contains the entry_node.
+        first_event = fork_events[0]
+        if first_event.type != EventType.RUN_STARTED:
+            raise ValueError(f"First event of run {run_id!r} is not RUN_STARTED")
+            
+        entry_node = first_event.payload.get("entry_node", self.entry_node)
+        
+        # Build the new state from scratch
+        state = AgentState(run_id=new_run_id, status=RunStatus.RUNNING, current_node=entry_node)
+        
+        for evt in fork_events:
+            # Clone the event for the new run_id
+            cloned_evt = Event(
+                event_id=new_id("evt"),
+                run_id=new_run_id,
+                type=evt.type,
+                timestamp=evt.timestamp,
+                payload=evt.payload,
+                node=evt.node,
+                tokens_in=evt.tokens_in,
+                tokens_out=evt.tokens_out,
+                cost_usd=evt.cost_usd,
+            )
+            seq = await self.store.append_event(cloned_evt)
+            state.last_event_seq = seq
+            self._fold(state, cloned_evt)
+            
+            # Since we are folding all events up to at_seq, if there are RUN_COMPLETED,
+            # FAILED, EXPIRED, STATE_TRANSITION, or HUMAN_INTERVENTION events, we need to correctly mirror
+            # the status. _fold doesn't update status, so we manually do it here based on the log.
+            if cloned_evt.type == EventType.RUN_COMPLETED:
+                state.status = RunStatus.COMPLETED
+                state.current_node = None
+            elif cloned_evt.type == EventType.RUN_FAILED:
+                state.status = RunStatus.FAILED
+            elif cloned_evt.type == EventType.RUN_EXPIRED:
+                state.status = RunStatus.EXPIRED
+            elif cloned_evt.type == EventType.STATE_TRANSITION:
+                state.current_node = cloned_evt.payload.get("to")
+            elif cloned_evt.type == EventType.HUMAN_INTERVENTION:
+                reason = cloned_evt.payload.get("reason")
+                if reason in ("approval_required", "input_required"):
+                    state.status = RunStatus.WAITING_ON_HUMAN
+                elif reason in ("approval_granted", "input_provided"):
+                    state.status = RunStatus.RUNNING
+                    
+        # Persist the forked checkpoint
+        await self._checkpoint(state)
+        return new_run_id
+
     async def approve_pending_tool(
         self,
         run_id: str,
