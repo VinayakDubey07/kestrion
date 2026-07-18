@@ -2,7 +2,7 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: pre-alpha (`0.2.2`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+Status: pre-alpha (`0.3.0`), published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
 three LLM providers, a live-verified MCP client and server, a CLI, **nine** agentic features
 (multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
 handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management), and a **DAG-based async scheduler** for multi-agent
