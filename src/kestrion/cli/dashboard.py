@@ -502,7 +502,7 @@ def start_dashboard(db_path: str, host: str, port: int, script: str | None = Non
                 except Exception as e:
                     print(f"Warning: Failed to load agent script {script_path}: {e}")
                     
-    DashboardHTTPHandler.agent # type: ignore = agent
+    DashboardHTTPHandler.agent = agent # type: ignore
 
     server = HTTPServer((host, port), DashboardHTTPHandler)
     print(f"Kestrion Console running at http://{host}:{port}")
