@@ -262,8 +262,14 @@ kestrion trace run_id --store kestrion_runs.db
 # Time-travel debug: fork a run at a specific event sequence
 kestrion fork run_id --at-seq 5
 
+# Start an interactive terminal chat with your agent (REPL)
+kestrion chat agent.py
+
 # Launch the visual web dashboard
 kestrion dashboard --port 8000
+
+# Launch the dashboard with live-chat enabled (requires your agent script)
+kestrion dashboard agent.py --port 8000
 ```
 
 `kestrion deploy` generates a complete K8s manifest (Namespace, ConfigMap, Secret stub,

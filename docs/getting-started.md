@@ -129,6 +129,21 @@ kestrion dashboard --port 8000
 ```
 Open `http://localhost:8000` in your browser to access the console.
 
+### 3. Interactive Chat (Terminal & Web)
+If you want to have a live, multi-turn conversation with your agent, you can launch Kestrion in Interactive Mode.
+
+To chat directly in your terminal:
+```bash
+kestrion chat agent.py
+```
+*(Your agent will pause and prompt for inline `[y/N]` tool approvals right in the terminal!)*
+
+To enable the Live Chat UI in the web dashboard, pass your script when launching the dashboard:
+```bash
+kestrion dashboard agent.py --port 8000
+```
+*(You will now see a Chat Input bar at the bottom of the Chat History tab in the dashboard.)*
+
 ## Asking the user for input
 
 Approval gates are binary — the run pauses for a yes/no decision. Sometimes an agent needs a

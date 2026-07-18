@@ -344,12 +344,18 @@
     }
 
     /* ── Chat ──────────────────────────────────────────────── */
+    .chat-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .chat-container {
       flex: 1; overflow-y: auto; padding: 28px; display: flex;
       flex-direction: column; gap: 16px;
     }
     .chat-container::-webkit-scrollbar { width: 6px; }
     .chat-container::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+    .chat-input-area {
+      padding: 16px 28px; background: #ffffff; border-top: 1px solid var(--rule);
+      display: flex; gap: 12px; align-items: center;
+    }
+    .chat-input-area input { flex: 1; }
 
     .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
     .chat-bubble.user { align-self: flex-end; background: linear-gradient(135deg, var(--ink), var(--accent)); color: #ffffff; border-bottom-right-radius: 4px; }
@@ -548,7 +554,13 @@
         <div class="detail-tab" onclick="switchTab('chat')">Chat History</div>
       </div>
 
-      <div class="chat-container" id="chat-container" style="display: none;"></div>
+      <div class="chat-wrapper" id="chat-wrapper" style="display: none;">
+        <div class="chat-container" id="chat-messages"></div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input-text" class="banner-input" placeholder="Type a message to the agent..." onkeypress="handleChatKeyPress(event)">
+          <button class="btn-primary" onclick="submitChatMessage()">Send</button>
+        </div>
+      </div>
       <div class="timeline-container" id="timeline-container" style="display: none;">
         <div class="timeline" id="timeline"></div>
       </div>
@@ -821,17 +833,17 @@
       if (tabId === 'timeline') {
         document.querySelectorAll('.detail-tab')[0].classList.add('active');
         document.getElementById('timeline-container').style.display = 'block';
-        document.getElementById('chat-container').style.display = 'none';
+        document.getElementById('chat-wrapper').style.display = 'none';
       } else {
         document.querySelectorAll('.detail-tab')[1].classList.add('active');
         document.getElementById('timeline-container').style.display = 'none';
-        document.getElementById('chat-container').style.display = 'flex';
+        document.getElementById('chat-wrapper').style.display = 'flex';
       }
     }
 
     // ── Chat rendering ────────────────────────────────────────────────
     function renderChat(messages) {
-      const container = document.getElementById('chat-container');
+      const container = document.getElementById('chat-messages');
       container.innerHTML = '';
       if (!messages || messages.length === 0) {
         container.innerHTML = '<div style="text-align:center; color: var(--text-dim); margin-top: 40px; font-size: 13px;">No chat history available.</div>';
@@ -975,6 +987,44 @@
       } catch (err) { alert('Error: ' + err); }
     }
 
+    function handleChatKeyPress(e) {
+      if (e.key === 'Enter') {
+        submitChatMessage();
+      }
+    }
+
+    async function submitChatMessage() {
+      if (!currentRunId) return;
+      const inputEl = document.getElementById('chat-input-text');
+      const text = inputEl.value.trim();
+      if (!text) return;
+      
+      inputEl.value = '';
+      inputEl.placeholder = 'Agent is thinking...';
+      inputEl.disabled = true;
+      
+      try {
+        const res = await fetch(`/api/runs/${currentRunId}/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          alert("Error: " + (err.error || "Failed to send message"));
+        } else {
+          await loadRuns(); // Auto refresh
+        }
+      } catch (err) {
+        alert("Error sending message: " + err.message);
+      } finally {
+        inputEl.placeholder = 'Type a message to the agent...';
+        inputEl.disabled = false;
+        inputEl.focus();
+      }
+    }
+
     async function submitInput() {
       if (!currentRunId) return;
       const text = document.getElementById('input-text').value;
@@ -1011,7 +1061,7 @@
       document.getElementById('empty-state').style.display = 'flex';
       document.getElementById('detail-header').style.display = 'none';
       document.getElementById('timeline-container').style.display = 'none';
-      document.getElementById('chat-container').style.display = 'none';
+      document.getElementById('chat-wrapper').style.display = 'none';
       document.getElementById('detail-tabs').style.display = 'none';
       renderRunsList();
     }

@@ -275,6 +275,149 @@ def cmd_resume(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# kestrion chat
+# ---------------------------------------------------------------------------
+
+def cmd_chat(args: argparse.Namespace) -> int:
+    script = Path(args.file)
+    if not script.exists():
+        print(f"error: {script} not found", file=sys.stderr)
+        return 1
+
+    spec = importlib.util.spec_from_file_location("__kestrion_agent__", script)
+    if spec is None or spec.loader is None:
+        print(f"error: could not load {script}", file=sys.stderr)
+        return 1
+
+    sys.path.insert(0, str(script.parent.resolve()))
+    module = importlib.util.module_from_spec(spec)
+
+    try:
+        spec.loader.exec_module(module)
+    except SystemExit:
+        pass
+    except Exception as exc:
+        print(f"error loading {script}: {exc}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+    from kestrion.agent.agent import Agent
+    agent = None
+    
+    if hasattr(module, "agent") and isinstance(getattr(module, "agent"), Agent):
+        agent = getattr(module, "agent")
+    else:
+        for val in vars(module).values():
+            if isinstance(val, Agent):
+                agent = val
+                break
+                
+    if not agent and hasattr(module, "main") and asyncio.iscoroutinefunction(module.main):
+        # The agent might be initialized inside main(). We can intercept Agent.run to capture it.
+        original_run = Agent.run
+        async def fake_run(self, *a, **kw):
+            nonlocal agent
+            agent = self
+            raise RuntimeError("__STOP_KESTRION_CHAT__")
+            
+        Agent.run = fake_run
+        try:
+            asyncio.run(module.main())
+        except RuntimeError as e:
+            if str(e) != "__STOP_KESTRION_CHAT__":
+                pass
+        except Exception:
+            pass
+        finally:
+            Agent.run = original_run
+            
+    if not agent:
+        print(f"error: could not find an Agent instance in {script}", file=sys.stderr)
+        print("Please define a top-level 'agent = Agent(...)' variable in your script.", file=sys.stderr)
+        return 1
+
+    # ANSI colors
+    C_GREEN = "\033[92m"
+    C_YELLOW = "\033[93m"
+    C_RED = "\033[91m"
+    C_CYAN = "\033[96m"
+    C_MAGENTA = "\033[95m"
+    C_RESET = "\033[0m"
+    C_BOLD = "\033[1m"
+
+    async def chat_loop():
+        run_id = None
+        messages = []
+        
+        print(f"{C_BOLD}Kestrion Interactive Chat{C_RESET} (Type /quit to exit)")
+        print("-" * 50)
+        
+        while True:
+            try:
+                user_input = input(f"{C_CYAN}You:{C_RESET} ")
+                if not user_input.strip():
+                    continue
+                if user_input.strip().lower() in ("/quit", "/exit", "quit", "exit"):
+                    break
+                    
+                messages.append({"role": "user", "content": user_input})
+                print(f"{C_GREEN}Agent is thinking...{C_RESET}", end="\r")
+                
+                result = await agent.run_with_history(messages, run_id=run_id)
+                run_id = result.run_id
+                
+                # Clear the thinking line
+                print(" " * 50, end="\r")
+                
+                if result.status.value == "waiting_on_human":
+                    print(f"{C_YELLOW}Agent is paused and waiting for human approval.{C_RESET}")
+                    
+                    checkpoint = await agent._store.latest(run_id)
+                    scratch = checkpoint.state.scratch if checkpoint else {}
+                    messages = scratch.get("_messages", messages)
+                    
+                    last_msg = messages[-1] if messages else {}
+                    tc_name = "unknown"
+                    if last_msg.get("role") == "assistant" and last_msg.get("tool_calls"):
+                        for tc in last_msg["tool_calls"]:
+                            print(f"Tool: {tc['name']}({tc['arguments']})")
+                            tc_name = tc["name"]
+                            
+                    approve_input = input(f"Approve this action? [y/N]: ")
+                    if approve_input.lower().startswith('y'):
+                        await agent.approve(run_id, tc_name, True)
+                        print(f"{C_GREEN}Approved! Resuming...{C_RESET}")
+                        result = await agent.resume(run_id)
+                    else:
+                        await agent.approve(run_id, tc_name, False)
+                        print(f"{C_RED}Denied. Resuming...{C_RESET}")
+                        result = await agent.resume(run_id)
+                        
+                if result.state and "_messages" in result.state.scratch:
+                    messages = result.state.scratch["_messages"]
+                    
+                if result.output:
+                    print(f"{C_MAGENTA}Agent:{C_RESET} {result.output}")
+                elif result.status.value == "completed":
+                    print(f"{C_MAGENTA}Agent:{C_RESET} (Completed with no output)")
+                    
+            except KeyboardInterrupt:
+                print("\nInterrupted.")
+                break
+            except Exception as e:
+                print(f"\n{C_RED}Error: {e}{C_RESET}")
+                if args.verbose:
+                    import traceback
+                    traceback.print_exc()
+                break
+                
+    asyncio.run(chat_loop())
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # kestrion deploy
 # ---------------------------------------------------------------------------
 
@@ -439,7 +582,7 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
             db_file = Path(db_path)
 
     from kestrion.cli.dashboard import start_dashboard
-    start_dashboard(db_path=db_path, host=args.host, port=args.port)
+    start_dashboard(db_path=db_path, host=args.host, port=args.port, script=args.file)
     return 0
 
 
@@ -542,8 +685,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_resume.add_argument("file", help="path to the agent Python file")
     p_resume.add_argument("-v", "--verbose", action="store_true", help="show full tracebacks on error")
 
+    # chat
+    p_chat = sub.add_parser("chat", help="interactively chat with an agent")
+    p_chat.add_argument("file", help="path to the agent Python file")
+    p_chat.add_argument("-v", "--verbose", action="store_true", help="show full tracebacks on error")
+
     # dashboard
     p_dash = sub.add_parser("dashboard", help="start the web dashboard server")
+    p_dash.add_argument("file", nargs="?", help="optional path to the agent Python file for interactive chat")
     p_dash.add_argument("--host", default="127.0.0.1", help="host to bind the server to (default: 127.0.0.1)")
     p_dash.add_argument("--port", type=int, default=8000, help="port to bind the server to (default: 8000)")
     p_dash.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
@@ -574,6 +723,7 @@ def main() -> None:
         "fork": cmd_fork,
         "list": cmd_list,
         "resume": cmd_resume,
+        "chat": cmd_chat,
     }
     sys.exit(handlers[args.command](args))
 

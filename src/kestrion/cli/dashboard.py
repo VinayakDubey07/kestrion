@@ -58,6 +58,12 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
                 self.handle_approve_run(parts[2])
                 return
 
+        if path.startswith("/api/runs/") and path.endswith("/chat"):
+            parts = path.strip("/").split("/")
+            if len(parts) == 4 and parts[3] == "chat":
+                self.handle_chat(parts[2])
+                return
+
         if path.startswith("/api/runs/") and path.endswith("/fork"):
             parts = path.strip("/").split("/")
             if len(parts) == 4 and parts[3] == "fork":
@@ -382,11 +388,32 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         except Exception as exc:
             self.send_json({"success": False, "error": str(exc)}, status=500)
 
+    def handle_chat(self, run_id):
+        body = self._read_json_body()
+        if not body or "message" not in body:
+            return
+        
+        try:
+            asyncio.run(self._do_chat(run_id, body["message"]))
+            self.send_json({"success": True})
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            self.send_json({"success": False, "error": str(exc)}, status=500)
+
     # ------------------------------------------------------------------
     # Async helpers (called via asyncio.run, fixing BUG-006)
     # ------------------------------------------------------------------
 
     async def _persist_approval(self, run_id: str, tool: str, role: str) -> bool:
+        if getattr(self, "agent", None):
+            try:
+                await self.agent.approve(run_id, tool, True)
+                await self.agent.resume(run_id)
+                return True
+            except Exception:
+                pass
+
         store = SQLiteCheckpointStore(path=self.db_path)
         engine = Engine(nodes={}, tools={}, store=store, entry_node="")
         try:
@@ -404,6 +431,22 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         store = SQLiteCheckpointStore(path=self.db_path)
         engine = Engine(nodes={}, tools={}, store=store, entry_node="")
         await engine.provide_input(run_id, text, tool=tool)
+        
+        if getattr(self, "agent", None):
+            await self.agent.resume(run_id)
+
+    async def _do_chat(self, run_id: str, message: str) -> None:
+        if not getattr(self, "agent", None):
+            raise Exception("No agent script was provided to the dashboard.")
+            
+        checkpoint = await self.agent._store.latest(run_id)
+        if not checkpoint:
+            raise Exception("Run not found")
+            
+        messages = checkpoint.state.scratch.get("_messages", [])
+        messages.append({"role": "user", "content": message})
+        
+        await self.agent.run_with_history(messages, run_id=run_id)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -426,12 +469,40 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
 
-def start_dashboard(db_path: str, host: str, port: int) -> None:
+def start_dashboard(db_path: str, host: str, port: int, script: str | None = None) -> None:
     # Ensure the database tables exist
     _ = SQLiteCheckpointStore(path=db_path)
 
     # Set the DB path on the handler class before instantiation
     DashboardHTTPHandler.db_path = db_path
+    
+    agent = None
+    if script:
+        import sys
+        import importlib.util
+        from pathlib import Path
+        script_path = Path(script)
+        if script_path.exists():
+            spec = importlib.util.spec_from_file_location("__kestrion_agent__", script_path)
+            if spec and spec.loader:
+                sys.path.insert(0, str(script_path.parent.resolve()))
+                module = importlib.util.module_from_spec(spec)
+                try:
+                    spec.loader.exec_module(module)
+                    from kestrion.agent.agent import Agent
+                    if hasattr(module, "agent") and isinstance(getattr(module, "agent"), Agent):
+                        agent = getattr(module, "agent")
+                    else:
+                        for val in vars(module).values():
+                            if isinstance(val, Agent):
+                                agent = val
+                                break
+                except SystemExit:
+                    pass
+                except Exception as e:
+                    print(f"Warning: Failed to load agent script {script_path}: {e}")
+                    
+    DashboardHTTPHandler.agent = agent
 
     server = HTTPServer((host, port), DashboardHTTPHandler)
     print(f"Kestrion Console running at http://{host}:{port}")
