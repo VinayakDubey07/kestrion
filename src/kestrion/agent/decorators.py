@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import re
 import time
 from typing import Any, Callable, Union, get_args, get_origin
 
@@ -70,15 +71,67 @@ def _python_type_to_json_schema(annotation: Any) -> dict[str, Any]:
     )
 
 
+def _parse_docstring_params(doc: str | None) -> dict[str, str]:
+    if not doc:
+        return {}
+
+    params = {}
+    lines = doc.split("\n")
+
+    in_args_section = False
+    current_param = None
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped in ("Args:", "Arguments:", "Parameters:"):
+            in_args_section = True
+            continue
+
+        if in_args_section and stripped == "":
+            continue
+        if in_args_section and re.match(r'^[A-Z][a-zA-Z]+:', stripped):
+            in_args_section = False
+
+        sphinx_match = re.match(r':param\s+(?:[\w\[\]|]+\s+)?(\w+)\s*:\s*(.*)', stripped)
+        if sphinx_match:
+            current_param = sphinx_match.group(1)
+            params[current_param] = sphinx_match.group(2).strip()
+            continue
+
+        if in_args_section:
+            google_match = re.match(r'^(\w+)\s*(?:\([^)]+\))?\s*:\s*(.*)', stripped)
+            if google_match:
+                current_param = google_match.group(1)
+                params[current_param] = google_match.group(2).strip()
+                continue
+
+        if (
+            current_param
+            and stripped
+            and not sphinx_match
+            and not re.match(r'^(\w+)\s*(?:\([^)]+\))?\s*:', stripped)
+            and not stripped.startswith(":")
+        ):
+            params[current_param] += " " + stripped
+
+    return params
+
+
 def _build_parameters_schema(func: Callable) -> dict[str, Any]:
     sig = inspect.signature(func)
+    param_docs = _parse_docstring_params(func.__doc__)
     properties: dict[str, Any] = {}
     required: list[str] = []
 
     for name, param in sig.parameters.items():
         if name == "self" or name.startswith("_"):
             continue
-        properties[name] = _python_type_to_json_schema(param.annotation)
+        prop_schema = _python_type_to_json_schema(param.annotation)
+        if name in param_docs:
+            prop_schema["description"] = param_docs[name]
+        
+        properties[name] = prop_schema
         if param.default is inspect.Parameter.empty:
             required.append(name)
         else:

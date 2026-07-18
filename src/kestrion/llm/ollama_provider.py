@@ -12,9 +12,11 @@ paper over.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any
 
+from kestrion.core.errors import LLMConnectionError
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import LLMResponse, Message, ToolCallRequest
 
@@ -30,9 +32,17 @@ except ImportError as exc:
 class OllamaProvider:
     """Implements the LLMProvider protocol structurally. No cost — local inference."""
 
-    def __init__(self, model: str = "llama3.1", base_url: str = "http://localhost:11434"):
+    def __init__(
+        self,
+        model: str = "llama3.1",
+        base_url: str = "http://localhost:11434",
+        timeout: float = 120.0,
+        max_retries: int = 3,
+    ):
         self.model = model
         self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self.max_retries = max_retries
 
     def _to_ollama_messages(self, messages: list[Message], system: str | None) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
@@ -78,10 +88,30 @@ class OllamaProvider:
         if tools:
             payload["tools"] = self._to_ollama_tools(tools)
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(f"{self.base_url}/api/chat", json=payload)
-            response.raise_for_status()
-            data = response.json()
+        attempt = 0
+        last_error = None
+        while attempt <= self.max_retries:
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(f"{self.base_url}/api/chat", json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    break
+            except httpx.RequestError as exc:
+                last_error = exc
+            except httpx.HTTPStatusError as exc:
+                last_error = exc
+                if exc.response.status_code < 500:
+                    # Don't retry on 4xx errors (client errors)
+                    break
+            
+            attempt += 1
+            if attempt <= self.max_retries:
+                await asyncio.sleep(2 ** (attempt - 1))  # Exponential backoff: 1s, 2s, 4s...
+        else:
+            raise LLMConnectionError(
+                f"Failed to connect to Ollama after {self.max_retries + 1} attempts. Last error: {last_error}"
+            ) from last_error
 
         message = data.get("message", {})
         tool_calls = []

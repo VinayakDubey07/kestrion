@@ -101,3 +101,7 @@ class InputRequired(KestrionError):
 
 class InvalidToolInputError(KestrionError):
     """Raised when trying to provide input for a tool that is not currently waiting for it."""
+
+
+class LLMConnectionError(KestrionError):
+    """Raised when the engine cannot communicate with the configured LLM provider."""

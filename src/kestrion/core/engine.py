@@ -43,7 +43,7 @@ from .errors import (
     RunExpiredError,
 )
 
-logger = logging.getLogger("agentframework.engine")
+logger = logging.getLogger("kestrion.engine")
 
 
 class Engine:
@@ -61,11 +61,13 @@ class Engine:
         store: CheckpointStore,
         entry_node: str,
         approval_callback: Callable[[str, dict], bool] | None = None,
+        max_steps: int = 100,
     ):
         self.nodes = nodes
         self.tools = tools
         self.store = store
         self.entry_node = entry_node
+        self.max_steps = max_steps
         # sync hook the host app can override; default = auto-deny.
         # In production this is what a UI "approve kubectl apply" button
         # calls into, or a Slack approval workflow, etc.
@@ -257,9 +259,18 @@ class Engine:
                 f"Tool {tool!r} does not match the pending tool {pending_tool!r} for run {run_id!r}."
             )
 
-        # Record the input
+        if not text:
+            raise InvalidToolInputError(f"Run {run_id!r} input for tool {tool!r} cannot be empty.")
+
+        import hashlib
+        question = pending.get("question")
+        key = hashlib.md5(question.encode()).hexdigest() if question else tool
+
+        # Record the input (with idempotent guard)
         inputs = state.scratch.setdefault("_human_inputs", {})
-        inputs[tool] = text
+        if key in inputs:
+            logger.warning(f"Run {run_id!r} already has input for this request. Overwriting.")
+        inputs[key] = text
 
         input_event = Event.create(
             run_id=run_id,
@@ -303,7 +314,15 @@ class Engine:
     # ------------------------------------------------------------------
 
     async def _drive(self, state: AgentState) -> AgentState:
+        step_count = 0
         while state.status == RunStatus.RUNNING and state.current_node is not None:
+            if step_count >= self.max_steps:
+                raise RuntimeError(
+                    f"Run {state.run_id!r} exceeded maximum engine steps ({self.max_steps}). "
+                    "Infinite loop protection triggered."
+                )
+            step_count += 1
+            
             node = self.nodes[state.current_node]
 
             try:
