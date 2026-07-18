@@ -1,7 +1,12 @@
 from .sqlite_store import SQLiteCheckpointStore
-from .postgres_store import PostgresCheckpointStore
+
+try:
+    from .postgres_store import PostgresCheckpointStore
+except ImportError:
+    PostgresCheckpointStore = None  # type: ignore
 
 __all__ = [
     "SQLiteCheckpointStore",
-    "PostgresCheckpointStore",
 ]
+if PostgresCheckpointStore is not None:
+    __all__.append("PostgresCheckpointStore")
