@@ -197,6 +197,51 @@ agent = Agent(
 
 No code changes are required. Crash recovery, approvals, and immutable event logs all operate exactly the same way, just backed by a production-ready database.
 
+## OpenTelemetry (OTel) Integration
+
+Kestrion provides first-class support for OpenTelemetry to monitor agent runs, LLM calls, and tool executions. This enables seamless tracing of an agent's reasoning loop across your entire enterprise observability stack (Datadog, Jaeger, Splunk, etc).
+
+To enable OpenTelemetry, install the `otel` extra:
+
+```bash
+pip install "kestrion[otel]"
+```
+
+Then configure the `OpenTelemetryProvider` and attach it to your engine/agent:
+
+```python
+from kestrion.telemetry.otel import OpenTelemetryProvider
+
+# Initialize the OTel provider
+telemetry = OpenTelemetryProvider(service_name="kestrion-ops-agent")
+
+agent = Agent(
+    provider=AnthropicProvider(model="claude-sonnet-4-6"),
+    tools=[my_tool],
+    store="sqlite:///my_agent.db",
+    telemetry=telemetry, # Attach telemetry provider
+)
+```
+
+As the agent runs, Kestrion automatically emits nested spans representing the overall Run, individual Steps, Model Inferences, and Tool Calls.
+
+## Vision and Multi-modal Support
+
+Kestrion treats image inputs natively via strictly typed content blocks (`TextBlock` and `ImageBlock`). You can seamlessly pass a list of these blocks directly to the agent's `run()` method instead of a standard string. Kestrion automatically maps them to the correct wire format for your chosen provider (Anthropic, OpenAI, or Ollama).
+
+```python
+import base64
+from kestrion.llm.base import TextBlock, ImageBlock
+
+with open("receipt.jpg", "rb") as f:
+    base64_img = base64.b64encode(f.read()).decode("utf-8")
+
+result = await agent.run([
+    TextBlock(text="Extract the total amount from this receipt and format it as JSON."),
+    ImageBlock(data=base64_img, media_type="image/jpeg")
+])
+```
+
 ## Where to go next
 
 - [Event Sourcing](concepts/event-sourcing.md) — why state is never mutated directly

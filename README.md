@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.3 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **nine** agentic features
-(multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
+three LLM providers, a live-verified MCP client and server, a CLI, **ten** agentic features
+(vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
 handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 156 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+orchestration are built and tested — 162 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
 |---------|--------|-------|
@@ -14,7 +14,8 @@ orchestration are built and tested — 156 passing tests. **Horizontally scalabl
 | Approval Gates (RBAC, Timeouts) | Proven | Live-verified with MCP client/server |
 | Horizontal Scale (Multi-worker) | Proven | `postgres_store.py` + DAG Scheduler |
 | Security (Secret injection) | Proven | `SecretProvider` protocol |
-| OpenTelemetry / Observability | Planned | See Roadmap |
+| Vision / Multi-modal Support | Proven | Native `TextBlock` / `ImageBlock` |
+| OpenTelemetry / Observability | Proven | `OpenTelemetryProvider` |
 
 See [Roadmap](#roadmap) below.
 
@@ -155,6 +156,23 @@ from kestrion.agent.tools import ask_human
 # The user's application queries the status and prompts the human for input:
 await agent.provide_input(run_id, text="My favorite color is Blue.", tool="ask_human")
 # The engine records the input and resumes execution cleanly!
+```
+
+### Vision & Multi-modal Support
+
+Kestrion treats image inputs natively via strictly typed content blocks (`TextBlock` and `ImageBlock`). You can seamlessly pass a list of these blocks directly to the agent's `run()` method instead of a standard string. Kestrion automatically maps them to the correct wire format for your chosen provider (Anthropic, OpenAI, or Ollama):
+
+```python
+import base64
+from kestrion.llm.base import TextBlock, ImageBlock
+
+with open("receipt.jpg", "rb") as f:
+    base64_img = base64.b64encode(f.read()).decode("utf-8")
+
+result = await agent.run([
+    TextBlock(text="Extract the total amount from this receipt and format it as JSON."),
+    ImageBlock(data=base64_img, media_type="image/jpeg")
+])
 ```
 
 ### Parallel tool calls
