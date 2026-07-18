@@ -550,8 +550,9 @@
       </div>
 
       <div class="detail-tabs" id="detail-tabs" style="display: none;">
-        <div class="detail-tab active" onclick="switchTab('timeline')">Event Timeline</div>
-        <div class="detail-tab" onclick="switchTab('chat')">Chat History</div>
+        <div class="detail-tab active" id="tab-timeline" onclick="switchTab('timeline')">Event Timeline</div>
+        <div class="detail-tab" id="tab-chat" onclick="switchTab('chat')">Chat History</div>
+        <div class="detail-tab" id="tab-graph" onclick="switchTab('graph')">Visual Trace</div>
       </div>
 
       <div class="chat-wrapper" id="chat-wrapper" style="display: none;">
@@ -564,6 +565,11 @@
       <div class="timeline-container" id="timeline-container" style="display: none;">
         <div class="timeline" id="timeline"></div>
       </div>
+      <div class="timeline-container" id="graph-container" style="display: none; padding: 24px;">
+        <div style="background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: flex; justify-content: center; overflow: auto; min-height: 400px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+          <div id="mermaid-graph" class="mermaid" style="width: 100%; display: flex; justify-content: center; align-items: center;"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -574,9 +580,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 
   <script>
     // ── State ─────────────────────────────────────────────────────────
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: {
+        useMaxWidth: false,
+        htmlLabels: true
+      }
+    });
     let currentRunId = null;
     let runsData = [];
     let currentEvents = [];
@@ -817,11 +833,14 @@
         renderChat(messages);
 
         document.getElementById('detail-tabs').style.display = 'flex';
-        if (document.querySelectorAll('.detail-tab')[0].classList.contains('active')) {
-          switchTab('timeline');
-        } else {
-          switchTab('chat');
-        }
+        let activeTab = 'timeline';
+        document.querySelectorAll('.detail-tab').forEach(el => {
+          if (el.classList.contains('active')) {
+            if (el.id === 'tab-chat') activeTab = 'chat';
+            else if (el.id === 'tab-graph') activeTab = 'graph';
+          }
+        });
+        switchTab(activeTab);
       } catch (err) {
         console.error('Failed to load details:', err);
       }
@@ -830,14 +849,164 @@
     // ── Tab switching ─────────────────────────────────────────────────
     function switchTab(tabId) {
       document.querySelectorAll('.detail-tab').forEach(el => el.classList.remove('active'));
+      
+      const tabTimeline = document.getElementById('tab-timeline');
+      const tabChat = document.getElementById('tab-chat');
+      const tabGraph = document.getElementById('tab-graph');
+      
+      if (tabTimeline) tabTimeline.classList.remove('active');
+      if (tabChat) tabChat.classList.remove('active');
+      if (tabGraph) tabGraph.classList.remove('active');
+      
+      document.getElementById('timeline-container').style.display = 'none';
+      document.getElementById('chat-wrapper').style.display = 'none';
+      document.getElementById('graph-container').style.display = 'none';
+
       if (tabId === 'timeline') {
-        document.querySelectorAll('.detail-tab')[0].classList.add('active');
+        if (tabTimeline) tabTimeline.classList.add('active');
         document.getElementById('timeline-container').style.display = 'block';
-        document.getElementById('chat-wrapper').style.display = 'none';
-      } else {
-        document.querySelectorAll('.detail-tab')[1].classList.add('active');
-        document.getElementById('timeline-container').style.display = 'none';
+      } else if (tabId === 'chat') {
+        if (tabChat) tabChat.classList.add('active');
         document.getElementById('chat-wrapper').style.display = 'flex';
+      } else if (tabId === 'graph') {
+        if (tabGraph) tabGraph.classList.add('active');
+        document.getElementById('graph-container').style.display = 'block';
+        renderMermaidGraph();
+      }
+    }
+
+    function renderMermaidGraph() {
+      const container = document.getElementById('mermaid-graph');
+      if (!container) return;
+      container.innerHTML = '';
+      container.removeAttribute('data-processed');
+      
+      if (!currentEvents || currentEvents.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color: var(--text-dim); padding: 40px; font-size: 13px;">No events to graph.</div>';
+        return;
+      }
+      
+      let diagramText = 'flowchart TD\n';
+      diagramText += `    %% Mermaid trace for run ${currentRunId}\n`;
+      
+      const nodesSeen = new Set();
+      const nodeLabels = {};
+      const transitions = [];
+      let actionCounter = 0;
+      
+      nodesSeen.add('START');
+      nodeLabels['START'] = 'START';
+      
+      function cleanId(name) {
+        if (!name) return 'engine';
+        return name.replace(/[^a-zA-Z0-9_]/g, '_');
+      }
+      
+      let lastActiveNode = 'START';
+
+      currentEvents.forEach(evt => {
+        const rawNode = evt.node || 'engine';
+        const nodeId = cleanId(rawNode);
+        
+        if (!nodesSeen.has(nodeId)) {
+          nodesSeen.add(nodeId);
+          nodeLabels[nodeId] = `Node: ${rawNode}`;
+        }
+
+        if (evt.node) {
+          lastActiveNode = nodeId;
+        }
+        
+        const payload = evt.payload || {};
+        
+        if (evt.type === 'run_started') {
+          const entry = cleanId(payload.entry_node || 'engine');
+          if (!nodesSeen.has(entry)) {
+            nodesSeen.add(entry);
+            nodeLabels[entry] = `Node: ${payload.entry_node || 'engine'}`;
+          }
+          transitions.push(`    START --> ${entry}`);
+          lastActiveNode = entry;
+        } else if (evt.type === 'state_transition') {
+          const fromNode = cleanId(payload.from || 'START');
+          const toNode = cleanId(payload.to || 'END');
+          if (!nodesSeen.has(fromNode)) {
+            nodesSeen.add(fromNode);
+            nodeLabels[fromNode] = `Node: ${payload.from || 'START'}`;
+          }
+          if (!nodesSeen.has(toNode)) {
+            nodesSeen.add(toNode);
+            nodeLabels[toNode] = `Node: ${payload.to || 'END'}`;
+          }
+          transitions.push(`    ${fromNode} --> ${toNode}`);
+          lastActiveNode = toNode;
+        } else if (evt.type === 'tool_call_started') {
+          actionCounter++;
+          const toolName = payload.tool || 'unknown';
+          const toolId = `tool_${actionCounter}`;
+          diagramText += `    ${toolId}(["Tool: ${toolName}"])\n`;
+          transitions.push(`    ${nodeId} --> ${toolId}`);
+        } else if (evt.type === 'llm_call_completed') {
+          actionCounter++;
+          const llmId = `llm_${actionCounter}`;
+          const promptToks = evt.tokens_in || 0;
+          const compToks = evt.tokens_out || 0;
+          diagramText += `    ${llmId}{{"LLM Call<br/>${promptToks} in / ${compToks} out"}}\n`;
+          transitions.push(`    ${nodeId} --> ${llmId}`);
+        } else if (evt.type === 'human_intervention') {
+          actionCounter++;
+          const humanId = `human_${actionCounter}`;
+          const tool = payload.tool || '';
+          diagramText += `    ${humanId}[/"Human Gate: ${tool}"/]\n`;
+          transitions.push(`    ${nodeId} --> ${humanId}`);
+        } else if (evt.type === 'context_compacted') {
+          actionCounter++;
+          const compId = `comp_${actionCounter}`;
+          diagramText += `    ${compId}("Context Compacted")\n`;
+          transitions.push(`    ${nodeId} --> ${compId}`);
+        } else if (evt.type === 'run_completed') {
+          transitions.push(`    ${lastActiveNode} --> END`);
+        } else if (evt.type === 'run_failed') {
+          transitions.push(`    ${lastActiveNode} --> FAILED`);
+        }
+      });
+      
+      Object.keys(nodeLabels).forEach(nId => {
+        if (nId === 'START') {
+          diagramText += '    START([START])\n';
+        } else {
+          diagramText += `    ${nId}["${label = nodeLabels[nId]}"]\n`;
+        }
+      });
+      
+      const uniqueTransitions = [...new Set(transitions)];
+      uniqueTransitions.forEach(t => {
+        diagramText += t + '\n';
+      });
+      
+      const hasEnd = uniqueTransitions.some(t => t.includes('--> END'));
+      const hasFailed = uniqueTransitions.some(t => t.includes('--> FAILED'));
+
+      if (hasEnd) {
+        diagramText += '    END([END])\n';
+        diagramText += '    style END fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff\n';
+      }
+      if (hasFailed) {
+        diagramText += '    FAILED([FAILED])\n';
+        diagramText += '    style FAILED fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#fff\n';
+      }
+
+      diagramText += '    style START fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff\n';
+      
+      container.textContent = diagramText;
+      
+      try {
+        mermaid.run({
+          nodes: [container]
+        });
+      } catch (err) {
+        console.error('Mermaid render error:', err);
+        container.innerHTML = `<div style="color: var(--red); padding: 20px;">Mermaid rendering error: ${err}</div>`;
       }
     }
 

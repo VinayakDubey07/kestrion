@@ -461,6 +461,108 @@ def cmd_deploy(args: argparse.Namespace) -> int:
     print(f"       kubectl apply -f {output}")
     return 0
 
+def generate_mermaid_flowchart(events: list[Any], run_id: str) -> str:
+    lines = ["flowchart TD", f"    %% Mermaid trace for run {run_id}"]
+    nodes_seen = set()
+    node_labels = {}
+    transitions = []
+    action_counter = 0
+
+    nodes_seen.add("START")
+    node_labels["START"] = "START"
+
+    def clean_id(name: str | None) -> str:
+        if not name:
+            return "engine"
+        return "".join(c if c.isalnum() or c == "_" else "_" for c in name)
+
+    last_active_node = "START"
+
+    for evt in events:
+        raw_node = evt.node or "engine"
+        node_id = clean_id(raw_node)
+        if node_id not in nodes_seen:
+            nodes_seen.add(node_id)
+            node_labels[node_id] = f"Node: {raw_node}"
+            
+        if evt.node:
+            last_active_node = node_id
+
+        evt_type = evt.type.value
+        payload = evt.payload or {}
+
+        if evt_type == "run_started":
+            entry = clean_id(payload.get("entry_node") or "engine")
+            if entry not in nodes_seen:
+                nodes_seen.add(entry)
+                node_labels[entry] = f"Node: {payload.get('entry_node') or 'engine'}"
+            transitions.append(f"    START --> {entry}")
+            last_active_node = entry
+        elif evt_type == "state_transition":
+            from_node = clean_id(payload.get("from") or "START")
+            to_node = clean_id(payload.get("to") or "END")
+            if from_node not in nodes_seen:
+                nodes_seen.add(from_node)
+                node_labels[from_node] = f"Node: {payload.get('from') or 'START'}"
+            if to_node not in nodes_seen:
+                nodes_seen.add(to_node)
+                node_labels[to_node] = f"Node: {payload.get('to') or 'END'}"
+            transitions.append(f"    {from_node} --> {to_node}")
+            last_active_node = to_node
+        elif evt_type == "tool_call_started":
+            action_counter += 1
+            tool_name = payload.get("tool", "unknown")
+            tool_id = f"tool_{action_counter}"
+            lines.append(f'    {tool_id}(["Tool: {tool_name}"])')
+            transitions.append(f"    {node_id} --> {tool_id}")
+        elif evt_type == "llm_call_completed":
+            action_counter += 1
+            llm_id = f"llm_{action_counter}"
+            prompt_toks = evt.tokens_in
+            comp_toks = evt.tokens_out
+            lines.append(f'    {llm_id}{{"LLM Call<br/>{prompt_toks} in / {comp_toks} out"}}')
+            transitions.append(f"    {node_id} --> {llm_id}")
+        elif evt_type == "human_intervention":
+            action_counter += 1
+            human_id = f"human_{action_counter}"
+            tool = payload.get("tool", "")
+            lines.append(f'    {human_id}[/"Human Gate: {tool}"/]')
+            transitions.append(f"    {node_id} --> {human_id}")
+        elif evt_type == "context_compacted":
+            action_counter += 1
+            comp_id = f"comp_{action_counter}"
+            lines.append(f'    {comp_id}("Context Compacted")')
+            transitions.append(f"    {node_id} --> {comp_id}")
+        elif evt_type == "run_completed":
+            transitions.append(f"    {last_active_node} --> END")
+        elif evt_type == "run_failed":
+            transitions.append(f"    {last_active_node} --> FAILED")
+
+    for n_id, label in node_labels.items():
+        if n_id == "START":
+            lines.append("    START([START])")
+        else:
+            lines.append(f'    {n_id}["{label}"]')
+
+    unique_transitions = list(dict.fromkeys(transitions))
+    lines.extend(unique_transitions)
+
+    # Conditionally declare and style terminal nodes if they are reached
+    has_end = any("--> END" in t for t in unique_transitions)
+    has_failed = any("--> FAILED" in t for t in unique_transitions)
+
+    if has_end:
+        lines.append("    END([END])")
+        lines.append("    style END fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff")
+    if has_failed:
+        lines.append("    FAILED([FAILED])")
+        lines.append("    style FAILED fill:#ef4444,stroke:#b91c1c,stroke-width:2px,color:#fff")
+
+    # Stylize START node
+    lines.append("    style START fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff")
+
+    return "\n".join(lines)
+
 
 def cmd_trace(args: argparse.Namespace) -> int:
     db_path = args.store or "kestrion_runs.db"
@@ -490,6 +592,10 @@ def cmd_trace(args: argparse.Namespace) -> int:
     if not events:
         print(f"No events found for run_id: {args.run_id}", file=sys.stderr)
         return 1
+
+    if getattr(args, "mermaid", False):
+        print(generate_mermaid_flowchart(events, args.run_id))
+        return 0
 
     # ANSI colors
     C_GREEN = "\033[92m"
@@ -674,6 +780,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_trace.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
     p_trace.add_argument("--type", help="filter events by type (e.g. tool_call_started)")
     p_trace.add_argument("--node", help="filter events by node (e.g. agent_loop)")
+    p_trace.add_argument("--mermaid", action="store_true", help="output trace as a Mermaid flowchart diagram")
 
     # list
     p_list = sub.add_parser("list", help="list all runs in the database")
