@@ -169,7 +169,11 @@ class _AgentLoopNode:
             llm_event = Event.create(
                 run_id=state.run_id,
                 type=EventType.LLM_CALL_COMPLETED,
-                payload={"stop_reason": response.stop_reason},
+                payload={
+                    "stop_reason": response.stop_reason,
+                    "text": response.text,
+                    "tool_calls": [tc.__dict__ for tc in response.tool_calls]
+                },
                 node=self.name,
                 tokens_in=response.tokens_in,
                 tokens_out=response.tokens_out,

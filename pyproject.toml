@@ -45,6 +45,7 @@ all = [
     "asyncpg>=0.29",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "playwright>=1.40.0",
 ]
 dev = [
     "pytest>=8.0",
@@ -58,6 +59,7 @@ dev = [
     "asyncpg>=0.29",
     "opentelemetry-api",
     "opentelemetry-sdk",
+    "playwright>=1.40.0",
 ]
 postgres = [
     "asyncpg>=0.29",
@@ -65,6 +67,9 @@ postgres = [
 otel = [
     "opentelemetry-api",
     "opentelemetry-sdk",
+]
+browser = [
+    "playwright>=1.40.0",
 ]
 
 [project.scripts]
