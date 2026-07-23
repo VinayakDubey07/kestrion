@@ -2,10 +2,10 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: **v0.4 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **thirteen** agentic features
+Status: **v0.5 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+three LLM providers, a live-verified MCP client and server, a CLI, **fifteen** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, and a visual playground builder), and a **DAG-based async scheduler** for multi-agent
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, and Vercel Generative UI), and a **DAG-based async scheduler** for multi-agent
 orchestration are built and tested — 169 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
@@ -19,6 +19,8 @@ orchestration are built and tested — 169 passing tests. **Horizontally scalabl
 | Swarm Routing (Supervision) | Proven | `SupervisorNode` |
 | Dynamic Tool Discovery | Proven | `ToolRegistry` and `find_and_load_tool` |
 | Interactive Visual Builder | Proven | `kestrion dashboard` -> `/playground` |
+| Browser Automation Agent | Proven | `BrowserToolkit` with Playwright (`kestrion[browser]`) |
+| Generative UI Streaming | Proven | `kestrion.adapters.vercel.stream_to_vercel` |
 
 See [Roadmap](#roadmap) below.
 
@@ -39,7 +41,7 @@ discipline on the part of whoever writes a given agent:
 ## Install
 
 ```bash
-pip install kestrion[anthropic]   # or [openai], [ollama], [mcp], or [all]
+pip install kestrion[anthropic]   # or [openai], [ollama], [mcp], [browser], or [all]
 ```
 
 Each LLM provider and MCP support are optional extras. If you only use Ollama, you never need the

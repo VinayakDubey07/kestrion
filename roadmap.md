@@ -1,8 +1,8 @@
 # Kestrion — Roadmap (Next 3 Months)
 
-**Baseline:** `v0.3.0`, live on PyPI. 162 passing tests. Core engine, `Agent`/`@tool` API, 3 LLM
+**Baseline:** `v0.5.0`, live on PyPI. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
-and all 10 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, and native vision/multi-modal support)
+and all 15 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, and Generative UI streaming)
 are built and tested.
 
 **Pace assumption:** weekday evenings + weekend mornings, ~10-13 hrs/week — the same pace
@@ -154,11 +154,13 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - `kestrion fork <run_id> --at-seq <seq>` — branch off a past checkpoint, tweak the prompt or tool output, and replay without starting over.
 5. **Event Subscriptions & Webhooks**
    - A pub/sub mechanism to easily hook into engine events (e.g., `on("waiting_on_human") -> send_slack_message()`).
-6. **Token Streaming**
-   - `Agent.stream()` method that yields tokens in real-time for chat UIs, while still durably committing the full event block when finished.
+6. ~~**Token Streaming & Generative UI Adapter**~~ **(BUILT)**
+   - ~~Yield events and tokens in real-time for chat UIs.~~ Implemented via `kestrion.adapters.vercel.stream_to_vercel` utilizing the Vercel Data Stream Protocol (`0:`, `8:`, `9:`, `d:`).
 7. ~~**Vision / Multi-modal Support**~~ **(BUILT)**
    - ~~Expand the LLM protocol to support injecting images into the `AgentState` so agents can reason over screenshots and diagrams.~~ Implemented via `TextBlock` and `ImageBlock` classes and standard provider mappings.
 8. ~~**Swarm Routing (Supervisor Node)**~~ **(BUILT)**
    - ~~Dynamically route conversations to specialized agents using LLM intent classification.~~ Implemented via `SupervisorNode` in `kestrion.core.nodes`.
 9. ~~**Dynamic Tool Discovery**~~ **(BUILT)**
    - ~~Agents can dynamically search a `ToolRegistry` and load required tools on the fly during a run.~~ Implemented natively in `Agent` via `find_and_load_tool`.
+10. ~~**Browser Automation Agent**~~ **(BUILT)**
+   - ~~Allow Kestrion agents to browse the web autonomously.~~ Implemented natively via `BrowserToolkit` wrapping Playwright in `kestrion.tools.browser`.

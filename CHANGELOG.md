@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [0.5.0] - 2026-07-23
+
+### Added
+- **Browser Automation Agent**: Added `kestrion[browser]` extra containing `BrowserToolkit`, a stateful wrapper around Microsoft Playwright allowing agents to natively navigate websites, click elements, extract DOM text, and take screenshots using Vision blocks.
+- **Generative UI / Vercel AI SDK Adapter**: Added `kestrion.adapters.vercel.stream_to_vercel`, a streaming engine adapter that intercepts background agent events and yields them via the Vercel Data Stream Protocol. Connects Kestrion directly to Next.js UI components.
+
 ## [0.4.0] - 2026-07-23
 
 ### Added
