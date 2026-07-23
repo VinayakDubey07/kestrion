@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime
 from kestrion.core.types import Event, EventType
 from kestrion.cli.main import generate_mermaid_flowchart

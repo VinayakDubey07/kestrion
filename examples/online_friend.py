@@ -1,5 +1,4 @@
 import asyncio
-import sys
 
 from kestrion.agent.agent import Agent
 from kestrion.llm.ollama_provider import OllamaProvider

@@ -1,5 +1,4 @@
 import asyncio
-import sys
 
 from kestrion.agent.agent import Agent
 from kestrion.agent.tools import ask_human

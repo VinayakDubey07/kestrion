@@ -57,9 +57,7 @@ def serve_agent(agent, name: str, description: str | None = None) -> FastMCP:
     It's a legitimate, useful state — the caller gets back the run_id
     and a clear message that approval is needed, exactly the same
     "status to check, not an exception to catch" pattern WAITING_ON_HUMAN
-    uses everywhere else in this project. Resuming a paused run isn't
-    exposed as a separate MCP tool yet — Agent.approve() is still a
-    stub (see README Known Gaps), and that gap applies here too.
+    uses everywhere else in this project.
     """
     mcp = FastMCP(name)
 
@@ -74,9 +72,7 @@ def serve_agent(agent, name: str, description: str | None = None) -> FastMCP:
             return (
                 f"[paused: run {result.run_id} is waiting on approval for tool "
                 f"'{pending.get('tool')}', missing roles: {pending.get('missing_roles')}. "
-                f"Approve via Engine.record_approval and resume separately — "
-                f"see the README for the current manual pattern, or check back "
-                f"once Agent.approve() is implemented.]"
+                f"Approve via Agent.approve(run_id, role='...') and resume separately.]"
             )
 
         if result.status == RunStatus.EXPIRED:

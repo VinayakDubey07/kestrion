@@ -432,21 +432,23 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         engine = Engine(nodes={}, tools={}, store=store, entry_node="")
         await engine.provide_input(run_id, text, tool=tool)
         
-        if getattr(self, "agent", None):
-            await getattr(self, "agent").resume # type: ignore(run_id)
+        agent = getattr(self, "agent", None)
+        if agent:
+            await agent.resume(run_id) # type: ignore
 
     async def _do_chat(self, run_id: str, message: str) -> None:
-        if not getattr(self, "agent", None):
+        agent = getattr(self, "agent", None)
+        if not agent:
             raise Exception("No agent script was provided to the dashboard.")
             
-        checkpoint = await self.agent._store.latest(run_id)
+        checkpoint = await agent._store.latest(run_id)
         if not checkpoint:
             raise Exception("Run not found")
             
         messages = checkpoint.state.scratch.get("_messages", [])
         messages.append({"role": "user", "content": message})
         
-        await getattr(self, "agent").run_with_history # type: ignore(messages, run_id=run_id)
+        await agent.run_with_history(messages, run_id=run_id) # type: ignore
 
     # ------------------------------------------------------------------
     # Helpers

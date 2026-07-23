@@ -68,7 +68,7 @@ class SummarizationNode:
 
         if not should_compact and self.max_history_tokens is not None:
             # Reconstruct content strings for counting
-            full_text = " ".join(m.get("content", "") for m in messages_dicts)
+            full_text = " ".join((m.get("content") or "") for m in messages_dicts)
             est_tokens = estimate_tokens(full_text)
             if est_tokens > self.max_history_tokens:
                 should_compact = True
@@ -84,7 +84,7 @@ class SummarizationNode:
             from kestrion.llm.base import Message
             # Reconstruct messages for LLM
             summary_prompt = [
-                Message(role=m.get("role", "user"), content=m.get("content", "")) for m in to_compact
+                Message(role=m.get("role", "user"), content=(m.get("content") or "")) for m in to_compact
             ]
             summary_prompt.append(
                 Message(role="user", content="Summarize the preceding conversation turns concisely, retaining all key decisions, tasks, state, and context.")
@@ -129,3 +129,93 @@ class SummarizationNode:
             return NodeResult(next_node=self.next_node, state_updates={"_messages": compacted_messages}, events=[compact_event])
 
         return NodeResult(next_node=self.next_node, state_updates={})
+
+
+class SupervisorNode:
+    """
+    A Swarm Router that analyzes the conversation state and dynamically routes
+    to one of several destination nodes (agents).
+    """
+
+    name = "supervisor"
+
+    def __init__(
+        self,
+        provider: LLMProvider,
+        destinations: dict[str, str],
+        system_prompt: str | None = None,
+    ):
+        """
+        destinations: mapping of node names to their descriptions (e.g. {"billing_agent": "Handles refunds"}).
+        """
+        self.provider = provider
+        self.destinations = destinations
+        self.system_prompt = system_prompt or "You are a routing supervisor. Route the conversation to the most appropriate agent."
+
+    async def run(self, state: AgentState) -> NodeResult:
+        from kestrion.llm.base import Message, ToolSpec
+
+        messages_dicts = state.scratch.get("_messages", [])
+        if not messages_dicts:
+            raise ValueError("SupervisorNode requires a conversation history to route.")
+
+        # Prepare messages
+        messages = [
+            Message(role=m.get("role", "user"), content=(m.get("content") or "")) for m in messages_dicts
+        ]
+
+        # Create a single routing tool
+        route_spec = ToolSpec(
+            name="route_to",
+            description="Route the conversation to a specific agent.",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "destination": {
+                        "type": "string",
+                        "description": "The name of the agent to route to.",
+                        "enum": list(self.destinations.keys()),
+                    }
+                },
+                "required": ["destination"],
+            },
+        )
+
+        # Build prompt containing the choices
+        choices = "\n".join(f"- {name}: {desc}" for name, desc in self.destinations.items())
+        system = f"{self.system_prompt}\n\nAvailable agents to route to:\n{choices}\n\nYou MUST use the route_to tool."
+
+        response = await self.provider.complete(
+            messages=messages,
+            tools=[route_spec],
+            system=system,
+        )
+
+        next_node = None
+        if response.tool_calls:
+            for call in response.tool_calls:
+                if call.name == "route_to":
+                    import json
+                    try:
+                        args = json.loads(call.arguments)
+                        dest = args.get("destination")
+                        if dest in self.destinations:
+                            next_node = dest
+                    except Exception:
+                        pass
+        
+        # If the model failed to call the tool, fallback to the first destination or None
+        if not next_node:
+            next_node = list(self.destinations.keys())[0] if self.destinations else None
+
+        # Emit routing event
+        route_event = Event.create(
+            run_id=state.run_id,
+            type=EventType.STATE_TRANSITION,
+            payload={"action": "supervisor_route", "destination": next_node},
+            node=self.name,
+            tokens_in=response.tokens_in,
+            tokens_out=response.tokens_out,
+            cost_usd=response.cost_usd,
+        )
+        return NodeResult(next_node=next_node, state_updates={}, events=[route_event])

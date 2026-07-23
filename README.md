@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.3 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **ten** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **twelve** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 162 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, and dynamic tool discovery), and a **DAG-based async scheduler** for multi-agent
+orchestration are built and tested — 169 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
 |---------|--------|-------|
@@ -16,6 +16,8 @@ orchestration are built and tested — 162 passing tests. **Horizontally scalabl
 | Security (Secret injection) | Proven | `SecretProvider` protocol |
 | Vision / Multi-modal Support | Proven | Native `TextBlock` / `ImageBlock` |
 | OpenTelemetry / Observability | Proven | `OpenTelemetryProvider` |
+| Swarm Routing (Supervision) | Proven | `SupervisorNode` |
+| Dynamic Tool Discovery | Proven | `ToolRegistry` and `find_and_load_tool` |
 
 See [Roadmap](#roadmap) below.
 

@@ -15,7 +15,7 @@ import functools
 import inspect
 import re
 import time
-from typing import Any, Callable, Union, get_args, get_origin
+from typing import Any, Callable, Union, get_args, get_origin, get_type_hints
 
 from kestrion.core.types import Tool, ToolResult, ToolSpec
 
@@ -120,6 +120,7 @@ def _parse_docstring_params(doc: str | None) -> dict[str, str]:
 
 def _build_parameters_schema(func: Callable) -> dict[str, Any]:
     sig = inspect.signature(func)
+    type_hints = get_type_hints(func)
     param_docs = _parse_docstring_params(func.__doc__)
     properties: dict[str, Any] = {}
     required: list[str] = []
@@ -127,7 +128,8 @@ def _build_parameters_schema(func: Callable) -> dict[str, Any]:
     for name, param in sig.parameters.items():
         if name == "self" or name.startswith("_"):
             continue
-        prop_schema = _python_type_to_json_schema(param.annotation)
+        annotation = type_hints.get(name, param.annotation)
+        prop_schema = _python_type_to_json_schema(annotation)
         if name in param_docs:
             prop_schema["description"] = param_docs[name]
         

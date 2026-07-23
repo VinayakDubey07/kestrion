@@ -25,6 +25,7 @@ from dataclasses import asdict, dataclass
 
 from kestrion.core.engine import Engine
 from kestrion.core.types import AgentState, Event, EventType, NodeResult, RunStatus, TelemetryProvider, Tool, ToolResult, ToolSpec
+from kestrion.agent.registry import ToolRegistry
 from kestrion.core.errors import (
     ApprovalRequired,
     CheckpointNotFoundError,
@@ -144,9 +145,18 @@ class _AgentLoopNode:
                     _message_from_dict(m) for m in state.scratch.get("_messages", [])
                 ]
 
+            # Determine which tools to expose to the LLM
+            exposed_tools = [t.spec for t in agent._tools.values()]
+            if getattr(agent, "tool_registry", None):
+                exposed_tools.append(agent._find_and_load_tool.spec)
+                active_dynamic = state.scratch.get("_active_dynamic_tools", [])
+                for name in active_dynamic:
+                    if name in agent.tool_registry._tools:
+                        exposed_tools.append(agent.tool_registry._tools[name].spec)
+
             response: LLMResponse = await agent._provider.complete(
                 messages=messages,
-                tools=[t.spec for t in agent._tools.values()],
+                tools=exposed_tools,
                 system=agent.system_prompt,
             )
 
@@ -417,6 +427,7 @@ class Agent:
         max_history_tokens: int | None = None,
         keep_turns: int = 4,
         telemetry: TelemetryProvider | None = None,
+        tool_registry: ToolRegistry | None = None,
     ):
         self._provider = provider
         self._tools: dict[str, Tool] = {t.spec.name: t for t in (tools or [])}
@@ -425,11 +436,42 @@ class Agent:
         self.max_history_tokens = max_history_tokens
         self.keep_turns = keep_turns
         self._store = _store_from_url(store) if isinstance(store, str) else store
+        self.tool_registry = tool_registry
+
+        engine_tools = {**self._tools}
+        if self.tool_registry:
+            from kestrion.agent.decorators import tool
+            @tool
+            def find_and_load_tool(query: str, _state: AgentState | None = None) -> str:
+                """
+                Search the dynamic tool registry for tools matching the query, and load them into the agent's context for the next turn.
+                """
+                if _state is None:
+                    return "Error: state not provided."
+                results = self.tool_registry.search(query)
+                if not results:
+                    return f"No tools found matching '{query}'."
+                
+                loaded = []
+                active = _state.scratch.get("_active_dynamic_tools", [])
+                for t in results:
+                    if t.spec.name not in active:
+                        active.append(t.spec.name)
+                        loaded.append(t.spec.name)
+                
+                _state.scratch["_active_dynamic_tools"] = active
+                if loaded:
+                    return f"Successfully loaded tools: {', '.join(loaded)}. You can now use them."
+                return "Matching tools were already loaded."
+            
+            self._find_and_load_tool = find_and_load_tool
+            engine_tools[find_and_load_tool.spec.name] = find_and_load_tool
+            engine_tools.update(self.tool_registry._tools)
 
         loop_node = _AgentLoopNode(self)
         self._engine = Engine(
             nodes={"agent_loop": loop_node},
-            tools=self._tools,
+            tools=engine_tools,
             store=self._store,
             entry_node="agent_loop",
             telemetry=telemetry,

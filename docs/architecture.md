@@ -46,7 +46,8 @@ kestrion/
 ├── agent/
 │   ├── agent.py        — Agent class, the ergonomic user-facing API
 │   ├── decorators.py   — @tool, turning Python functions into Tool objects
-│   └── tools.py        — built-in tools (ask_human)
+│   ├── tools.py        — built-in tools (ask_human)
+│   └── registry.py     — dynamic tool discovery registry
 ├── llm/
 │   ├── base.py                — LLMProvider Protocol, ContentBlock, Message/LLMResponse types
 │   ├── anthropic_provider.py  — Anthropic Claude implementation
@@ -197,6 +198,11 @@ A `Node` is one step of an execution graph. Nodes are deliberately storage-ignor
 `AgentState`, return a `NodeResult`, and never touch the `CheckpointStore` directly (except via
 `Engine.call_tool` / `Engine.record_event`, which exist precisely so nodes don't need direct store
 access). This keeps node logic unit-testable without a database.
+
+### Built-in Nodes
+- `_AgentLoopNode`: The core LLM tool-calling loop (wrapped by `Agent`).
+- `SummarizationNode`: A node that monitors and compacts conversation history.
+- `SupervisorNode`: A dynamic swarm router that evaluates conversation history and routes execution to specialized sub-agents based on LLM intent.
 
 ## 4. The execution engine (`core/engine.py`)
 

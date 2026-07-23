@@ -158,3 +158,7 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - `Agent.stream()` method that yields tokens in real-time for chat UIs, while still durably committing the full event block when finished.
 7. ~~**Vision / Multi-modal Support**~~ **(BUILT)**
    - ~~Expand the LLM protocol to support injecting images into the `AgentState` so agents can reason over screenshots and diagrams.~~ Implemented via `TextBlock` and `ImageBlock` classes and standard provider mappings.
+8. ~~**Swarm Routing (Supervisor Node)**~~ **(BUILT)**
+   - ~~Dynamically route conversations to specialized agents using LLM intent classification.~~ Implemented via `SupervisorNode` in `kestrion.core.nodes`.
+9. ~~**Dynamic Tool Discovery**~~ **(BUILT)**
+   - ~~Agents can dynamically search a `ToolRegistry` and load required tools on the fly during a run.~~ Implemented natively in `Agent` via `find_and_load_tool`.
