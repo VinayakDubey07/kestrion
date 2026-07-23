@@ -2,10 +2,10 @@
 
 A durable-execution-first framework for building production AI agents.
 
-Status: **v0.3 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **twelve** agentic features
+Status: **v0.4 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
+three LLM providers, a live-verified MCP client and server, a CLI, **thirteen** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, and dynamic tool discovery), and a **DAG-based async scheduler** for multi-agent
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, and a visual playground builder), and a **DAG-based async scheduler** for multi-agent
 orchestration are built and tested — 169 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
@@ -18,6 +18,7 @@ orchestration are built and tested — 169 passing tests. **Horizontally scalabl
 | OpenTelemetry / Observability | Proven | `OpenTelemetryProvider` |
 | Swarm Routing (Supervision) | Proven | `SupervisorNode` |
 | Dynamic Tool Discovery | Proven | `ToolRegistry` and `find_and_load_tool` |
+| Interactive Visual Builder | Proven | `kestrion dashboard` -> `/playground` |
 
 See [Roadmap](#roadmap) below.
 

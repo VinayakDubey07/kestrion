@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [0.4.0] - 2026-07-23
+
+### Added
+- **Swarm Routing (`SupervisorNode`)**: Dynamically route user intents to specialized agents using LLM classification.
+- **Dynamic Tool Discovery (`ToolRegistry`)**: Agents can search and load required tools on the fly during a run.
+- **Interactive Playground Builder**: A visual Drag-and-Drop builder in the Web Dashboard (`/playground`) that exports architectures directly to Kestrion Python code.
+
+### Fixed
+- Fixed **BUG-004** and **BUG-005**: `Engine.fork()` no longer crashes on list-slicing sequence mismatch. It explicitly queries database sequence boundaries (`events_up_to`), fully supporting concurrent runs and gap sequences (e.g. from deleted dashboard runs).
+- Fixed **BUG-011**: Resolved weak MD5 hash vulnerability flags in Bandit security scanners for cache key generation.
+
 ## [0.3.0] - 2026-07-18
 
 ### Added
