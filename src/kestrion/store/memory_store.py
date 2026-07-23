@@ -33,6 +33,10 @@ class MemoryCheckpointStore:
         run_events = self.events.get(run_id, [])
         return [evt for s, evt in run_events if s > seq]
 
+    async def events_up_to(self, run_id: str, max_seq: int) -> list[Event]:
+        run_events = self.events.get(run_id, [])
+        return [evt for s, evt in run_events if s <= max_seq]
+
     async def save(self, checkpoint: Checkpoint) -> None:
         # We deepcopy to avoid mutating saved state inadvertently
         self.checkpoints[checkpoint.run_id] = copy.deepcopy(checkpoint)

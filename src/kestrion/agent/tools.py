@@ -15,7 +15,7 @@ def ask_human(question: str, _state: AgentState | None = None) -> str:
         raise ValueError("ask_human requires engine state to be passed.")
 
     import hashlib
-    key = hashlib.md5(question.encode()).hexdigest()
+    key = hashlib.md5(question.encode(), usedforsecurity=False).hexdigest()
 
     inputs = _state.scratch.get("_human_inputs", {})
     if key in inputs:

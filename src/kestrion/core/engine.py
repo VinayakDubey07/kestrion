@@ -146,8 +146,7 @@ class Engine:
         """
         new_run_id = new_run_id or new_id(f"{run_id}_fork")
         
-        all_events = await self.store.events_since(run_id, 0)
-        fork_events = all_events[:at_seq]
+        fork_events = await self.store.events_up_to(run_id, at_seq)
         
         if not fork_events:
             raise ValueError(f"No events found for run {run_id!r} to fork at sequence {at_seq}")
@@ -333,7 +332,7 @@ class Engine:
 
         import hashlib
         question = pending.get("question")
-        key = hashlib.md5(question.encode()).hexdigest() if question else tool
+        key = hashlib.md5(question.encode(), usedforsecurity=False).hexdigest() if question else tool
 
         # Record the input (with idempotent guard)
         inputs = state.scratch.setdefault("_human_inputs", {})

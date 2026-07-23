@@ -98,6 +98,30 @@ class SQLiteCheckpointStore:
             for r in rows
         ]
 
+    async def events_up_to(self, run_id: str, max_seq: int) -> list[Event]:
+        with contextlib.closing(sqlite3.connect(self.path)) as conn:
+            rows = conn.execute(
+                "SELECT event_id, run_id, type, timestamp, node, payload, tokens_in, tokens_out, cost_usd "
+                "FROM events WHERE run_id = ? AND seq <= ? ORDER BY seq",
+                (run_id, max_seq),
+            ).fetchall()
+        from datetime import datetime
+
+        return [
+            Event(
+                event_id=r[0],
+                run_id=r[1],
+                type=EventType(r[2]),
+                timestamp=datetime.fromisoformat(r[3]),
+                node=r[4],
+                payload=json.loads(r[5]),
+                tokens_in=r[6],
+                tokens_out=r[7],
+                cost_usd=r[8],
+            )
+            for r in rows
+        ]
+
     async def save(self, checkpoint: Checkpoint) -> None:
         try:
             state_json = json.dumps(checkpoint.state.to_dict())
