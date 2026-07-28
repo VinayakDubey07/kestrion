@@ -80,4 +80,5 @@ class LLMProvider(Protocol):
         messages: list[Message],
         tools: list[ToolSpec],
         system: str | None = None,
+        output_schema: Any = None,
     ) -> LLMResponse: ...

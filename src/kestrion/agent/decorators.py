@@ -150,9 +150,21 @@ class _FunctionTool(Tool):
 
     def __init__(self, func: Callable, spec: ToolSpec):
         self._func = func
-        self._is_async = inspect.iscoroutinefunction(func)
+        self._is_async = inspect.iscoroutinefunction(func) or inspect.iscoroutinefunction(getattr(func, '__func__', None))
         self.spec = spec
         self._sig_params = set(inspect.signature(func).parameters.keys())
+
+    def __get__(self, instance, owner=None) -> _FunctionTool:
+        if instance is None:
+            return self
+        import types
+        bound_func = types.MethodType(self._func, instance) if not isinstance(self._func, types.MethodType) else self._func
+        bound_tool = _FunctionTool(bound_func, self.spec)
+        functools.update_wrapper(bound_tool, bound_func)  # type: ignore[arg-type]
+        return bound_tool
+
+    def __call__(self, *args, **kwargs):
+        return self._func(*args, **kwargs)
 
     async def call(self, **kwargs) -> ToolResult:
         # Filter out injected kwargs (like _state) that this function doesn't expect

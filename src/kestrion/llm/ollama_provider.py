@@ -97,6 +97,7 @@ class OllamaProvider:
         messages: list[Message],
         tools: list[ToolSpec],
         system: str | None = None,
+        output_schema: Any = None,
     ) -> LLMResponse:
         payload = {
             "model": self.model,
@@ -105,6 +106,9 @@ class OllamaProvider:
         }
         if tools:
             payload["tools"] = self._to_ollama_tools(tools)
+        if output_schema is not None:
+            from kestrion.llm.structured import resolve_output_schema
+            payload["format"] = resolve_output_schema(output_schema)
 
         attempt = 0
         last_error = None

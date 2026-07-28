@@ -2,7 +2,7 @@
 
 **Baseline:** `v0.5.0`, live on PyPI. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
-and all 15 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, and Generative UI streaming)
+and all 17 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, Generative UI streaming, secure code sandboxing, and JSON mode / structured outputs)
 are built and tested.
 
 **Pace assumption:** weekday evenings + weekend mornings, ~10-13 hrs/week — the same pace
@@ -164,3 +164,7 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - ~~Agents can dynamically search a `ToolRegistry` and load required tools on the fly during a run.~~ Implemented natively in `Agent` via `find_and_load_tool`.
 10. ~~**Browser Automation Agent**~~ **(BUILT)**
    - ~~Allow Kestrion agents to browse the web autonomously.~~ Implemented natively via `BrowserToolkit` wrapping Playwright in `kestrion.tools.browser`.
+11. ~~**Secure Code Sandboxing**~~ **(BUILT)**
+   - ~~Run dynamically generated code safely in an isolated workspace.~~ Implemented via `CodeSandboxToolkit` with `subprocess` and `docker` modes.
+12. ~~**Structured Outputs / JSON Mode**~~ **(BUILT)**
+   - ~~Ensure LLM responses conform strictly to predefined JSON schemas or Pydantic models.~~ Implemented natively via the `output_schema` parameter in the `Agent` and `LLMProvider` abstractions.

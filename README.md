@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.5 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **fifteen** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **seventeen** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, and Vercel Generative UI), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 169 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, and JSON mode / structured outputs), and a **DAG-based async scheduler** for multi-agent
+orchestration are built and tested — 174 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
 |---------|--------|-------|
@@ -21,6 +21,8 @@ orchestration are built and tested — 169 passing tests. **Horizontally scalabl
 | Interactive Visual Builder | Proven | `kestrion dashboard` -> `/playground` |
 | Browser Automation Agent | Proven | `BrowserToolkit` with Playwright (`kestrion[browser]`) |
 | Generative UI Streaming | Proven | `kestrion.adapters.vercel.stream_to_vercel` |
+| Secure Code Sandbox | Proven | `CodeSandboxToolkit` |
+| Structured Outputs (JSON Mode)| Proven | `Agent(output_schema=...)` |
 
 See [Roadmap](#roadmap) below.
 
@@ -273,6 +275,42 @@ starts once both complete — dependency resolution uses `asyncio.Event` per tas
 If one task fails, independent branches keep running (`fail_fast=False` default); dependents are
 marked `SKIPPED` with a clear reason. Every run is stored in the shared SQLite store and visible
 in `kestrion dashboard`.
+
+### Secure Code Sandbox
+
+Run dynamically generated Python code in a strictly isolated, secure environment via `CodeSandboxToolkit`:
+
+```python
+from kestrion.tools import CodeSandboxToolkit
+
+# Execute code locally in an isolated temp directory or via Docker
+sandbox = CodeSandboxToolkit(workspace_dir="./tmp", mode="subprocess")
+
+agent = Agent(
+    provider=...,
+    tools=sandbox.get_tools() # Adds run_python_code, write_file, read_file, list_files
+)
+```
+
+The sandbox strictly blocks path traversal (e.g. `../../etc/passwd`), sanitizes environment variables to hide API keys, and automatically cleans up temporary files on `sandbox.close()`.
+
+### Structured Outputs (JSON Mode)
+
+Kestrion agents can return guaranteed, schema-validated Python objects instead of raw text by passing an `output_schema` to the `Agent`. We support Pydantic models natively and handle cross-provider JSON schema injection seamlessly:
+
+```python
+from pydantic import BaseModel, Field
+
+class Employee(BaseModel):
+    name: str = Field(description="Full employee name")
+    role: str = Field(description="Job title")
+
+agent = Agent(provider=..., output_schema=Employee)
+result = await agent.run("Extract info for John Doe, Software Engineer.")
+
+# result.output is a validated Employee instance
+print(result.output.name)  # "John Doe"
+```
 
 ### CLI
 

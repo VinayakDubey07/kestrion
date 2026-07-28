@@ -105,3 +105,12 @@ class InvalidToolInputError(KestrionError):
 
 class LLMConnectionError(KestrionError):
     """Raised when the engine cannot communicate with the configured LLM provider."""
+
+
+class StructuredOutputError(KestrionError):
+    """Raised when the model's final response cannot be parsed or validated against the requested output_schema."""
+
+    def __init__(self, message: str, raw_output: str | None = None):
+        self.raw_output = raw_output
+        super().__init__(f"{message} (raw_output: {raw_output!r})")
+

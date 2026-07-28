@@ -99,7 +99,15 @@ class AnthropicProvider:
         messages: list[Message],
         tools: list[ToolSpec],
         system: str | None = None,
+        output_schema: Any = None,
     ) -> LLMResponse:
+        if output_schema is not None:
+            import json
+            from kestrion.llm.structured import resolve_output_schema
+            schema_json = json.dumps(resolve_output_schema(output_schema), indent=2)
+            schema_inst = f"\n\nIMPORTANT: You must format your final response strictly as valid JSON matching this schema:\n{schema_json}"
+            system = (system or "") + schema_inst
+
         kwargs = {
             "model": self.model,
             "max_tokens": self.max_tokens,

@@ -106,6 +106,7 @@ class OpenAIProvider:
         messages: list[Message],
         tools: list[ToolSpec],
         system: str | None = None,
+        output_schema: Any = None,
     ) -> LLMResponse:
         kwargs = {
             "model": self.model,
@@ -114,6 +115,15 @@ class OpenAIProvider:
         }
         if tools:
             kwargs["tools"] = self._to_openai_tools(tools)
+        if output_schema is not None:
+            from kestrion.llm.structured import resolve_output_schema
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "structured_output",
+                    "schema": resolve_output_schema(output_schema),
+                },
+            }
 
         response = await self._client.chat.completions.create(**kwargs)  # type: ignore[call-overload]
         choice = response.choices[0]

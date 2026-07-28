@@ -20,6 +20,7 @@ loop.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import uuid
 from dataclasses import asdict, dataclass
 
@@ -85,7 +86,7 @@ class RunResult:
     """What Agent.run()/.resume() hands back — a thin, friendly view over AgentState."""
     run_id: str
     status: RunStatus
-    output: str | None          # the model's final text answer, if the run completed
+    output: Any | None          # the model's final text or structured answer, if the run completed
     state: AgentState           # full state, for anyone who needs scratch/history/cost
 
 
@@ -154,11 +155,16 @@ class _AgentLoopNode:
                     if name in agent.tool_registry._tools:
                         exposed_tools.append(agent.tool_registry._tools[name].spec)
 
-            response: LLMResponse = await agent._provider.complete(
-                messages=messages,
-                tools=exposed_tools,
-                system=agent.system_prompt,
-            )
+            complete_kwargs = {
+                "messages": messages,
+                "tools": exposed_tools,
+                "system": agent.system_prompt,
+            }
+            sig = inspect.signature(agent._provider.complete)
+            if "output_schema" in sig.parameters or any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
+                complete_kwargs["output_schema"] = getattr(agent, "output_schema", None)
+
+            response: LLMResponse = await agent._provider.complete(**complete_kwargs)
 
             # Emitted immediately, not batched into the eventual NodeResult.
             # Reason: if a gated tool call later in this same turn raises
@@ -187,11 +193,15 @@ class _AgentLoopNode:
             if not response.tool_calls:
                 # Model is done — no more tools to call. Persist the full
                 # conversation back into scratch and end the run.
+                final_output = response.text
+                if getattr(agent, "output_schema", None) is not None:
+                    from kestrion.llm.structured import parse_structured_output
+                    final_output = parse_structured_output(response.text, agent.output_schema)
                 return NodeResult(
                     next_node=None,
                     state_updates={
                         "_messages": [_message_to_dict(m) for m in messages],
-                        "final_output": response.text,
+                        "final_output": final_output,
                     },
                 )
 
@@ -432,6 +442,7 @@ class Agent:
         keep_turns: int = 4,
         telemetry: TelemetryProvider | None = None,
         tool_registry: ToolRegistry | None = None,
+        output_schema: Any = None,
     ):
         self._provider = provider
         self._tools: dict[str, Tool] = {t.spec.name: t for t in (tools or [])}
@@ -441,6 +452,7 @@ class Agent:
         self.keep_turns = keep_turns
         self._store = _store_from_url(store) if isinstance(store, str) else store
         self.tool_registry = tool_registry
+        self.output_schema = output_schema
 
         engine_tools = {**self._tools}
         if self.tool_registry:
@@ -485,13 +497,17 @@ class Agent:
         if hasattr(self._store, "setup"):
             await self._store.setup()
 
-    async def run(self, prompt: str | list[ContentBlock], run_id: str | None = None, **initial_scratch) -> RunResult:
+    async def run(self, prompt: str | list[ContentBlock], run_id: str | None = None, output_schema: Any = None, **initial_scratch) -> RunResult:
+        if output_schema is not None:
+            self.output_schema = output_schema
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
         return await self.run_with_history(initial_messages, run_id=run_id, **initial_scratch)
 
     async def run_with_history(
-        self, messages: list[dict], run_id: str | None = None, **initial_scratch
+        self, messages: list[dict], run_id: str | None = None, output_schema: Any = None, **initial_scratch
     ) -> RunResult:
+        if output_schema is not None:
+            self.output_schema = output_schema
         """
         Like run(), but seeds the new run with an existing message
         history instead of a single fresh prompt. `messages` must be a

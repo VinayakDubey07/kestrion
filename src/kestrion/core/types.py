@@ -116,11 +116,22 @@ class AgentState:
         (e.g. after an engine upgrade). JSON-compatible dicts are boring
         and durable, which is exactly what a checkpoint format should be.
         """
+        def _to_json_serializable(obj: Any) -> Any:
+            if hasattr(obj, "model_dump") and callable(obj.model_dump):
+                return obj.model_dump()
+            if hasattr(obj, "dict") and callable(obj.dict) and not isinstance(obj, dict):
+                return obj.dict()
+            if isinstance(obj, dict):
+                return {k: _to_json_serializable(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [_to_json_serializable(x) for x in obj]
+            return obj
+
         return {
             "run_id": self.run_id,
             "status": self.status.value,
             "current_node": self.current_node,
-            "scratch": self.scratch,
+            "scratch": _to_json_serializable(self.scratch),
             "history": self.history,
             "total_tokens": self.total_tokens,
             "total_cost_usd": self.total_cost_usd,
