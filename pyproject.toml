@@ -46,6 +46,7 @@ all = [
     "opentelemetry-api",
     "opentelemetry-sdk",
     "playwright>=1.40.0",
+    "chromadb>=0.4.0",
 ]
 dev = [
     "pytest>=8.0",
@@ -60,6 +61,7 @@ dev = [
     "opentelemetry-api",
     "opentelemetry-sdk",
     "playwright>=1.40.0",
+    "chromadb>=0.4.0",
 ]
 postgres = [
     "asyncpg>=0.29",
@@ -70,6 +72,9 @@ otel = [
 ]
 browser = [
     "playwright>=1.40.0",
+]
+chroma = [
+    "chromadb>=0.4.0",
 ]
 
 [project.scripts]

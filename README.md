@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.5 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **seventeen** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **eighteen** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, and JSON mode / structured outputs), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 174 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, and Retrieval-Augmented Generation / RAG), and a **DAG-based async scheduler** for multi-agent
+orchestration are built and tested — 178 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
 |---------|--------|-------|
@@ -23,6 +23,7 @@ orchestration are built and tested — 174 passing tests. **Horizontally scalabl
 | Generative UI Streaming | Proven | `kestrion.adapters.vercel.stream_to_vercel` |
 | Secure Code Sandbox | Proven | `CodeSandboxToolkit` |
 | Structured Outputs (JSON Mode)| Proven | `Agent(output_schema=...)` |
+| RAG / Vector Search | Proven | `RAGToolkit` & `VectorStore` |
 
 See [Roadmap](#roadmap) below.
 
@@ -306,10 +307,26 @@ class Employee(BaseModel):
     role: str = Field(description="Job title")
 
 agent = Agent(provider=..., output_schema=Employee)
-result = await agent.run("Extract info for John Doe, Software Engineer.")
 
-# result.output is a validated Employee instance
-print(result.output.name)  # "John Doe"
+result = await agent.run("Find prime numbers up to 10")
+```
+
+### Retrieval-Augmented Generation (RAG) Toolkit
+
+Equip agents with native vector search capabilities using a flexible `VectorStore` protocol (with a zero-setup `ChromaDB` integration out of the box):
+
+```python
+from kestrion.agent import Agent
+from kestrion.tools import RAGToolkit
+from kestrion.rag import ChromaVectorStore
+
+store = ChromaVectorStore(persist_directory="./knowledge_base")
+toolkit = RAGToolkit(store)
+
+with open("company_policies.md") as f:
+    toolkit.ingest_text(f.read(), "policies", chunk_size=1000)
+
+agent = Agent(provider=..., tools=toolkit.get_tools())
 ```
 
 ### CLI

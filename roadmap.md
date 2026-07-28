@@ -2,7 +2,7 @@
 
 **Baseline:** `v0.5.0`, live on PyPI. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
-and all 17 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, Generative UI streaming, secure code sandboxing, and JSON mode / structured outputs)
+and all 18 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, Generative UI streaming, secure code sandboxing, JSON mode / structured outputs, and Retrieval-Augmented Generation / RAG)
 are built and tested.
 
 **Pace assumption:** weekday evenings + weekend mornings, ~10-13 hrs/week — the same pace

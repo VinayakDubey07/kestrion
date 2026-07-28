@@ -43,6 +43,7 @@ Code, not just prose:
 - [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising twelve agentic
   features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction, human input, secrets, custom context windows, OTel tracing, Code Sandbox, and Structured Outputs)
   against a real local model.
+- [`examples/rag_demo.py`](../examples/rag_demo.py) — an end-to-end example of initializing an in-memory vector store, chunking internal documentation, and using the `RAGToolkit` with an agent.
 - [`examples/ask_input_demo.py`](../examples/ask_input_demo.py) — interactive demo of the
   human-in-the-loop `ask_human` tool: the agent pauses to ask the user a question, then resumes
   with the answer.
