@@ -9,7 +9,7 @@ class MockProvider:
         return LLMResponse(
             text="",
             stop_reason="tool_calls",
-            tool_calls=[ToolCallRequest(id="1", name="route_to", arguments='{"destination": "billing_agent"}')],
+            tool_calls=[ToolCallRequest(id="1", name="route_to", arguments={"destination": "billing_agent"})],
             tokens_in=10,
             tokens_out=10,
             cost_usd=0.01

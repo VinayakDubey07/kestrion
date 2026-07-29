@@ -184,6 +184,8 @@ class CheckpointStore(Protocol):
 
     async def events_since(self, run_id: str, seq: int) -> list[Event]: ...
 
+    async def events_up_to(self, run_id: str, max_seq: int) -> list[Event]: ...
+
 
 @runtime_checkable
 class TelemetryProvider(Protocol):

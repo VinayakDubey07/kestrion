@@ -195,9 +195,8 @@ class SupervisorNode:
         if response.tool_calls:
             for call in response.tool_calls:
                 if call.name == "route_to":
-                    import json
                     try:
-                        args = json.loads(call.arguments)
+                        args = call.arguments
                         dest = args.get("destination")
                         if dest in self.destinations:
                             next_node = dest

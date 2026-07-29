@@ -128,6 +128,35 @@ class PostgresCheckpointStore:
                 for row in rows
             ]
 
+    async def events_up_to(self, run_id: str, max_seq: int) -> list[Event]:
+        pool = self._get_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT event_id, run_id, type, timestamp, node, payload, tokens_in, tokens_out, cost_usd
+                FROM events 
+                WHERE run_id = $1 AND seq <= $2 
+                ORDER BY seq ASC
+                """,
+                run_id,
+                max_seq,
+            )
+            
+            return [
+                Event(
+                    event_id=row["event_id"],
+                    run_id=row["run_id"],
+                    type=EventType(row["type"]),
+                    timestamp=row["timestamp"],
+                    node=row["node"],
+                    payload=json.loads(row["payload"]) if isinstance(row["payload"], str) else row["payload"],
+                    tokens_in=row["tokens_in"],
+                    tokens_out=row["tokens_out"],
+                    cost_usd=row["cost_usd"],
+                )
+                for row in rows
+            ]
+
     async def save(self, checkpoint: Checkpoint) -> None:
         pool = self._get_pool()
         try:

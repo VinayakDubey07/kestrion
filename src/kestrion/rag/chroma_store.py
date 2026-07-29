@@ -1,4 +1,3 @@
-from typing import Any
 from kestrion.rag.base import Document, VectorStore
 
 try:

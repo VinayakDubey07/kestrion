@@ -71,8 +71,6 @@ async def stream_to_vercel(agent: Agent, prompt: str, run_id: str | None = None)
     # Fire off the agent run in the background
     task = asyncio.create_task(agent.run(prompt, run_id=run_id))
     
-    last_seq = 0
-    
     # Poll event store while the task is running
     seen_count = 0
     while not task.done():
