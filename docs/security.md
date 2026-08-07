@@ -103,3 +103,33 @@ agent = Agent(
 ```
 
 Every run event, tool execution, and inference query is traced under nested span contexts (`kestrion.run.*`, `kestrion.llm.*`, `kestrion.tool.*`), enabling deep observability and real-time security auditing.
+
+## 4. Data Loss Prevention (PII Redaction)
+
+Even when running on secure infrastructure, sending data to external LLM providers (like OpenAI or Anthropic) carries the risk of data leakage. 
+
+Kestrion includes a built-in `PIIRedactionMiddleware` that acts as a Data Loss Prevention (DLP) layer directly in the provider pipeline.
+
+### Two-Way Vault System
+
+The middleware intercepts traffic *before* it leaves your network:
+
+1. **Redaction**: It scans the agent's prompts and context history for sensitive data (SSNs, Credit Cards, Emails, etc.) and replaces them with secure tokens (e.g., `[REDACTED_SSN_0]`).
+2. **Restoration**: If the LLM attempts to use that data in a tool call (e.g., `submit_background_check(ssn="[REDACTED_SSN_0]")`), the middleware intercepts the response and seamlessly swaps the token back to the real SSN before it reaches your local Python tool.
+
+The external AI provider **never** sees the sensitive data, but your local agent and its tools continue to function normally.
+
+```python
+from kestrion.agent.agent import Agent
+from kestrion.llm.openai_provider import OpenAIProvider
+from kestrion.llm.middleware import PIIRedactionMiddleware
+
+base_provider = OpenAIProvider(model="gpt-4o")
+# Wrap the provider with the DLP middleware
+secure_provider = PIIRedactionMiddleware(provider=base_provider)
+
+agent = Agent(
+    provider=secure_provider,
+    tools=[...]
+)
+```

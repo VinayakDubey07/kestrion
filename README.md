@@ -3,10 +3,10 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.5 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **eighteen** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **nineteen** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, and Retrieval-Augmented Generation / RAG), and a **DAG-based async scheduler** for multi-agent
-orchestration are built and tested — 178 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, and Data Loss Prevention / PII Redaction), and a **DAG-based async scheduler** for multi-agent
+orchestration are built and tested — 180 passing tests. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
 |---------|--------|-------|
@@ -24,6 +24,7 @@ orchestration are built and tested — 178 passing tests. **Horizontally scalabl
 | Secure Code Sandbox | Proven | `CodeSandboxToolkit` |
 | Structured Outputs (JSON Mode)| Proven | `Agent(output_schema=...)` |
 | RAG / Vector Search | Proven | `RAGToolkit` & `VectorStore` |
+| Data Loss Prevention (PII) | Proven | `PIIRedactionMiddleware` |
 
 See [Roadmap](#roadmap) below.
 
@@ -373,6 +374,7 @@ Kestrion is designed for enterprise environments where security is a prerequisit
 - **Secret Management**: API keys and tokens are never stored in plain text or passed in state. They are injected at runtime via the `SecretProvider` protocol.
 - **Immutable Audit Log**: Every LLM request, tool execution, and state change is durably recorded in the Event Log.
 - **RBAC Approval Gates**: Mutating actions can be gated behind role-based multi-step approval chains.
+- **Data Loss Prevention**: The `PIIRedactionMiddleware` automatically scrubs sensitive PII before data is sent to external AI providers.
 - **Vulnerability Disclosure**: See [SECURITY.md](SECURITY.md) for reporting policies.
 
 For a deep dive into Kestrion's security posture, see the [Security Architecture](docs/security.md) documentation.
