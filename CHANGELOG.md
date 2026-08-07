@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [0.6.0] - 2026-08-07
+
+### Added
+- **Data Loss Prevention (PII Redaction)**: Added `PIIRedactionMiddleware` to automatically intercept and scrub sensitive data (SSN, Credit Cards, etc.) before sending it to external LLMs, with a two-way vault system for local tool execution.
+- **Retrieval-Augmented Generation (RAG)**: Added `RAGToolkit` and `VectorStore` integrations, including a default `ChromaVectorStore` for native vector search capabilities.
+- **Secure Code Execution Sandbox**: Added `CodeSandboxToolkit` providing Docker-isolated workspaces for agents to safely generate and execute Python code without host access.
+
+### Fixed
+- Fixed **BUG-004** and **BUG-005**: `Engine.fork()` no longer crashes on list-slicing sequence mismatch. It explicitly queries database sequence boundaries (`events_up_to`), fully supporting concurrent runs and gap sequences (e.g. from deleted dashboard runs). (Ported from 0.4.0)
+
 ## [0.5.0] - 2026-07-23
 
 ### Added
