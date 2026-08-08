@@ -44,6 +44,10 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
             if len(parts) == 4 and parts[3] == "export":
                 self.handle_export_run(parts[2])
                 return
+            if len(parts) == 5 and parts[3] == "state" and parts[4] == "seq":
+                seq = int(parsed.query.split("=")[1]) if "=" in parsed.query else None
+                self.handle_run_state_at_seq(parts[2], seq)
+                return
             if len(parts) == 3:
                 self.handle_run_details(parts[2])
                 return
@@ -239,6 +243,32 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         except Exception as exc:
             self.send_error(500, f"Database error: {exc}")
 
+    def handle_run_state_at_seq(self, run_id, seq):
+        if seq is None:
+            self.send_error(400, "Missing seq parameter")
+            return
+        try:
+            # Reconstruct state up to seq
+            async def _reconstruct():
+                store = SQLiteCheckpointStore(path=self.db_path)
+                engine = Engine(nodes={}, tools={}, store=store, entry_node="")
+                events = await store.events_up_to(run_id, seq)
+                if not events:
+                    return None
+                from kestrion.core.types import AgentState, RunStatus, EventType
+                state = AgentState(run_id=run_id, status=RunStatus.RUNNING, current_node=events[0].payload.get("entry_node", ""))
+                for evt in events:
+                    engine._fold(state, evt)
+                return state.model_dump()
+            
+            state_dict = asyncio.run(_reconstruct())
+            if state_dict:
+                self.send_json(state_dict)
+            else:
+                self.send_error(404, f"No events found for seq {seq}")
+        except Exception as exc:
+            self.send_error(500, f"Database error: {exc}")
+
     def handle_run_events(self, run_id):
         try:
             conn = sqlite3.connect(self.db_path)
@@ -326,13 +356,14 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
 
         at_seq = data.get("at_seq")
         new_run_id = data.get("new_run_id")
+        scratch_override = data.get("scratch_override")
 
         if at_seq is None:
             self.send_json({"success": False, "error": "Missing 'at_seq' in request"}, status=400)
             return
 
         try:
-            forked_id = asyncio.run(self._do_fork(run_id, int(at_seq), new_run_id))
+            forked_id = asyncio.run(self._do_fork(run_id, int(at_seq), new_run_id, scratch_override))
             self.send_json({"success": True, "forked_run_id": forked_id})
         except Exception as exc:
             self.send_json({"success": False, "error": str(exc)}, status=500)
@@ -422,10 +453,10 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         except Exception:
             return False
 
-    async def _do_fork(self, run_id: str, at_seq: int, new_run_id: str | None) -> str:
+    async def _do_fork(self, run_id: str, at_seq: int, new_run_id: str | None, scratch_override: dict | None = None) -> str:
         store = SQLiteCheckpointStore(path=self.db_path)
         engine = Engine(nodes={}, tools={}, store=store, entry_node="")
-        return await engine.fork(run_id, at_seq=at_seq, new_run_id=new_run_id)
+        return await engine.fork(run_id, at_seq=at_seq, new_run_id=new_run_id, scratch_override=scratch_override)
 
     async def _do_provide_input(self, run_id: str, text: str, tool: str | None) -> None:
         store = SQLiteCheckpointStore(path=self.db_path)

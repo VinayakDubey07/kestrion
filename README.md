@@ -42,6 +42,82 @@ discipline on the part of whoever writes a given agent:
 - **Observability comes from the same log everything else does** — token counts, cost, and full
   trace history, not a separate system bolted on after.
 
+## Architecture
+
+```mermaid
+flowchart TD
+    %% Define Styles
+    classDef user fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#312e81
+    classDef agent fill:#f0fdf4,stroke:#22c55e,stroke-width:2px,color:#14532d
+    classDef engine fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#78350f
+    classDef store fill:#f8fafc,stroke:#cbd5e1,stroke-width:2px,color:#334155
+    classDef llm fill:#fdf4ff,stroke:#d946ef,stroke-width:2px,color:#701a75
+    classDef tools fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b
+
+    %% Actors & High Level
+    User(("🧑‍💻 User / App")):::user
+    Agent["🤖 Agent (kestrion.agent.Agent)"]:::agent
+    
+    User -- "run('Fix the bug...')" --> Agent
+    
+    %% Core Engine Flow
+    subgraph Core ["Core Execution Engine"]
+        Engine["⚙️ Engine (State Machine)"]:::engine
+        State["📦 AgentState (scratch dict)"]:::engine
+        
+        Node_Entry("Node: __entry__"):::engine
+        Node_LLM("Node: __llm__"):::engine
+        Node_Tools("Node: __tools__"):::engine
+        
+        Engine --> State
+        Engine -. "Routes" .-> Node_Entry
+        Node_Entry --> Node_LLM
+        Node_LLM -- "Requires Tool" --> Node_Tools
+        Node_Tools -- "Tool Output" --> Node_LLM
+        Node_LLM -- "Final Answer" --> Finish(("End")):::engine
+    end
+    
+    Agent -- "Drives" --> Engine
+    
+    %% Storage Layer
+    subgraph Storage ["Persistence (SQLite)"]
+        Store[("💽 SQLiteCheckpointStore")]:::store
+        Checkpoints[/"Table: checkpoints"\]:::store
+        Events[/"Table: events"\]:::store
+        
+        Store --> Checkpoints
+        Store --> Events
+    end
+    
+    Engine -- "Log Event / Save Checkpoint" --> Store
+    Store -- "Fork / Resume / Time-Travel" --> Engine
+    
+    %% LLM Providers
+    subgraph Models ["LLM Provider Abstraction"]
+        Provider["🔌 LLMProvider Interface"]:::llm
+        Anthropic["AnthropicProvider"]:::llm
+        OpenAI["OpenAIProvider (Gemini, etc)"]:::llm
+        Ollama["RobustOllamaProvider"]:::llm
+        
+        Provider -.-> Anthropic
+        Provider -.-> OpenAI
+        Provider -.-> Ollama
+    end
+    
+    Node_LLM -- "complete()" --> Provider
+    
+    %% Tools
+    subgraph Toolkit ["Tool Execution"]
+        LocalTools["Local Functions (@tool)"]:::tools
+        Approval["Human-in-the-Loop Gates"]:::tools
+        Sandbox["CodeSandboxToolkit"]:::tools
+    end
+    
+    Node_Tools -- "Executes" --> LocalTools
+    Node_Tools -- "Wait for Approval" --> Approval
+    LocalTools -.-> Sandbox
+```
+
 ## Install
 
 ```bash

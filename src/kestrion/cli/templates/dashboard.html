@@ -1130,7 +1130,7 @@
         }
 
         item.innerHTML = `
-          <div class="timeline-time">${date} ${seqLabel}</div>
+          <div class="timeline-time">${date} ${seqLabel} <button class="btn-sm" style="margin-left:8px; padding:2px 6px; font-size:10px" onclick="showForkModal(${evt.seq})">Fork Here</button></div>
           <div class="timeline-content">
             <div class="timeline-title">${headerText} ${nodeLabel}</div>
             ${formattedPayload}
@@ -1236,20 +1236,24 @@
     }
 
     // ── Fork Modal ────────────────────────────────────────────────────
-    function showForkModal() {
+    function showForkModal(initialSeq = null) {
       if (!currentRunId || currentEvents.length === 0) { alert('No events to fork from.'); return; }
 
       const options = currentEvents.map(e =>
-        `<option value="${e.seq}">seq #${e.seq} — ${e.type.replace(/_/g, ' ')} (${new Date(e.timestamp).toLocaleTimeString()})</option>`
+        `<option value="${e.seq}" ${e.seq === initialSeq ? 'selected' : ''}>seq #${e.seq} — ${e.type.replace(/_/g, ' ')} (${new Date(e.timestamp).toLocaleTimeString()})</option>`
       ).join('');
 
       showModal(`
         <h3>Fork Run</h3>
         <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px;">
-          Create a new run that is a clone of <strong>${currentRunId}</strong> up to a specific event.
+          Create a new run that is a clone of <strong>${currentRunId}</strong> up to a specific event. You can modify the scratch state before resuming.
         </p>
         <label>Fork at event:</label>
-        <select id="fork-seq">${options}</select>
+        <select id="fork-seq" onchange="fetchStateForFork()">${options}</select>
+        
+        <label style="margin-top: 12px;">Override Scratch State (JSON):</label>
+        <textarea id="fork-state-editor" style="width: 100%; height: 200px; font-family: var(--font-mono); font-size: 12px; padding: 8px; border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 12px; background: #fafafa;"></textarea>
+        
         <label>New Run ID (optional):</label>
         <input type="text" id="fork-new-id" placeholder="Auto-generated if empty">
         <div class="modal-actions">
@@ -1257,15 +1261,50 @@
           <button class="btn-primary" onclick="executeFork()">Fork Run</button>
         </div>
       `);
+      
+      fetchStateForFork();
+    }
+
+    async function fetchStateForFork() {
+      const atSeq = document.getElementById('fork-seq').value;
+      const editor = document.getElementById('fork-state-editor');
+      if (!atSeq) return;
+      
+      editor.value = "Loading state...";
+      editor.disabled = true;
+      try {
+        const res = await fetch(`/api/runs/${currentRunId}/state?seq=${atSeq}`);
+        if (res.ok) {
+          const state = await res.json();
+          editor.value = JSON.stringify(state.scratch || {}, null, 2);
+        } else {
+          editor.value = "{} // Failed to load state";
+        }
+      } catch (err) {
+        editor.value = "{} // Error loading state";
+      }
+      editor.disabled = false;
     }
 
     async function executeFork() {
       const atSeq = parseInt(document.getElementById('fork-seq').value);
       const newId = document.getElementById('fork-new-id').value || null;
+      let scratchOverride = null;
+      
+      try {
+        const editorText = document.getElementById('fork-state-editor').value;
+        if (editorText.trim() !== "") {
+          scratchOverride = JSON.parse(editorText);
+        }
+      } catch(e) {
+        alert("Invalid JSON in state override!");
+        return;
+      }
+      
       try {
         const res = await fetch(`/api/runs/${currentRunId}/fork`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ at_seq: atSeq, new_run_id: newId })
+          body: JSON.stringify({ at_seq: atSeq, new_run_id: newId, scratch_override: scratchOverride })
         });
         const result = await res.json();
         if (result.success) {

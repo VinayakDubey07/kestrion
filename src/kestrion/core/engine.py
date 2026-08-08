@@ -139,7 +139,7 @@ class Engine:
 
         return await self._drive(state)
 
-    async def fork(self, run_id: str, at_seq: int, new_run_id: str | None = None) -> str:
+    async def fork(self, run_id: str, at_seq: int, new_run_id: str | None = None, scratch_override: dict[str, Any] | None = None) -> str:
         """
         Create a new run that is an exact clone of `run_id` up to the
         specified event count (`at_seq`). Returns the new run ID.
@@ -197,6 +197,10 @@ class Engine:
                 elif reason in ("approval_granted", "input_provided"):
                     state.status = RunStatus.RUNNING
                     
+        # Apply any manual overrides to the state before persisting
+        if scratch_override:
+            state.scratch.update(scratch_override)
+            
         # Persist the forked checkpoint
         await self._checkpoint(state)
         return new_run_id
