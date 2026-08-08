@@ -11,7 +11,7 @@ from kestrion.core.types import AgentState, Event, EventType, NodeResult
 from kestrion.llm.base import LLMProvider
 
 try:
-    import tiktoken
+    import tiktoken  # type: ignore
     HAS_TIKTOKEN = True
 except ImportError:
     HAS_TIKTOKEN = False

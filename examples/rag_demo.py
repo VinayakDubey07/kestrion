@@ -49,7 +49,7 @@ async def main():
         if msg["role"] == "assistant" and msg.get("tool_calls"):
             print(f" -> Tool called: {msg['tool_calls'][0]['name']} with args {msg['tool_calls'][0]['arguments']}")
         elif msg["role"] == "tool":
-            print(f" -> Tool returned knowledge base results!")
+            print(" -> Tool returned knowledge base results!")
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -38,7 +38,7 @@ class ChromaVectorStore(VectorStore):
         self._collection.add(
             ids=ids,
             documents=texts,
-            metadatas=metadatas
+            metadatas=metadatas  # type: ignore[arg-type]
         )
 
     def similarity_search(self, query: str, k: int = 3) -> list[Document]:
@@ -47,22 +47,26 @@ class ChromaVectorStore(VectorStore):
             n_results=k
         )
         
-        documents = []
-        if not results or not results.get("documents") or not results["documents"][0]:
+        documents: list[Document] = []
+        if not results or not results.get("documents") or not results["documents"][0]:  # type: ignore[index]
             return documents
             
         # results["documents"] is a list of lists of strings
         # results["metadatas"] is a list of lists of dicts
         # results["ids"] is a list of lists of strings
-        for i in range(len(results["ids"][0])):
-            doc_id = results["ids"][0][i]
-            text = results["documents"][0][i]
-            meta = results["metadatas"][0][i] if results.get("metadatas") else None
+        res_ids = results["ids"] or [[]]  # type: ignore[index]
+        res_docs = results["documents"] or [[]]  # type: ignore[index]
+        res_metas = results["metadatas"] or [[]]  # type: ignore[index]
+        
+        for i in range(len(res_ids[0])):
+            doc_id = res_ids[0][i]
+            text = res_docs[0][i]
+            meta = res_metas[0][i] if results.get("metadatas") else None
             
             documents.append(Document(
-                id=doc_id,
-                page_content=text,
-                metadata=meta
+                id=doc_id,  # type: ignore[arg-type]
+                page_content=text,  # type: ignore[arg-type]
+                metadata=meta  # type: ignore[arg-type]
             ))
             
         return documents

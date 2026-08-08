@@ -1,14 +1,14 @@
 import re
-from typing import Any, Callable
+from typing import Any
 
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import (
     LLMProvider,
     LLMResponse,
     Message,
-    ContentBlock,
     TextBlock,
     ImageBlock,
+    ContentBlock,
     ToolCallRequest,
 )
 
@@ -104,12 +104,13 @@ class PIIRedactionMiddleware(LLMProvider):
         if isinstance(new_content, str):
             new_content = self._redact_text(new_content)
         elif isinstance(new_content, list):
-            new_content = []
+            new_blocks: list[ContentBlock] = []
             for block in message.content:  # type: ignore
                 if isinstance(block, TextBlock):
-                    new_content.append(TextBlock(text=self._redact_text(block.text)))
+                    new_blocks.append(TextBlock(text=self._redact_text(block.text)))
                 else:
-                    new_content.append(block)
+                    new_blocks.append(block)  # type: ignore[arg-type]
+            new_content = new_blocks
 
         # We also need to redact tool results if they are strings
         # Tool calls shouldn't contain new PII from the LLM, but just in case

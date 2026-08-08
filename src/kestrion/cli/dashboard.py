@@ -408,8 +408,8 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
     async def _persist_approval(self, run_id: str, tool: str, role: str) -> bool:
         if getattr(self, "agent", None):
             try:
-                await getattr(self, "agent").approve # type: ignore(run_id, tool, True)
-                await getattr(self, "agent").resume # type: ignore(run_id)
+                await getattr(self, "agent").approve(run_id, tool, True)  # type: ignore[misc]
+                await getattr(self, "agent").resume(run_id)  # type: ignore[misc]
                 return True
             except Exception:
                 pass

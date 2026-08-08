@@ -27,7 +27,7 @@ def send_alert(message: str) -> dict:
 
 
 class _FixtureProviderCallsGatedTool:
-    async def complete(self, messages, tools, system=None):
+    async def complete(self, messages, tools, system=None):  # type: ignore[override]
         return LLMResponse(
             text=None,
             tool_calls=[ToolCallRequest(id="c1", name="send_alert", arguments={"message": "disk full"})],
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     store_path = str(Path(tmpdir) / "mcp_server_fixture_gated.db")
 
     agent = Agent(
-        provider=_FixtureProviderCallsGatedTool(),
+        provider=_FixtureProviderCallsGatedTool(),  # type: ignore[arg-type]
         tools=[send_alert],
         store=f"sqlite:///{store_path}",
     )

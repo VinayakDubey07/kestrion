@@ -19,6 +19,7 @@ from kestrion.core.types import (
     ToolResult,
     ToolSpec,
 )
+from typing import Any
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +103,7 @@ def build_engine(store) -> Engine:
 # Test 1: normal completion through a graph with no gated tools
 # ---------------------------------------------------------------------------
 
-async def test_run_completes_normally_when_no_approval_required(tmp_store):
+async def test_run_completes_normally_when_no_approval_required(tmp_store: Any) -> None:
     """A graph using only safe tools should run start-to-finish in one call."""
     engine_ref: dict = {}
     nodes = {"step_one": StepOneNode(engine_ref)}

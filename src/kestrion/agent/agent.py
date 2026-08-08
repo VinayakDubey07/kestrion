@@ -149,14 +149,14 @@ class _AgentLoopNode:
 
             # Determine which tools to expose to the LLM
             exposed_tools = [t.spec for t in agent._tools.values()]
-            if getattr(agent, "tool_registry", None):
+            if agent.tool_registry:
                 exposed_tools.append(agent._find_and_load_tool.spec)
                 active_dynamic = state.scratch.get("_active_dynamic_tools", [])
                 for name in active_dynamic:
                     if name in agent.tool_registry._tools:
                         exposed_tools.append(agent.tool_registry._tools[name].spec)
 
-            complete_kwargs = {
+            complete_kwargs: dict[str, Any] = {
                 "messages": messages,
                 "tools": exposed_tools,
                 "system": agent.system_prompt,
@@ -165,7 +165,7 @@ class _AgentLoopNode:
             if "output_schema" in sig.parameters or any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
                 complete_kwargs["output_schema"] = getattr(agent, "output_schema", None)
 
-            response: LLMResponse = await agent._provider.complete(**complete_kwargs)
+            response: LLMResponse = await agent._provider.complete(**complete_kwargs)  # type: ignore[arg-type]
 
             # Emitted immediately, not batched into the eventual NodeResult.
             # Reason: if a gated tool call later in this same turn raises
@@ -465,6 +465,8 @@ class Agent:
                 """
                 if _state is None:
                     return "Error: state not provided."
+                if self.tool_registry is None:
+                    return "Error: no tool registry configured."
                 results = self.tool_registry.search(query)
                 if not results:
                     return f"No tools found matching '{query}'."

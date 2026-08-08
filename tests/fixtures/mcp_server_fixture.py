@@ -34,7 +34,7 @@ def get_weather(city: str) -> dict:
 class _FixtureProvider:
     """Scripted, deterministic: always answers directly, never calls a tool."""
 
-    async def complete(self, messages, tools, system=None):
+    async def complete(self, messages, tools, system=None):  # type: ignore[override]
         return LLMResponse(text="It's sunny in Bangalore.", tool_calls=[], stop_reason="end_turn")
 
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     store_path = str(Path(tmpdir) / "mcp_server_fixture.db")
 
     agent = Agent(
-        provider=_FixtureProvider(),
+        provider=_FixtureProvider(),  # type: ignore[arg-type]
         tools=[get_weather],
         store=f"sqlite:///{store_path}",
     )

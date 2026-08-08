@@ -76,7 +76,7 @@ class OpenAIProvider:
                 })
             else:
                 if isinstance(m.content, list):
-                    blocks = []
+                    blocks: list[dict[str, Any]] = []
                     for b in m.content:
                         if isinstance(b, TextBlock):
                             blocks.append({"type": "text", "text": b.text})

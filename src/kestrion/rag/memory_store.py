@@ -9,7 +9,7 @@ class MemoryVectorStore(VectorStore):
     scenarios where you don't want to download a real embedding model.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._documents: list[Document] = []
 
     def add_documents(self, documents: list[Document]) -> None:

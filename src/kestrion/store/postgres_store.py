@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 
-import asyncpg
+import asyncpg  # type: ignore
 
 from kestrion.core.types import AgentState, Checkpoint, Event, EventType
 

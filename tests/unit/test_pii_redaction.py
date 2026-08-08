@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import AsyncMock
 
 from kestrion.core.types import ToolSpec
 from kestrion.llm.base import LLMResponse, Message, ToolCallRequest, LLMProvider
@@ -9,9 +8,9 @@ from kestrion.llm.middleware import PIIRedactionMiddleware
 class MockProvider(LLMProvider):
     def __init__(self, expected_response: LLMResponse):
         self.expected_response = expected_response
-        self.received_messages = []
+        self.received_messages: list[Message] = []
 
-    async def complete(self, messages, tools, system=None, output_schema=None):
+    async def complete(self, messages: list[Message], tools: list[ToolSpec], system: str | None = None, output_schema: dict | None = None) -> LLMResponse:
         self.received_messages = messages
         return self.expected_response
 

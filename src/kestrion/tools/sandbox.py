@@ -46,6 +46,7 @@ class CodeSandboxToolkit:
         self.mode = mode
         self.timeout = timeout
         self.max_output_size = max_output_size
+        self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
 
         if workspace_dir is None:
             self._temp_dir = tempfile.TemporaryDirectory(prefix="kestrion_sandbox_")

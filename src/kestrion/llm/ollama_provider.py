@@ -111,7 +111,7 @@ class OllamaProvider:
             payload["format"] = resolve_output_schema(output_schema)
 
         attempt = 0
-        last_error = None
+        last_error: Exception | None = None
         while attempt <= self.max_retries:
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:

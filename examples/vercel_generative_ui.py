@@ -10,7 +10,7 @@ To test (in another terminal):
     curl -N -X POST http://localhost:8000/api/chat -H "Content-Type: application/json" -d '{"prompt": "What is the weather in New York?"}'
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 

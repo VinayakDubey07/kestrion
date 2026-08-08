@@ -14,7 +14,7 @@ from kestrion.core.types import Checkpoint, Event
 class MemoryCheckpointStore:
     """An in-memory CheckpointStore. Data is lost when the process exits."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # run_id -> list of Events
         self.events: Dict[str, List[tuple[int, Event]]] = {}
         # run_id -> latest Checkpoint
