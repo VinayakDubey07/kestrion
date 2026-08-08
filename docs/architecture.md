@@ -2,7 +2,7 @@
 
 This document describes how Kestrion is actually built — the core abstractions, how they compose,
 and the specific design decisions behind the durability guarantees the project is built around.
-It reflects the code as it exists at `v0.3.0`, not the aspirational end state. Where something is
+It reflects the code as it exists at `v0.6.0`, not the aspirational end state. Where something is
 designed but not implemented, that's called out explicitly rather than glossed over.
 
 ## 1. The central idea: state is derived, never mutated
@@ -52,7 +52,9 @@ kestrion/
 │   ├── base.py                — LLMProvider Protocol, ContentBlock, Message/LLMResponse types
 │   ├── anthropic_provider.py  — Anthropic Claude implementation
 │   ├── openai_provider.py     — OpenAI implementation
-│   └── ollama_provider.py     — local-model implementation via Ollama's HTTP API
+│   ├── ollama_provider.py     — local-model implementation via Ollama's HTTP API
+│   ├── middleware.py          — PIIRedactionMiddleware (Data Loss Prevention)
+│   └── structured.py         — structured output / JSON mode parsing
 ├── scheduler/
 │   ├── pipeline.py     — DAG-based async pipeline scheduler
 │   ├── worker_pool.py  — task worker pool

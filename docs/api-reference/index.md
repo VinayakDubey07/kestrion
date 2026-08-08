@@ -63,6 +63,9 @@ The ergonomic, user-facing layer built on top of `core`.
 - `kestrion.llm.openai_provider.OpenAIProvider`
 - `kestrion.llm.ollama_provider.OllamaProvider` — the only provider live-verified end to end; see
   the README's Known Gaps for what that means for the other two
+- `kestrion.llm.middleware.PIIRedactionMiddleware` — Data Loss Prevention wrapper that scrubs
+  PII from messages before they reach the external provider, with a two-way vault for restoring
+  original values in tool call arguments
 
 ## MCP (`kestrion.mcp`)
 

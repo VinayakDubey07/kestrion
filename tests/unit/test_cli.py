@@ -34,7 +34,7 @@ def run_cli(*args, cwd=None, env_extra=None):
 def test_version_flag_outputs_version():
     result = run_cli("--version")
     assert result.returncode == 0
-    assert "0.3.0" in result.stdout
+    assert "0.6.0" in result.stdout
 
 
 def test_help_flag_lists_all_commands():

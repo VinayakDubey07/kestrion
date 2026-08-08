@@ -746,7 +746,7 @@ def build_parser() -> argparse.ArgumentParser:
         import importlib.metadata
         version = importlib.metadata.version("kestrion")
     except Exception:
-        version = "0.3.0"
+        version = "0.6.0"
     parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
 
     sub = parser.add_subparsers(dest="command", metavar="<command>")

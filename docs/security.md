@@ -2,7 +2,7 @@
 
 Kestrion is built from the ground up for enterprise environments where agents must operate securely, traceably, and under strict governance.
 
-This document details the three pillars of Kestrion's security posture: **Secret Management**, **Immutable Audit Logs**, and **Role-Based Approval Gates**.
+This document details the four pillars of Kestrion's security posture: **Secret Management**, **Immutable Audit Logs**, **Role-Based Approval Gates**, and **Data Loss Prevention (PII Redaction)**.
 
 ## 1. Secret Management
 

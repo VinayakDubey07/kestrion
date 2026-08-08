@@ -6,8 +6,8 @@ Currently, Kestrion is in active development. Security updates are applied to th
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.3.x   | :white_check_mark: |
-| < 0.3.0 | :x:                |
+| 0.6.x   | :white_check_mark: |
+| < 0.6.0 | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -22,5 +22,6 @@ Kestrion is designed for enterprise environments where security, auditability, a
 - **Immutable Audit Logs:** All agent actions, including LLM requests, prompts, and tool executions, are written to an immutable event log.
 - **RBAC Approval Gates:** Mutating tools (e.g., executing SQL or applying Kubernetes manifests) can be gated behind multi-role approval chains.
 - **Secret Management:** API keys are never stored in agent state. They are injected at runtime via the `SecretProvider` interface.
+- **Data Loss Prevention:** The `PIIRedactionMiddleware` automatically scrubs sensitive PII (SSN, Credit Cards, Emails, Phone Numbers) before data is sent to external AI providers.
 
 For a deep dive into Kestrion's security architecture, please see the [Security Documentation](docs/security.md).
