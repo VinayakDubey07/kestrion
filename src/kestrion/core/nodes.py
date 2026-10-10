@@ -68,7 +68,12 @@ class SummarizationNode:
 
         if not should_compact and self.max_history_tokens is not None:
             # Reconstruct content strings for counting
-            full_text = " ".join((m.get("content") or "") for m in messages_dicts)
+            def _get_text(c):
+                if c is None: return ""
+                if isinstance(c, list): return " ".join(str(b) for b in c)
+                return str(c)
+                
+            full_text = " ".join(_get_text(m.get("content")) for m in messages_dicts)
             est_tokens = estimate_tokens(full_text)
             if est_tokens > self.max_history_tokens:
                 should_compact = True
@@ -83,9 +88,13 @@ class SummarizationNode:
 
             from kestrion.llm.base import Message
             # Reconstruct messages for LLM
-            summary_prompt = [
-                Message(role=m.get("role", "user"), content=(m.get("content") or "")) for m in to_compact
-            ]
+            summary_prompt = []
+            for m in to_compact:
+                content = m.get("content")
+                # For LLM completion, if content is None, we default to empty string
+                if content is None:
+                    content = ""
+                summary_prompt.append(Message(role=m.get("role", "user"), content=content))
             summary_prompt.append(
                 Message(role="user", content="Summarize the preceding conversation turns concisely, retaining all key decisions, tasks, state, and context.")
             )

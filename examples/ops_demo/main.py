@@ -89,18 +89,6 @@ def issue_refund(customer_id: str, amount: int) -> dict:
     return {"refunded": True, "customer_id": customer_id, "amount": amount}
 
 
-async def approve_and_persist(agent: Agent, state, tool_name: str, role: str):
-    """Records one role's approval and persists it as a checkpoint, so a
-    later resume() call can see it. This is the real, current mechanism
-    -- Agent.approve() is still a stub, see README known gaps."""
-    Engine.record_approval(state, tool_name, role=role)
-    await agent._store.save(Checkpoint(
-        checkpoint_id=new_id("ckpt"),
-        run_id=state.run_id,
-        state=state,
-        created_at=datetime.now(timezone.utc),
-        event_seq=state.last_event_seq,
-    ))
 
 
 async def run_infra_scenario(store_url: str):
@@ -164,15 +152,13 @@ async def run_billing_scenario(store_url: str):
         print(f"pending approval: tool={pending['tool']} missing_roles={pending['missing_roles']}")
 
         print("Approving as 'support'...")
-        await approve_and_persist(billing_agent, result.state, "issue_refund", role="support")
-        mid_resume = await billing_agent.resume(result.run_id)
+        mid_resume = await billing_agent.approve(result.run_id, tool="issue_refund", role="support")
         print(f"status after 1 of 2 approvals: {mid_resume.status}")
         if mid_resume.status == RunStatus.WAITING_ON_HUMAN:
             print(f"still missing: {mid_resume.state.scratch['_pending_approval']['missing_roles']}")
 
         print("Approving as 'finance'...")
-        await approve_and_persist(billing_agent, mid_resume.state, "issue_refund", role="finance")
-        final = await billing_agent.resume(result.run_id)
+        final = await billing_agent.approve(result.run_id, tool="issue_refund", role="finance")
         print(f"final status: {final.status}")
         print(f"output: {final.output}")
         return final
