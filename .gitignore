@@ -32,3 +32,4 @@ test-project/
 my-agent-k8s.yaml
 roadmap.md
 site/
+dist/
