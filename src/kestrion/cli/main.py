@@ -24,6 +24,8 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+from kestrion.cli.serve import cmd_serve
+
 
 # ---------------------------------------------------------------------------
 # kestrion init
@@ -811,6 +813,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_fork.add_argument("--at-seq", type=int, required=True, help="the event sequence count to fork at")
     p_fork.add_argument("--store", help="path to the SQLite database file (default: kestrion_runs.db)")
 
+    # serve
+    p_serve = sub.add_parser("serve", help="start a websocket server streaming agent events")
+    p_serve.add_argument("file", help="path to the agent Python file")
+    p_serve.add_argument("--host", default="127.0.0.1", help="host to bind the server to (default: 127.0.0.1)")
+    p_serve.add_argument("--port", type=int, default=8765, help="port to bind the server to (default: 8765)")
+
     return parser
 
 
@@ -832,6 +840,7 @@ def main() -> None:
         "list": cmd_list,
         "resume": cmd_resume,
         "chat": cmd_chat,
+        "serve": cmd_serve,
     }
     sys.exit(handlers[args.command](args))
 

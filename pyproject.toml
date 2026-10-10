@@ -47,6 +47,8 @@ all = [
     "opentelemetry-sdk",
     "playwright>=1.40.0",
     "chromadb>=0.4.0",
+    "pyautogui>=0.9.54",
+    "Pillow>=10.0.0",
 ]
 dev = [
     "pytest>=8.0",
@@ -62,6 +64,8 @@ dev = [
     "opentelemetry-sdk",
     "playwright>=1.40.0",
     "chromadb>=0.4.0",
+    "pyautogui>=0.9.54",
+    "Pillow>=10.0.0",
 ]
 postgres = [
     "asyncpg>=0.29",
@@ -75,6 +79,10 @@ browser = [
 ]
 chroma = [
     "chromadb>=0.4.0",
+]
+os = [
+    "pyautogui>=0.9.54",
+    "Pillow>=10.0.0",
 ]
 
 [project.scripts]

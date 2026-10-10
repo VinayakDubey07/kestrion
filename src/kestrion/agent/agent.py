@@ -45,6 +45,7 @@ from kestrion.llm.base import (
     TextBlock,
     ImageBlock,
 )
+from kestrion.store.episodic_memory import EpisodicMemoryStore
 
 
 def _message_to_dict(m: Message) -> dict:
@@ -159,7 +160,7 @@ class _AgentLoopNode:
             complete_kwargs: dict[str, Any] = {
                 "messages": messages,
                 "tools": exposed_tools,
-                "system": agent.system_prompt,
+                "system": state.scratch.get("system_prompt", agent.system_prompt),
             }
             sig = inspect.signature(agent._provider.complete)
             if "output_schema" in sig.parameters or any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()):
@@ -444,9 +445,22 @@ class Agent:
         telemetry: TelemetryProvider | None = None,
         tool_registry: ToolRegistry | None = None,
         output_schema: Any = None,
+        memory_store: EpisodicMemoryStore | None = None,
+        user_id: str | None = None,
     ):
         self._provider = provider
-        self._tools: dict[str, Tool] = {t.spec.name: t for t in (tools or [])}
+        
+        # Initialize memory tools if memory_store and user_id are provided
+        self.memory_store = memory_store
+        self.user_id = user_id
+        
+        all_tools = list(tools or [])
+        if self.memory_store and self.user_id:
+            from kestrion.tools.memory_toolkit import MemoryToolkit
+            mem_toolkit = MemoryToolkit(self.memory_store, self.user_id)
+            all_tools.extend(mem_toolkit.tools)
+            
+        self._tools: dict[str, Tool] = {t.spec.name: t for t in all_tools}
         self.system_prompt = system_prompt
         self.max_history_turns = max_history_turns
         self.max_history_tokens = max_history_tokens
@@ -503,7 +517,23 @@ class Agent:
     async def run(self, prompt: str | list[ContentBlock], run_id: str | None = None, output_schema: Any = None, **initial_scratch) -> RunResult:
         if output_schema is not None:
             self.output_schema = output_schema
+            
+        # We enforce exactly one system prompt message here. If the caller
+        # provided one via kwargs, it overrides what we started with.
+        sys_prompt = initial_scratch.get("system_prompt") or self.system_prompt
+        
+        if self.memory_store and self.user_id:
+            recent_facts = await self.memory_store.search_facts(self.user_id, "", limit=5)
+            if recent_facts:
+                facts_str = "\n".join([f"- {f.content}" for f in recent_facts])
+                sys_prompt = (sys_prompt or "") + f"\n\n[Long-Term Memories for this user:]\n{facts_str}"
+        
+        initial_scratch["system_prompt"] = sys_prompt
+
         initial_messages = [_message_to_dict(Message(role="user", content=prompt))]
+        if sys_prompt:
+            initial_messages.insert(0, _message_to_dict(Message(role="system", content=sys_prompt)))
+            
         return await self.run_with_history(initial_messages, run_id=run_id, **initial_scratch)
 
     async def run_with_history(
