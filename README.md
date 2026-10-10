@@ -3,9 +3,9 @@
 A durable-execution-first framework for building production AI agents.
 
 Status: **v0.6 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **twenty-two** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **twenty-three** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, Data Loss Prevention / PII Redaction, Cross-Run Episodic Memory, Computer-Use Desktop Automation, and a Real-Time Streaming Server), and a **DAG-based async scheduler** for multi-agent
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, Data Loss Prevention / PII Redaction, Cross-Run Episodic Memory, Computer-Use Desktop Automation, Real-Time Streaming Server, and **Multi-Verse Execution**), and a **DAG-based async scheduler** for multi-agent
 orchestration are built and tested. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
@@ -28,6 +28,7 @@ orchestration are built and tested. **Horizontally scalable, multi-worker Postgr
 | Cross-Run Episodic Memory | Proven | `MemoryToolkit` (SQLite FTS5) |
 | Computer-Use Automation | Proven | `OSToolkit` (`kestrion[os]`) |
 | Real-Time Streaming Server | Proven | `kestrion serve` (WebSockets) |
+| Multi-Verse Execution | Proven | `MultiverseAgent` (parallel universe branching) |
 
 See [Roadmap](#roadmap) below.
 
