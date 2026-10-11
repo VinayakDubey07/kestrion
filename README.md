@@ -2,6 +2,12 @@
 
 A durable-execution-first framework for building production AI agents.
 
+[![PyPI version](https://img.shields.io/pypi/v/kestrion.svg?color=blue)](https://pypi.org/project/kestrion/)
+[![Python](https://img.shields.io/pypi/pyversions/kestrion.svg)](https://pypi.org/project/kestrion/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![CI](https://github.com/VinayakDubey07/kestrion/actions/workflows/ci.yml/badge.svg)](https://github.com/VinayakDubey07/kestrion/actions/workflows/ci.yml)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/kestrion.svg)](https://pypi.org/project/kestrion/)
+
 Status: **v0.7.1 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
 three LLM providers, a live-verified MCP client and server, a CLI, **twenty-three** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent

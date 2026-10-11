@@ -84,3 +84,44 @@ async def test_paused_run_is_surfaced_as_a_normal_result_not_an_mcp_error():
     assert "paused" in text
     assert "send_alert" in text
     assert "missing roles" in text.lower() or "__any__" in text
+
+
+async def test_serve_agent_in_process_branches():
+    from unittest.mock import AsyncMock, MagicMock
+    from kestrion.agent.agent import RunResult
+    from kestrion.core.types import AgentState, RunStatus
+    from kestrion.mcp.server import serve_agent
+
+    mock_agent = MagicMock()
+    server = serve_agent(mock_agent, name="inproc-agent", description="In-process agent description")
+    assert server.name == "inproc-agent"
+
+    # 1. COMPLETED
+    mock_agent.run = AsyncMock(return_value=RunResult(
+        run_id="run_1", status=RunStatus.COMPLETED, output="All done!", state=AgentState(run_id="run_1")
+    ))
+    res, _ = await server.call_tool("ask_agent", {"prompt": "hello"})
+    assert "All done!" in res[0].text
+
+    # 2. WAITING_ON_HUMAN
+    st = AgentState(run_id="run_2")
+    st.scratch["_pending_approval"] = {"tool": "dangerous_action", "missing_roles": ["admin"]}
+    mock_agent.run = AsyncMock(return_value=RunResult(
+        run_id="run_2", status=RunStatus.WAITING_ON_HUMAN, output=None, state=st
+    ))
+    res, _ = await server.call_tool("ask_agent", {"prompt": "run dangerous"})
+    assert "paused: run run_2 is waiting on approval" in res[0].text
+
+    # 3. EXPIRED
+    mock_agent.run = AsyncMock(return_value=RunResult(
+        run_id="run_3", status=RunStatus.EXPIRED, output=None, state=AgentState(run_id="run_3")
+    ))
+    res, _ = await server.call_tool("ask_agent", {"prompt": "expired"})
+    assert "expired" in res[0].text
+
+    # 4. FAILED
+    mock_agent.run = AsyncMock(return_value=RunResult(
+        run_id="run_4", status=RunStatus.FAILED, output=None, state=AgentState(run_id="run_4")
+    ))
+    res, _ = await server.call_tool("ask_agent", {"prompt": "failed"})
+    assert "failed" in res[0].text

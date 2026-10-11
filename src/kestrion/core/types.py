@@ -151,6 +151,17 @@ class AgentState:
             last_event_seq=data.get("last_event_seq", 0),
         )
 
+    def model_dump(self) -> dict[str, Any]:
+        """
+        Pydantic-compatible alias for ``to_dict()``.
+
+        Dashboard code and external integrations can call ``state.model_dump()``
+        without knowing whether ``AgentState`` is a Pydantic model or a dataclass —
+        both APIs converge here.
+        """
+        return self.to_dict()
+
+
 
 # ---------------------------------------------------------------------------
 # Checkpointing — durable execution is a first-class concept, not an add-on

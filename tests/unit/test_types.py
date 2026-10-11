@@ -91,3 +91,16 @@ def test_agent_state_round_trips_through_to_dict_and_from_dict():
     assert restored.total_tokens == state.total_tokens
     assert restored.total_cost_usd == state.total_cost_usd
     assert restored.last_event_seq == state.last_event_seq
+
+
+def test_agent_state_model_dump_matches_to_dict():
+    state = AgentState(
+        run_id="run_dump_test",
+        status=RunStatus.RUNNING,
+        scratch={"key": "value"},
+    )
+    dumped = state.model_dump()
+    assert isinstance(dumped, dict)
+    assert dumped == state.to_dict()
+    assert dumped["run_id"] == "run_dump_test"
+    assert dumped["status"] == RunStatus.RUNNING.value

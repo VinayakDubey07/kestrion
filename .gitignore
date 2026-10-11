@@ -33,3 +33,10 @@ my-agent-k8s.yaml
 roadmap.md
 site/
 dist/
+
+# Coverage & test artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.egg-info/

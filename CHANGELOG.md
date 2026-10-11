@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [Unreleased]
+
+### Added
+- **`@deprecated` decorator (`kestrion.core.compat`)**: Decorator for graceful API migrations emitting `DeprecationWarning` or `FutureWarning` on first call with auto-annotated docstrings.
+- **`AgentState.model_dump()`**: Pydantic-compatible serializer method alias on `AgentState` dataclass for seamless integration with FastAPI, Pydantic, and dashboard components.
+- **PEP 561 `py.typed` packaging**: Shipped type marker in wheel distributions so downstream consumers get full type-checking support.
+- **Local CI runner (`scripts/ci_check.sh`)**: One-command runner mirroring GitHub Actions CI pipeline (ruff, mypy, pytest with coverage gate).
+- **Unit test suite expansion**: Added tests for `compat.py`, `vercel.py` streaming adapter, `AgentState.model_dump()`, and FastMCP in-process server branches.
+
 ## [0.7.1] - 2026-10-11
 
 ### Fixed

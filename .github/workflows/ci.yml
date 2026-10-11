@@ -29,7 +29,6 @@ jobs:
 
       - name: Type check (mypy)
         run: mypy src/kestrion --ignore-missing-imports
-        continue-on-error: true  # tighten this once core types settle
 
       - name: Run tests
         run: pytest tests/ -v
