@@ -1,8 +1,8 @@
 # Kestrion — Roadmap (Next 3 Months)
 
-**Baseline:** `v0.6.0`, live on PyPI. Core engine, `Agent`/`@tool` API, 3 LLM
+**Baseline:** `v0.7.1`, live on PyPI. Core engine, `Agent`/`@tool` API, 3 LLM
 providers (Ollama live-verified; Anthropic/OpenAI doc-verified only), a live-verified MCP client,
-and all 19 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, Generative UI streaming, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, and Data Loss Prevention / PII Redaction)
+and all 23 agentic features (approval chains, timeouts, parallel tool calls, sub-agents, multi-agent handoff, memory compaction, human-in-the-loop input, secret management, advanced context window management, native vision/multi-modal support, swarm routing, dynamic tool discovery, visual playground builder, browser automation, Generative UI streaming, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, Data Loss Prevention / PII Redaction, Cross-Run Episodic Memory, Computer-Use Desktop Automation, Real-Time Streaming Server, and Multi-Verse Execution)
 are built and tested.
 
 **Pace assumption:** weekday evenings + weekend mornings, ~10-13 hrs/week — the same pace
@@ -168,3 +168,23 @@ Since we've moved significantly faster than the original 3-month pace, these are
    - ~~Run dynamically generated code safely in an isolated workspace.~~ Implemented via `CodeSandboxToolkit` with `subprocess` and `docker` modes.
 12. ~~**Structured Outputs / JSON Mode**~~ **(BUILT)**
    - ~~Ensure LLM responses conform strictly to predefined JSON schemas or Pydantic models.~~ Implemented natively via the `output_schema` parameter in the `Agent` and `LLMProvider` abstractions.
+13. ~~**Cross-Run Episodic Memory**~~ **(BUILT)**
+   - ~~Agents can remember facts across separate conversation runs.~~ Implemented via `SQLiteEpisodicMemoryStore` (FTS5 full-text search, zero external dependencies) and `MemoryToolkit` (`save_memory`, `search_memory`).
+14. ~~**Computer-Use / Desktop Automation**~~ **(BUILT)**
+   - ~~Allow Kestrion agents to control a desktop GUI.~~ Implemented via `OSToolkit` wrapping `pyautogui` and `Pillow` in `kestrion.tools.os_toolkit` (`kestrion[os]`).
+15. ~~**Real-Time Streaming Server**~~ **(BUILT)**
+   - ~~Stream agent events to external UIs without polling.~~ Implemented via `kestrion serve <agent.py>` WebSocket server that broadcasts every engine event in real-time.
+16. ~~**Multi-Verse Execution**~~ **(BUILT)**
+   - ~~Tree-of-Thought at the infrastructure level.~~ Implemented via `MultiverseAgent`, `UniverseConfig`, and pluggable judge strategies (`LLMJudge`, `FirstCompletedJudge`, `LowestCostJudge`). Each universe is a real, durable, independently-resumable run built on `Engine.fork()`.
+
+---
+
+## Next Candidate Features — Month 4+
+
+The 23-feature baseline is solid. These are the 5 highest-leverage next items:
+
+1. **Autonomous Tool-Smithing** — When the agent encounters a task requiring a missing tool, dispatch a Tool-Smith sub-agent to synthesize Python code, validate it in `CodeSandboxToolkit`, and dynamically register it in `ToolRegistry`.
+2. **Budget Guardrails (Cost Circuit Breaker)** — Hard/soft token and USD caps per run. Soft cap injects a graceful warning into the agent's context; hard cap emits `BUDGET_EXHAUSTED` and terminates cleanly.
+3. **Shadow Mode Replay Evals** — Replay historical SQLite runs from `seq=0` against updated models or prompt changes with automated LLM-as-a-judge comparison diffs and regression scorecards.
+4. **Chronos Visual Scrubber** — Interactive time-travel debugging slider in `kestrion dashboard`. Scrub through any run's event sequence and fork a new universe from any step with a single click.
+5. **Event Subscriptions & Webhooks** — A pub/sub mechanism to hook into engine events (`on("waiting_on_human") -> send_slack_message()`).

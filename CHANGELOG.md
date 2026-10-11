@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 (pre-1.0, so the public API may still shift between minor versions).
 
+## [0.7.1] - 2026-10-11
+
+### Fixed
+- **Critical runtime bug in `kestrion serve`**: `websockets.server.serve` was removed in websockets v14+. Updated to `websockets.asyncio.server.serve`.
+- **Bare `except` in `SQLiteEpisodicMemoryStore`**: Replaced with specific `except (json.JSONDecodeError, ValueError)` to avoid silently swallowing `KeyboardInterrupt` and other system exceptions.
+- **Undefined name `Any` in `Engine.fork()`**: Added missing `from typing import Any` import in `engine.py` (F821 — would crash at import time if `fork()` was called directly).
+- **Deprecated `typing.AsyncGenerator`** in `vercel.py`: Updated to `collections.abc.AsyncGenerator` per Python 3.10+ guidance.
+- Removed 8 unused imports across `multiverse/__init__.py`, `episodic_memory.py`, `memory_toolkit.py`, `middleware.py`, and `dashboard.py`.
+- Fixed E701 (multiple statements on one line) in `core/nodes.py`.
+- Updated `pyproject.toml` development status from Alpha → Beta.
+
+## [0.7.0] - 2026-08-07
+
+### Added
+- **Cross-Run Episodic Memory**: Added `SQLiteEpisodicMemoryStore` backed by SQLite FTS5 for full-text search. Agents can save and retrieve long-term facts (`MemoryFact`) across separate conversation runs via `MemoryToolkit` (`save_memory`, `search_memory` tools). Zero external dependencies.
+- **Computer-Use / Desktop Automation**: Added `OSToolkit` (`kestrion[os]`) wrapping `pyautogui` and `Pillow`. Agents can take screenshots, click, type, drag, and automate any desktop app using vision.
+- **Real-Time Streaming Server**: Added `kestrion serve <agent.py>` CLI command that runs an agent behind a WebSocket server, broadcasting every engine event to connected clients in real-time — zero polling.
+- **Multi-Verse Execution**: Added `MultiverseAgent`, `UniverseConfig`, `LLMJudge`, `FirstCompletedJudge`, and `LowestCostJudge`. Agents can fork into N parallel universe branches (each a real, durable, independently-resumable run), let them race or explore different reasoning strategies, and collapse the multiverse to the best result via a configurable judge strategy. Built on `Engine.fork()` — each branch is stored in the same event log and viewable in the dashboard.
+
+### Fixed
+- Fixed `SummarizationNode` crash when a message's `content` field is `None` — now safely coerces to empty string.
+
 ## [0.6.0] - 2026-08-07
 
 ### Added
