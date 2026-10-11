@@ -255,7 +255,7 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
                 events = await store.events_up_to(run_id, seq)
                 if not events:
                     return None
-                from kestrion.core.types import AgentState, RunStatus, EventType
+                from kestrion.core.types import AgentState, RunStatus
                 state = AgentState(run_id=run_id, status=RunStatus.RUNNING, current_node=events[0].payload.get("entry_node", ""))
                 for evt in events:
                     engine._fold(state, evt)

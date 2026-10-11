@@ -2,8 +2,7 @@
 Toolkit for agents to interact with long-term episodic memory.
 """
 
-from typing import Any, List
-import asyncio
+from typing import Any
 
 from kestrion.store.episodic_memory import EpisodicMemoryStore
 from kestrion.agent.decorators import tool

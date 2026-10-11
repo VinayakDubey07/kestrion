@@ -17,7 +17,7 @@ from kestrion.core.types import Event, TelemetryProvider
 
 try:
     import websockets
-    from websockets.server import serve
+    from websockets.asyncio.server import serve
 except ImportError:
     websockets = None  # type: ignore
 

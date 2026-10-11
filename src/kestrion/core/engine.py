@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Callable, Literal, Mapping
+from typing import Any, Callable, Literal, Mapping
 
 from .secrets import SecretProvider, EnvVarSecretProvider
 from .types import (

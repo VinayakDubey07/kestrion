@@ -3,7 +3,7 @@ Cross-Run Episodic Memory Store.
 Allows agents to save and retrieve long-term facts across multiple runs.
 """
 
-from typing import Protocol, Any, List, Dict
+from typing import Protocol, Any
 import sqlite3
 import json
 from datetime import datetime
@@ -140,7 +140,7 @@ class SQLiteEpisodicMemoryStore:
                     fact_id, content, meta_blob, created_at = r
                     try:
                         meta = json.loads(meta_blob)
-                    except:
+                    except (json.JSONDecodeError, ValueError):
                         meta = {}
                     facts.append(MemoryFact(fact_id, content, meta, created_at))
                 return facts

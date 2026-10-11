@@ -69,8 +69,10 @@ class SummarizationNode:
         if not should_compact and self.max_history_tokens is not None:
             # Reconstruct content strings for counting
             def _get_text(c):
-                if c is None: return ""
-                if isinstance(c, list): return " ".join(str(b) for b in c)
+                if c is None:
+                    return ""
+                if isinstance(c, list):
+                    return " ".join(str(b) for b in c)
                 return str(c)
                 
             full_text = " ".join(_get_text(m.get("content")) for m in messages_dicts)

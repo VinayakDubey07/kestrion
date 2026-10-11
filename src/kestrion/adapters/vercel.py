@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from kestrion.agent.agent import Agent
 from kestrion.core.types import Event, EventType
@@ -24,7 +24,7 @@ def _format_vercel_events(events: list[Event]) -> list[str]:
             payload = ev.payload
             
             # Send text chunks
-            if "text" in payload and payload["text"]:
+            if payload.get("text"):
                 chunks.append(f'0:{json.dumps(payload["text"])}\n')
             
             # Send tool call starts (9:) and custom UI data (d:)

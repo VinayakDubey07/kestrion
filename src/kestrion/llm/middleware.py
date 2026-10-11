@@ -7,7 +7,6 @@ from kestrion.llm.base import (
     LLMResponse,
     Message,
     TextBlock,
-    ImageBlock,
     ContentBlock,
     ToolCallRequest,
 )
