@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **OpenTelemetry GenAI Semantic Conventions**: Upgraded `OpenTelemetryProvider` in `kestrion.telemetry` to conform with official OpenTelemetry GenAI Semantic Conventions (`gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, `gen_ai.response.finish_reasons`, `gen_ai.tool.name`, `gen_ai.workflow.name`) with error type tagging while maintaining backward compatibility.
+- **Enterprise Structured JSON Logging (`kestrion.observability`)**: Added `JSONLogFormatter`, `StructuredLoggerProvider`, and `configure_structured_logging` producing clean NDJSON logs for Datadog, CloudWatch, Splunk, and Loki with zero external dependencies and automatic duration measurement (`duration_ms`).
+- **Composite Telemetry & Multi-Provider Support**: Added `CompositeTelemetryProvider` and updated `Agent(telemetry=[...])` to accept a list of telemetry providers to fan out events across OTel and structured logs simultaneously.
 - **`@deprecated` decorator (`kestrion.core.compat`)**: Decorator for graceful API migrations emitting `DeprecationWarning` or `FutureWarning` on first call with auto-annotated docstrings.
 - **`AgentState.model_dump()`**: Pydantic-compatible serializer method alias on `AgentState` dataclass for seamless integration with FastAPI, Pydantic, and dashboard components.
 - **PEP 561 `py.typed` packaging**: Shipped type marker in wheel distributions so downstream consumers get full type-checking support.
 - **Local CI runner (`scripts/ci_check.sh`)**: One-command runner mirroring GitHub Actions CI pipeline (ruff, mypy, pytest with coverage gate).
-- **Unit test suite expansion**: Added tests for `compat.py`, `vercel.py` streaming adapter, `AgentState.model_dump()`, and FastMCP in-process server branches.
+- **Unit test suite expansion**: Added test suites for `compat.py`, `vercel.py` streaming adapter, FastMCP server branches, structured logging, and OTel GenAI conventions (204 tests passing, 65% coverage).
 
 ## [0.7.1] - 2026-10-11
 

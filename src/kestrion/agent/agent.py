@@ -442,7 +442,7 @@ class Agent:
         max_history_turns: int | None = None,
         max_history_tokens: int | None = None,
         keep_turns: int = 4,
-        telemetry: TelemetryProvider | None = None,
+        telemetry: TelemetryProvider | list[TelemetryProvider] | None = None,
         tool_registry: ToolRegistry | None = None,
         output_schema: Any = None,
         memory_store: EpisodicMemoryStore | None = None,
@@ -501,13 +501,20 @@ class Agent:
             engine_tools[find_and_load_tool.spec.name] = find_and_load_tool
             engine_tools.update(self.tool_registry._tools)
 
+        telemetry_provider: TelemetryProvider | None
+        if isinstance(telemetry, list):
+            from kestrion.observability.logging import CompositeTelemetryProvider
+            telemetry_provider = CompositeTelemetryProvider(telemetry)
+        else:
+            telemetry_provider = telemetry
+
         loop_node = _AgentLoopNode(self)
         self._engine = Engine(
             nodes={"agent_loop": loop_node},
             tools=engine_tools,
             store=self._store,
             entry_node="agent_loop",
-            telemetry=telemetry,
+            telemetry=telemetry_provider,
         )
 
     async def _ensure_store_setup(self):

@@ -80,3 +80,90 @@ async def test_otel_provider_handles_events():
     # RUN_COMPLETED
     await provider.on_event(Event.create(run_id, EventType.RUN_COMPLETED, payload={}))
     assert run_id not in provider._active_runs
+
+
+def test_detect_genai_system():
+    from kestrion.telemetry.otel import _detect_genai_system
+
+    assert _detect_genai_system("claude-3-5-sonnet") == "anthropic"
+    assert _detect_genai_system("gpt-4o") == "openai"
+    assert _detect_genai_system("o1-mini") == "openai"
+    assert _detect_genai_system("llama-3-8b") == "ollama"
+    assert _detect_genai_system("custom-model") == "kestrion"
+    assert _detect_genai_system(None) == "kestrion"
+
+
+@pytest.mark.asyncio
+async def test_otel_provider_genai_attributes_and_failures():
+    provider = OpenTelemetryProvider(tracer_name="test_genai_tracer")
+    run_id = "test_run_genai_999"
+
+    # Start run
+    await provider.on_event(
+        Event.create(run_id, EventType.RUN_STARTED, payload={"entry_node": "agent_loop"})
+    )
+    run_span = provider._active_runs[run_id]
+    assert run_span is not None
+
+    # LLM started with model and temperature
+    await provider.on_event(
+        Event.create(
+            run_id,
+            EventType.LLM_CALL_STARTED,
+            payload={"model": "claude-3-5-sonnet", "temperature": 0.7, "top_p": 0.95},
+        )
+    )
+    assert run_id in provider._active_llms
+
+    # LLM completed
+    await provider.on_event(
+        Event.create(
+            run_id,
+            EventType.LLM_CALL_COMPLETED,
+            payload={"model": "claude-3-5-sonnet", "stop_reason": "end_turn"},
+            tokens_in=50,
+            tokens_out=25,
+            cost_usd=0.001,
+        )
+    )
+    assert run_id not in provider._active_llms
+
+    # Tool started and failed
+    await provider.on_event(
+        Event.create(
+            run_id,
+            EventType.TOOL_CALL_STARTED,
+            payload={"tool": "sql_query", "tool_call_id": "call_abc"},
+        )
+    )
+    await provider.on_event(
+        Event.create(
+            run_id,
+            EventType.TOOL_CALL_FAILED,
+            payload={"tool": "sql_query", "error": "syntax error"},
+        )
+    )
+    assert (run_id, "sql_query") not in provider._active_tools
+
+    # Run failed
+    await provider.on_event(
+        Event.create(run_id, EventType.RUN_FAILED, payload={"error": "Fatal run error"})
+    )
+    assert run_id not in provider._active_runs
+
+
+@pytest.mark.asyncio
+async def test_agent_accepts_list_of_telemetry_providers():
+    from kestrion.agent.agent import Agent
+    from kestrion.observability.logging import CompositeTelemetryProvider
+
+    p1 = MagicMock()
+    p2 = MagicMock()
+
+    mock_llm = MagicMock()
+    agent = Agent(provider=mock_llm, telemetry=[p1, p2])
+
+    assert isinstance(agent._engine.telemetry, CompositeTelemetryProvider)
+    assert p1 in agent._engine.telemetry.providers
+    assert p2 in agent._engine.telemetry.providers
+
