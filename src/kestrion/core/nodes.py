@@ -80,13 +80,29 @@ class SummarizationNode:
             if est_tokens > self.max_history_tokens:
                 should_compact = True
 
-        if should_compact and len(messages_dicts) > self.keep_turns:
+        # Check if first message is a system message to preserve
+        system_msg = None
+        non_system_messages = messages_dicts
+        if messages_dicts and messages_dicts[0].get("role") == "system":
+            system_msg = messages_dicts[0]
+            non_system_messages = messages_dicts[1:]
+
+        if should_compact and len(non_system_messages) > self.keep_turns:
             keep = self.keep_turns
             if keep % 2 != 0:
                 keep += 1
 
-            to_compact = messages_dicts[:-keep]
-            to_keep = messages_dicts[-keep:]
+            split_idx = max(0, len(non_system_messages) - keep)
+            # Never start to_keep on a 'tool' role — tool calls (assistant) and results (tool)
+            # must remain together atomically. Move split_idx backwards if needed.
+            while split_idx > 0 and non_system_messages[split_idx].get("role") == "tool":
+                split_idx -= 1
+
+            to_compact = non_system_messages[:split_idx]
+            to_keep = non_system_messages[split_idx:]
+
+            if not to_compact:
+                return NodeResult(next_node=self.next_node, state_updates={})
 
             from kestrion.llm.base import Message
             # Reconstruct messages for LLM
@@ -110,17 +126,19 @@ class SummarizationNode:
 
             summary_text = summary_response.text or ""
 
-            if to_keep and to_keep[0].get("role") in ("user", "tool"):
-                compacted_messages = [
+            if to_keep and to_keep[0].get("role") == "assistant":
+                compacted_body = [
+                    {"role": "user", "content": f"[System Context: Summary of preceding conversation:\n{summary_text}]"},
+                    *to_keep
+                ]
+            else:
+                compacted_body = [
                     {"role": "user", "content": f"[System Context: Summary of preceding conversation:\n{summary_text}]"},
                     {"role": "assistant", "content": "Understood. I will continue the conversation using this context."},
                     *to_keep
                 ]
-            else:
-                compacted_messages = [
-                    {"role": "user", "content": f"[System Context: Summary of preceding conversation:\n{summary_text}]"},
-                    *to_keep
-                ]
+
+            compacted_messages = [system_msg, *compacted_body] if system_msg else compacted_body
 
             # Emit compaction event directly so the engine folds it
             compact_event = Event.create(

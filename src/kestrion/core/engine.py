@@ -14,6 +14,7 @@ engine's core loop from day one.
 
 from __future__ import annotations
 
+import copy
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Callable, Literal, Mapping
@@ -158,8 +159,23 @@ class Engine:
             
         entry_node = first_event.payload.get("entry_node", self.entry_node)
         
-        # Build the new state from scratch
-        state = AgentState(run_id=new_run_id, status=RunStatus.RUNNING, current_node=entry_node)
+        # Restore state scratch from checkpoint at or before at_seq if available
+        ckpt = None
+        if hasattr(self.store, "checkpoint_at_or_before"):
+            ckpt = await self.store.checkpoint_at_or_before(run_id, at_seq)
+        if ckpt is None:
+            latest_ckpt = await self.store.latest(run_id)
+            if latest_ckpt and latest_ckpt.event_seq <= at_seq:
+                ckpt = latest_ckpt
+
+        # Build the new state
+        scratch_base = copy.deepcopy(ckpt.state.scratch) if ckpt else {}
+        state = AgentState(
+            run_id=new_run_id,
+            status=RunStatus.RUNNING,
+            current_node=entry_node,
+            scratch=scratch_base,
+        )
         
         for evt in fork_events:
             # Clone the event for the new run_id
@@ -540,8 +556,13 @@ class Engine:
         self.check_approval(state, tool_name, kwargs)
         tool = self.tools[tool_name]
 
+        tool_call_id = kwargs.pop("_tool_call_id", None)
+
         # Emit original args, not including _state or _secrets
-        await self._emit(state, EventType.TOOL_CALL_STARTED, {"tool": tool_name, "args": kwargs})
+        started_payload: dict[str, Any] = {"tool": tool_name, "args": kwargs}
+        if tool_call_id:
+            started_payload["tool_call_id"] = tool_call_id
+        await self._emit(state, EventType.TOOL_CALL_STARTED, started_payload)
         kwargs["_state"] = state
         kwargs["_secrets"] = self.secrets
         try:
@@ -561,12 +582,21 @@ class Engine:
                 # handoff or input request is not a tool failure. Since these are in
                 # core/errors.py, we can safely check isinstance here directly.
                 raise
-            await self._emit(state, EventType.TOOL_CALL_FAILED, {"tool": tool_name, "error": str(exc)})
+            failed_payload: dict[str, Any] = {"tool": tool_name, "error": str(exc)}
+            if tool_call_id:
+                failed_payload["tool_call_id"] = tool_call_id
+            await self._emit(state, EventType.TOOL_CALL_FAILED, failed_payload)
             raise
+        completed_payload: dict[str, Any] = {
+            "tool": tool_name,
+            "output": str(result.output)[:2000],
+        }
+        if tool_call_id:
+            completed_payload["tool_call_id"] = tool_call_id
         await self._emit(
             state,
             EventType.TOOL_CALL_COMPLETED,
-            {"tool": tool_name, "output": str(result.output)[:2000]},
+            completed_payload,
         )
         return result
 
@@ -597,6 +627,7 @@ class Engine:
         evt = Event.create(run_id=state.run_id, type=type, payload=payload, node=state.current_node)
         seq = await self.store.append_event(evt)
         state.last_event_seq = seq
+        self._fold(state, evt)
         if self.telemetry:
             # We don't await this directly to avoid blocking the engine's core loop
             # on external I/O (like an OTel exporter sending over the network).

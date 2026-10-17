@@ -54,8 +54,11 @@ class OpenAIProvider:
         if system:
             out.append({"role": "system", "content": system})
         for m in messages:
+            if m.role == "system" and system:
+                continue
             if m.role == "tool":
-                out.append({"role": "tool", "tool_call_id": m.tool_call_id, "content": m.content or ""})
+                content_str = m.content if isinstance(m.content, str) else str(m.content or "")
+                out.append({"role": "tool", "tool_call_id": m.tool_call_id, "content": content_str})
             elif m.role == "assistant" and m.tool_calls:
                 content = ""
                 if isinstance(m.content, str):

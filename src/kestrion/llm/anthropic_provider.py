@@ -46,12 +46,42 @@ class AnthropicProvider:
         out = []
         for m in messages:
             if m.role == "tool":
+                if isinstance(m.content, ImageBlock):
+                    tool_content: Any = [{
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": m.content.media_type,
+                            "data": m.content.data,
+                        },
+                    }]
+                elif isinstance(m.content, list):
+                    tool_content = []
+                    for b in m.content:
+                        if isinstance(b, TextBlock):
+                            tool_content.append({"type": "text", "text": b.text})
+                        elif isinstance(b, ImageBlock):
+                            tool_content.append({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": b.media_type,
+                                    "data": b.data,
+                                },
+                            })
+                        elif isinstance(b, dict):
+                            tool_content.append(b)
+                        else:
+                            tool_content.append({"type": "text", "text": str(b)})
+                else:
+                    tool_content = m.content or ""
+
                 out.append({
                     "role": "user",
                     "content": [{
                         "type": "tool_result",
                         "tool_use_id": m.tool_call_id,
-                        "content": m.content or "",
+                        "content": tool_content,
                     }],
                 })
             elif m.role == "assistant" and m.tool_calls:

@@ -17,8 +17,8 @@ class MemoryCheckpointStore:
     def __init__(self) -> None:
         # run_id -> list of Events
         self.events: Dict[str, List[tuple[int, Event]]] = {}
-        # run_id -> latest Checkpoint
-        self.checkpoints: Dict[str, Checkpoint] = {}
+        # run_id -> list of Checkpoints
+        self.checkpoints: Dict[str, List[Checkpoint]] = {}
         self._seq = 0
 
     async def append_event(self, event: Event) -> int:
@@ -39,10 +39,18 @@ class MemoryCheckpointStore:
 
     async def save(self, checkpoint: Checkpoint) -> None:
         # We deepcopy to avoid mutating saved state inadvertently
-        self.checkpoints[checkpoint.run_id] = copy.deepcopy(checkpoint)
+        run_checkpoints = self.checkpoints.setdefault(checkpoint.run_id, [])
+        run_checkpoints.append(copy.deepcopy(checkpoint))
 
     async def latest(self, run_id: str) -> Checkpoint | None:
-        ckpt = self.checkpoints.get(run_id)
-        if ckpt:
-            return copy.deepcopy(ckpt)
+        ckpts = self.checkpoints.get(run_id)
+        if ckpts:
+            return copy.deepcopy(ckpts[-1])
+        return None
+
+    async def checkpoint_at_or_before(self, run_id: str, max_seq: int) -> Checkpoint | None:
+        ckpts = self.checkpoints.get(run_id, [])
+        for ckpt in reversed(ckpts):
+            if ckpt.event_seq <= max_seq:
+                return copy.deepcopy(ckpt)
         return None

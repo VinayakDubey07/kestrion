@@ -11,6 +11,7 @@ import os
 import shutil
 import tempfile
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -95,7 +96,8 @@ class CodeSandboxToolkit:
         Execute Python code in the isolated sandbox workspace.
         Captures stdout and stderr, enforces execution timeout, and isolates sensitive environment secrets.
         """
-        script_path = self.workspace_dir / "_exec_script.py"
+        script_filename = f"_exec_{uuid.uuid4().hex[:8]}.py"
+        script_path = self.workspace_dir / script_filename
         try:
             script_path.write_text(code, encoding="utf-8")
         except Exception as e:
@@ -112,7 +114,7 @@ class CodeSandboxToolkit:
                 "-w", "/workspace",
                 "--network", "none",
                 "python:3.11-slim",
-                "python", "_exec_script.py"
+                "python", script_filename,
             ]
             env = None
         else:

@@ -49,9 +49,12 @@ class OllamaProvider:
         if system:
             out.append({"role": "system", "content": system})
         for m in messages:
+            if m.role == "system" and system:
+                continue
             if m.role == "tool":
                 # Ollama's chat API expects tool results as role="tool" content.
-                out.append({"role": "tool", "content": m.content or ""})
+                content_str = m.content if isinstance(m.content, str) else str(m.content or "")
+                out.append({"role": "tool", "content": content_str})
             elif m.role == "assistant" and m.tool_calls:
                 content = ""
                 if isinstance(m.content, str):

@@ -83,6 +83,11 @@ class RateLimiter:
             Estimated output tokens for this request (used for TPM bucket).
             If you don't know yet, pass 1 — the bucket is approximate anyway.
         """
+        effective_tokens = (
+            min(tokens, self._config.tokens_per_minute)
+            if self._config.tokens_per_minute is not None
+            else tokens
+        )
         while True:
             async with self._lock:
                 now = time.monotonic()
@@ -95,14 +100,14 @@ class RateLimiter:
                     pass
                 else:
                     self._refill(now)
-                    if self._req_tokens >= 1.0 and self._tok_tokens >= tokens:
+                    if self._req_tokens >= 1.0 and self._tok_tokens >= effective_tokens:
                         self._req_tokens -= 1.0
-                        self._tok_tokens = max(0.0, self._tok_tokens - tokens)
+                        self._tok_tokens = max(0.0, self._tok_tokens - effective_tokens)
                         return  # acquired — proceed
                     remaining_backoff = 0.0  # bucket empty, not a 429 backoff
 
             # Sleep outside the lock (either backoff or bucket empty)
-            wait = remaining_backoff if remaining_backoff > 0 else self._refill_delay(tokens)
+            wait = remaining_backoff if remaining_backoff > 0 else self._refill_delay(effective_tokens)
             logger.debug("Rate limiter waiting %.2fs", wait)
             await asyncio.sleep(wait)
 
@@ -162,7 +167,7 @@ class RateLimiter:
                 self._tok_tokens + elapsed * self._config.tokens_per_minute / 60.0,
             )
 
-    def _refill_delay(self, tokens_needed: int) -> float:
+    def _refill_delay(self, tokens_needed: int | float) -> float:
         """
         How long (seconds) until the bucket will have enough capacity for
         this request, given the current refill rate.
@@ -171,7 +176,12 @@ class RateLimiter:
         if self._config.requests_per_minute is not None and self._req_tokens < 1.0:
             deficit = 1.0 - self._req_tokens
             delays.append(deficit / (self._config.requests_per_minute / 60.0))
-        if self._config.tokens_per_minute is not None and self._tok_tokens < tokens_needed:
-            deficit = tokens_needed - self._tok_tokens
+        effective_needed = (
+            min(tokens_needed, self._config.tokens_per_minute)
+            if self._config.tokens_per_minute is not None
+            else tokens_needed
+        )
+        if self._config.tokens_per_minute is not None and self._tok_tokens < effective_needed:
+            deficit = effective_needed - self._tok_tokens
             delays.append(deficit / (self._config.tokens_per_minute / 60.0))
         return max(delays) if delays else 0.05  # minimum poll interval

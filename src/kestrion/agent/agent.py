@@ -65,13 +65,24 @@ def _message_from_dict(d: dict) -> Message:
     if isinstance(raw_content, list):
         content: list[ContentBlock] = []
         for block in raw_content:
-            if block.get("type") == "text":
-                content.append(TextBlock(text=block.get("text", "")))
-            elif block.get("type") == "image":
-                content.append(ImageBlock(data=block.get("data", ""), media_type=block.get("media_type", "image/jpeg")))
+            if isinstance(block, ContentBlock):
+                content.append(block)
+            elif isinstance(block, dict):
+                if block.get("type") == "text":
+                    content.append(TextBlock(text=block.get("text", "")))
+                elif block.get("type") == "image":
+                    content.append(ImageBlock(data=block.get("data", ""), media_type=block.get("media_type", "image/jpeg")))
+                else:
+                    content.append(TextBlock(text=str(block)))
             else:
-                # Fallback for unknown block types
                 content.append(TextBlock(text=str(block)))
+    elif isinstance(raw_content, dict):
+        if raw_content.get("type") == "image":
+            content = [ImageBlock(data=raw_content.get("data", ""), media_type=raw_content.get("media_type", "image/jpeg"))]
+        else:
+            content = [TextBlock(text=str(raw_content))]
+    elif isinstance(raw_content, ContentBlock):
+        content = [raw_content]
     else:
         content = raw_content  # type: ignore[assignment]
 
@@ -235,6 +246,7 @@ class _AgentLoopNode:
             call_kwargs_list = []
             for call in response.tool_calls:
                 kwargs = dict(call.arguments)
+                kwargs["_tool_call_id"] = call.id
                 if isinstance(agent._tools.get(call.name), HandoffTool):
                     # HandoffTool needs the CALLER's full conversation,
                     # not whatever arguments the model happened to pass —
@@ -270,8 +282,14 @@ class _AgentLoopNode:
                 )
 
             for call, result in zip(response.tool_calls, results):
+                if isinstance(result.output, ContentBlock):
+                    tool_content: str | list[ContentBlock] = [result.output]
+                elif isinstance(result.output, list):
+                    tool_content = result.output
+                else:
+                    tool_content = str(result.output)
                 messages.append(
-                    Message(role="tool", tool_call_id=call.id, content=str(result.output))
+                    Message(role="tool", tool_call_id=call.id, content=tool_content)
                 )
 
             # Persist progress before looping again, so a crash mid-loop

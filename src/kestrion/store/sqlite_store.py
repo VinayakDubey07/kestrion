@@ -169,3 +169,23 @@ class SQLiteCheckpointStore:
             created_at=datetime.fromisoformat(row[1]),
             event_seq=row[2],
         )
+
+    async def checkpoint_at_or_before(self, run_id: str, max_seq: int) -> Checkpoint | None:
+        with contextlib.closing(sqlite3.connect(self.path)) as conn:
+            row = conn.execute(
+                "SELECT checkpoint_id, created_at, event_seq, state_blob "
+                "FROM checkpoints WHERE run_id = ? AND event_seq <= ? ORDER BY event_seq DESC LIMIT 1",
+                (run_id, max_seq),
+            ).fetchone()
+        if row is None:
+            return None
+        from datetime import datetime
+
+        return Checkpoint(
+            checkpoint_id=row[0],
+            run_id=run_id,
+            state=AgentState.from_dict(json.loads(row[3])),
+            created_at=datetime.fromisoformat(row[1]),
+            event_seq=row[2],
+        )
+

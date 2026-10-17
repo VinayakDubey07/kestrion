@@ -202,6 +202,31 @@ class PostgresCheckpointStore:
                 run_id,
             )
             
+            state_dict = json.loads(row["state_blob"]) if isinstance(row["state_blob"], str) else row["state_blob"]
+            
+            return Checkpoint(
+                checkpoint_id=row["checkpoint_id"],
+                run_id=run_id,
+                state=AgentState.from_dict(state_dict),
+                created_at=row["created_at"],
+                event_seq=row["event_seq"],
+            )
+
+    async def checkpoint_at_or_before(self, run_id: str, max_seq: int) -> Checkpoint | None:
+        pool = self._get_pool()
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT checkpoint_id, created_at, event_seq, state_blob
+                FROM checkpoints 
+                WHERE run_id = $1 AND event_seq <= $2
+                ORDER BY event_seq DESC 
+                LIMIT 1
+                """,
+                run_id,
+                max_seq,
+            )
+            
             if row is None:
                 return None
                 
