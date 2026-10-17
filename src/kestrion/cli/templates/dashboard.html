@@ -66,14 +66,56 @@
       display: flex; align-items: center; gap: 6px;
       font-size: 11px; font-weight: 600; color: var(--green);
       font-family: var(--font-mono);
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--surface-2); border: 1px solid var(--rule-soft);
+      transition: all 0.2s ease;
+    }
+    .live-indicator.poll-live {
+      color: var(--warn);
+      background: #fefce8;
+      border-color: #fef08a;
     }
     .live-dot {
       width: 8px; height: 8px; border-radius: 50%; background: var(--green);
       animation: pulse 2s ease-in-out infinite;
     }
+    .live-dot.warn {
+      background: var(--warn);
+      animation: none;
+    }
     @keyframes pulse {
       0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
       50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+    }
+
+    .graph-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .graph-title-group {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .graph-title {
+      font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px;
+    }
+    .graph-hint {
+      font-size: 12px; color: var(--text-dim);
+    }
+    .graph-actions {
+      display: flex; gap: 8px; align-items: center;
+    }
+    .mermaid-node-interactive {
+      cursor: pointer !important;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    .mermaid-node-interactive:hover {
+      filter: brightness(0.92) contrast(1.1);
+    }
+    .timeline-filter-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-3); border: 1px solid var(--accent);
+      padding: 8px 14px; border-radius: 6px; font-size: 12px; font-family: var(--font-mono);
+      margin-bottom: 16px;
     }
 
     .kbd-hint {
@@ -442,7 +484,7 @@
       </svg>
     </div>
     <div class="header-actions">
-      <div class="live-indicator"><div class="live-dot"></div>LIVE</div>
+      <div class="live-indicator" id="live-indicator" title="Connecting to live stream..."><div class="live-dot" id="live-dot"></div><span id="live-text">CONNECTING</span></div>
       <button onclick="loadRuns()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         Refresh
@@ -566,8 +608,27 @@
         <div class="timeline" id="timeline"></div>
       </div>
       <div class="timeline-container" id="graph-container" style="display: none; padding: 24px;">
-        <div style="background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 20px; display: flex; justify-content: center; overflow: auto; min-height: 400px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-          <div id="mermaid-graph" class="mermaid" style="width: 100%; display: flex; justify-content: center; align-items: center;"></div>
+        <div class="graph-toolbar">
+          <div class="graph-title-group">
+            <div class="graph-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="18" r="3"></circle><path d="M6 9v12m12-9V3m0 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+              Execution DAG & State Transitions
+            </div>
+            <div class="graph-hint">Interactive execution flow · Click any node to inspect events in the timeline</div>
+          </div>
+          <div class="graph-actions">
+            <button onclick="copyMermaidMarkdown()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Mermaid
+            </button>
+            <button onclick="downloadGraphSvg()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export SVG
+            </button>
+          </div>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 24px; display: flex; justify-content: center; overflow: auto; min-height: 440px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+          <div id="mermaid-graph" style="width: 100%; display: flex; justify-content: center; align-items: center;"></div>
         </div>
       </div>
     </div>
@@ -756,6 +817,7 @@
     function selectRun(runId) {
       if (currentRunId === runId) return;
       currentRunId = runId;
+      timelineNodeFilter = null;
       renderRunsList(); // re-render to update active state
 
       document.getElementById('empty-state').style.display = 'none';
@@ -826,7 +888,7 @@
         const eventsRes = await fetch(`/api/runs/${runId}/events`);
         currentEvents = await eventsRes.json();
         document.getElementById('detail-events').innerText = currentEvents.length;
-        renderTimeline(currentEvents);
+        renderTimeline(currentEvents, timelineNodeFilter);
 
         // Chat
         const messages = (state.scratch && state.scratch._messages) ? state.scratch._messages : [];
@@ -875,14 +937,17 @@
       }
     }
 
+    let currentMermaidSource = '';
+    let timelineNodeFilter = null;
+
     function renderMermaidGraph() {
       const container = document.getElementById('mermaid-graph');
       if (!container) return;
       container.innerHTML = '';
-      container.removeAttribute('data-processed');
       
       if (!currentEvents || currentEvents.length === 0) {
         container.innerHTML = '<div style="text-align:center; color: var(--text-dim); padding: 40px; font-size: 13px;">No events to graph.</div>';
+        currentMermaidSource = '';
         return;
       }
       
@@ -975,7 +1040,7 @@
         if (nId === 'START') {
           diagramText += '    START([START])\n';
         } else {
-          diagramText += `    ${nId}["${label = nodeLabels[nId]}"]\n`;
+          diagramText += `    ${nId}["${nodeLabels[nId]}"]\n`;
         }
       });
       
@@ -998,16 +1063,85 @@
 
       diagramText += '    style START fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff\n';
       
-      container.textContent = diagramText;
+      if (lastActiveNode && lastActiveNode !== 'START' && !hasEnd && !hasFailed) {
+        diagramText += `    style ${lastActiveNode} fill:#e0f2fe,stroke:#0284c7,stroke-width:3px,color:#0369a1\n`;
+      }
       
-      try {
-        mermaid.run({
-          nodes: [container]
-        });
-      } catch (err) {
+      currentMermaidSource = diagramText;
+
+      const renderId = 'mermaid-render-' + Date.now();
+      mermaid.render(renderId, diagramText).then(({ svg }) => {
+        container.innerHTML = svg;
+        makeDiagramInteractive(container);
+      }).catch(err => {
         console.error('Mermaid render error:', err);
         container.innerHTML = `<div style="color: var(--red); padding: 20px;">Mermaid rendering error: ${err}</div>`;
+      });
+    }
+
+    function makeDiagramInteractive(container) {
+      const nodes = container.querySelectorAll('.node');
+      nodes.forEach(nodeEl => {
+        nodeEl.classList.add('mermaid-node-interactive');
+        nodeEl.setAttribute('title', 'Click to filter timeline events for this node');
+        nodeEl.addEventListener('click', () => {
+          const text = (nodeEl.textContent || '').trim();
+          let filterTerm = text;
+          if (filterTerm.startsWith('Node: ')) filterTerm = filterTerm.replace('Node: ', '').trim();
+          else if (filterTerm.startsWith('Tool: ')) filterTerm = filterTerm.replace('Tool: ', '').trim();
+          else if (filterTerm.startsWith('Human Gate: ')) filterTerm = filterTerm.replace('Human Gate: ', '').trim();
+          else if (filterTerm === 'START' || filterTerm === 'END' || filterTerm === 'FAILED') filterTerm = null;
+
+          if (filterTerm) {
+            setTimelineFilter(filterTerm);
+            switchTab('timeline');
+          }
+        });
+      });
+    }
+
+    function setTimelineFilter(nodeName) {
+      timelineNodeFilter = nodeName;
+      if (currentEvents) {
+        renderTimeline(currentEvents, timelineNodeFilter);
       }
+    }
+
+    function clearTimelineFilter() {
+      timelineNodeFilter = null;
+      if (currentEvents) {
+        renderTimeline(currentEvents, null);
+      }
+    }
+
+    function copyMermaidMarkdown() {
+      if (!currentMermaidSource) {
+        alert('No diagram to copy.');
+        return;
+      }
+      navigator.clipboard.writeText(currentMermaidSource).then(() => {
+        alert('Mermaid diagram syntax copied to clipboard!');
+      }).catch(() => {
+        prompt('Copy Mermaid syntax:', currentMermaidSource);
+      });
+    }
+
+    function downloadGraphSvg() {
+      const svgEl = document.querySelector('#mermaid-graph svg');
+      if (!svgEl) {
+        alert('No SVG available to download.');
+        return;
+      }
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kestrion_trace_${currentRunId || 'run'}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     // ── Chat rendering ────────────────────────────────────────────────
@@ -1040,11 +1174,40 @@
     }
 
     // ── Timeline rendering ────────────────────────────────────────────
-    function renderTimeline(events) {
+    function renderTimeline(events, filterNode = null) {
       const timeline = document.getElementById('timeline');
       timeline.innerHTML = '';
 
-      events.forEach((evt) => {
+      if (filterNode) {
+        const filterBanner = document.createElement('div');
+        filterBanner.className = 'timeline-filter-banner';
+        filterBanner.innerHTML = `
+          <span>Showing events for: <strong>${escapeHTML(filterNode)}</strong></span>
+          <button style="padding: 3px 8px; font-size: 11px;" onclick="clearTimelineFilter()">Clear Filter</button>
+        `;
+        timeline.appendChild(filterBanner);
+      }
+
+      const displayedEvents = filterNode
+        ? events.filter(e => {
+            const nodeMatch = (e.node || '').toLowerCase().includes(filterNode.toLowerCase());
+            const toolMatch = e.payload && e.payload.tool && e.payload.tool.toLowerCase().includes(filterNode.toLowerCase());
+            const typeMatch = (e.type || '').toLowerCase().includes(filterNode.toLowerCase());
+            return nodeMatch || toolMatch || typeMatch;
+          })
+        : events;
+
+      if (displayedEvents.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.textAlign = 'center';
+        empty.style.padding = '40px';
+        empty.style.color = 'var(--text-dim)';
+        empty.innerText = filterNode ? `No events match "${filterNode}".` : 'No events recorded.';
+        timeline.appendChild(empty);
+        return;
+      }
+
+      displayedEvents.forEach((evt) => {
         const item = document.createElement('div');
 
         let typeClass = '';
@@ -1408,9 +1571,118 @@
       );
     }
 
+    // ── WebSocket Live Streaming ──────────────────────────────────────
+    let socket = null;
+    let wsReconnectTimer = null;
+    let pollInterval = null;
+
+    async function initWebSocket() {
+      try {
+        const res = await fetch('/api/ws_info');
+        if (!res.ok) {
+          fallbackToPolling();
+          return;
+        }
+        const info = await res.json();
+        if (!info.enabled || !info.ws_port) {
+          fallbackToPolling();
+          return;
+        }
+
+        const wsHost = window.location.hostname || 'localhost';
+        const wsUrl = `ws://${wsHost}:${info.ws_port}`;
+        connectWebSocket(wsUrl);
+      } catch (err) {
+        console.warn('Failed to get ws_info, using polling:', err);
+        fallbackToPolling();
+      }
+    }
+
+    function updateLiveIndicator(isLive, isWs) {
+      const ind = document.getElementById('live-indicator');
+      const dot = document.getElementById('live-dot');
+      const txt = document.getElementById('live-text');
+      if (!ind || !dot || !txt) return;
+
+      if (isWs) {
+        ind.className = 'live-indicator';
+        dot.className = 'live-dot';
+        dot.style.background = 'var(--green)';
+        txt.innerText = 'LIVE (WS)';
+        ind.title = 'Real-time WebSocket streaming connected';
+      } else {
+        ind.className = 'live-indicator poll-live';
+        dot.className = 'live-dot warn';
+        dot.style.background = 'var(--warn)';
+        txt.innerText = 'POLLING (HTTP)';
+        ind.title = 'Streaming disconnected - falling back to HTTP polling';
+      }
+    }
+
+    function fallbackToPolling() {
+      updateLiveIndicator(false, false);
+      if (!pollInterval) {
+        pollInterval = setInterval(loadRuns, 4000);
+      }
+    }
+
+    function connectWebSocket(wsUrl) {
+      if (socket) {
+        try { socket.close(); } catch (_) {}
+      }
+
+      try {
+        socket = new WebSocket(wsUrl);
+      } catch (err) {
+        fallbackToPolling();
+        return;
+      }
+
+      socket.onopen = () => {
+        updateLiveIndicator(true, true);
+        if (pollInterval) {
+          clearInterval(pollInterval);
+          pollInterval = null;
+        }
+        // Heartbeat analytics sync
+        pollInterval = setInterval(() => {
+          loadAnalytics();
+        }, 30000);
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'event') {
+            const evt = msg.data;
+            if (currentRunId && evt.run_id === currentRunId) {
+              loadRunDetails(currentRunId);
+            }
+            loadRuns();
+          } else if (msg.type === 'runs_updated') {
+            loadRuns();
+          }
+        } catch (e) {
+          console.error('Error handling WS message:', e);
+        }
+      };
+
+      socket.onerror = () => {
+        fallbackToPolling();
+      };
+
+      socket.onclose = () => {
+        fallbackToPolling();
+        clearTimeout(wsReconnectTimer);
+        wsReconnectTimer = setTimeout(() => {
+          initWebSocket();
+        }, 3000);
+      };
+    }
+
     // ── Init ──────────────────────────────────────────────────────────
     loadRuns();
-    setInterval(loadRuns, 5000);
+    initWebSocket();
   </script>
 </body>
 </html>

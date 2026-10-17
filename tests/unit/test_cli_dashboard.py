@@ -149,11 +149,65 @@ def test_dashboard_api(temp_db_with_run):
             data = json.loads(res.read().decode())
             assert data["success"] is True
             
-        # Verify run is deleted
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/runs") as res:
+        # Test /api/ws_info
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/ws_info") as res:
             assert res.status == 200
             data = json.loads(res.read().decode())
-            assert len(data) == 0
+            assert "enabled" in data
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_dashboard_ws_broadcaster(temp_db_with_run):
+    db_path, run_id = temp_db_with_run
+
+    from kestrion.cli.dashboard import DashboardBroadcaster, DashboardHTTPHandler
+    from websockets.asyncio.client import connect
+
+    broadcaster = DashboardBroadcaster(db_path=db_path, host="127.0.0.1", port=0)
+    # Pick free port for ws
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        ws_port = s.getsockname()[1]
+
+    broadcaster.port = ws_port
+    started = broadcaster.start(timeout=3.0)
+    assert started is True
+
+    DashboardHTTPHandler.ws_info = {
+        "enabled": True,
+        "ws_port": ws_port,
+        "ws_url": f"ws://127.0.0.1:{ws_port}",
+    }
+
+    async def client_receive():
+        async with connect(f"ws://127.0.0.1:{ws_port}") as ws:
+            m1 = await asyncio.wait_for(ws.recv(), timeout=2.0)
+            data1 = json.loads(m1)
+            assert data1["type"] == "connected"
+
+            # Add a new event to db
+            store = SQLiteCheckpointStore(path=db_path)
+            evt = Event.create(run_id=run_id, type=EventType.TOOL_CALL_STARTED, payload={"tool": "calculator", "args": {"a": 1}})
+            await store.append_event(evt)
+
+            # Broadcaster should poll and broadcast
+            received_event = False
+            for _ in range(5):
+                m = await asyncio.wait_for(ws.recv(), timeout=3.0)
+                data = json.loads(m)
+                if data.get("type") == "event":
+                    assert data["data"]["run_id"] == run_id
+                    assert data["data"]["type"] == "tool_call_started"
+                    assert data["data"]["payload"]["tool"] == "calculator"
+                    received_event = True
+                    break
+            assert received_event is True
+
+    try:
+        asyncio.run(client_receive())
+    finally:
+        broadcaster.stop()
+

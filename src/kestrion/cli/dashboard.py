@@ -1,6 +1,7 @@
 import json
 import sqlite3
 import asyncio
+import threading
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
@@ -8,9 +9,20 @@ from urllib.parse import urlparse
 from kestrion.core.engine import Engine
 from kestrion.store.sqlite_store import SQLiteCheckpointStore
 
+try:
+    from websockets.asyncio.server import serve as ws_serve, broadcast
+except ImportError:
+    try:
+        from websockets.server import serve as ws_serve
+        broadcast = None
+    except ImportError:
+        ws_serve = None
+        broadcast = None
+
 
 class DashboardHTTPHandler(BaseHTTPRequestHandler):
     db_path = "kestrion_runs.db"
+    ws_info = {"enabled": False, "ws_port": None, "ws_url": None}
 
     def log_message(self, format, *args):
         # Silence standard HTTP logs to keep CLI output clean
@@ -23,6 +35,11 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         # Static files
         if path in ("/", "/index.html"):
             self.serve_static_file("dashboard.html", "text/html")
+            return
+
+        # API: WebSocket connection information
+        if path == "/api/ws_info":
+            self.send_json(getattr(DashboardHTTPHandler, "ws_info", {"enabled": False}))
             return
 
         # API: analytics overview
@@ -502,6 +519,156 @@ class DashboardHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
 
+class DashboardBroadcaster:
+    """Background WebSocket server that broadcasts live events and run updates to web dashboard."""
+
+    def __init__(self, db_path: str, host: str, port: int):
+        self.db_path = db_path
+        self.host = host
+        self.port = port
+        self.clients: set = set()
+        self.stop_event = threading.Event()
+        self.ready_event = threading.Event()
+        self.thread: threading.Thread | None = None
+        self.loop: asyncio.AbstractEventLoop | None = None
+        self.server = None
+        self.start_error: Exception | None = None
+
+    def start(self, timeout: float = 2.0) -> bool:
+        if ws_serve is None:
+            return False
+        self.thread = threading.Thread(target=self._run, daemon=True, name="kestrion-ws-broadcaster")
+        self.thread.start()
+        if self.ready_event.wait(timeout=timeout):
+            return self.start_error is None
+        return False
+
+    def stop(self) -> None:
+        self.stop_event.set()
+        if self.loop and self.server:
+            try:
+                self.loop.call_soon_threadsafe(self.server.close)
+            except Exception:
+                pass
+
+    def _run(self) -> None:
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        try:
+            self.loop.run_until_complete(self._main())
+        except Exception as exc:
+            self.start_error = exc
+            self.ready_event.set()
+        finally:
+            try:
+                self.loop.close()
+            except Exception:
+                pass
+
+    async def _handler(self, websocket):
+        self.clients.add(websocket)
+        try:
+            await websocket.send(json.dumps({
+                "type": "connected",
+                "message": "Kestrion live WebSocket stream active"
+            }))
+            async for _ in websocket:
+                pass
+        except Exception:
+            pass
+        finally:
+            self.clients.discard(websocket)
+
+    async def _poll_and_broadcast(self):
+        last_rowid = 0
+        try:
+            conn = sqlite3.connect(self.db_path)
+            r = conn.execute("SELECT MAX(rowid) FROM events").fetchone()
+            if r and r[0] is not None:
+                last_rowid = r[0]
+            conn.close()
+        except Exception:
+            pass
+
+        while not self.stop_event.is_set():
+            await asyncio.sleep(0.3)
+            if not self.clients:
+                try:
+                    conn = sqlite3.connect(self.db_path)
+                    r = conn.execute("SELECT MAX(rowid) FROM events").fetchone()
+                    if r and r[0] is not None:
+                        last_rowid = r[0]
+                    conn.close()
+                except Exception:
+                    pass
+                continue
+
+            try:
+                conn = sqlite3.connect(self.db_path)
+                rows = conn.execute(
+                    "SELECT rowid, run_id, seq, event_id, type, timestamp, node, payload, tokens_in, tokens_out, cost_usd "
+                    "FROM events WHERE rowid > ? ORDER BY rowid ASC LIMIT 100",
+                    (last_rowid,)
+                ).fetchall()
+                conn.close()
+
+                if rows:
+                    for r in rows:
+                        last_rowid = max(last_rowid, r[0])
+                        payload_data = {}
+                        try:
+                            payload_data = json.loads(r[7]) if r[7] else {}
+                        except Exception:
+                            payload_data = {}
+
+                        event_msg = json.dumps({
+                            "type": "event",
+                            "data": {
+                                "run_id": r[1],
+                                "seq": r[2],
+                                "event_id": r[3],
+                                "type": r[4],
+                                "timestamp": r[5],
+                                "node": r[6],
+                                "payload": payload_data,
+                                "tokens_in": r[8],
+                                "tokens_out": r[9],
+                                "cost_usd": r[10]
+                            }
+                        })
+                        await self._send_to_all(event_msg)
+
+                    await self._send_to_all(json.dumps({"type": "runs_updated"}))
+            except Exception:
+                pass
+
+    async def _send_to_all(self, msg_str: str):
+        if not self.clients:
+            return
+        if broadcast is not None:
+            try:
+                broadcast(self.clients, msg_str)
+                return
+            except Exception:
+                pass
+        for ws in list(self.clients):
+            try:
+                await ws.send(msg_str)
+            except Exception:
+                self.clients.discard(ws)
+
+    async def _main(self):
+        try:
+            async with ws_serve(self._handler, self.host, self.port) as server:
+                self.server = server
+                self.ready_event.set()
+                await self._poll_and_broadcast()
+        except Exception as exc:
+            self.start_error = exc
+            self.ready_event.set()
+            raise
+
+
 def start_dashboard(db_path: str, host: str, port: int, script: str | None = None) -> None:
     # Ensure the database tables exist
     _ = SQLiteCheckpointStore(path=db_path)
@@ -537,6 +704,31 @@ def start_dashboard(db_path: str, host: str, port: int, script: str | None = Non
                     
     DashboardHTTPHandler.agent = agent # type: ignore
 
+    # Attempt to start WebSocket live streaming broadcaster
+    broadcaster = None
+    ws_port = None
+    if ws_serve is not None:
+        for candidate_port in range(port + 1, port + 10):
+            b = DashboardBroadcaster(db_path=db_path, host=host, port=candidate_port)
+            if b.start():
+                broadcaster = b
+                ws_port = candidate_port
+                break
+
+    if broadcaster and ws_port:
+        DashboardHTTPHandler.ws_info = {
+            "enabled": True,
+            "ws_port": ws_port,
+            "ws_url": f"ws://{host}:{ws_port}"
+        }
+        print(f"WebSocket live streaming enabled on ws://{host}:{ws_port}")
+    else:
+        DashboardHTTPHandler.ws_info = {
+            "enabled": False,
+            "ws_port": None,
+            "ws_url": None
+        }
+
     server = HTTPServer((host, port), DashboardHTTPHandler)
     print(f"Kestrion Console running at http://{host}:{port}")
     print(f"Reading database: {db_path}")
@@ -545,4 +737,8 @@ def start_dashboard(db_path: str, host: str, port: int, script: str | None = Non
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopping console server...")
+    finally:
         server.server_close()
+        if broadcaster:
+            broadcaster.stop()
+
