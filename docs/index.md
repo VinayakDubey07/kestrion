@@ -40,8 +40,8 @@ Code, not just prose:
   timeouts, secrets, retries.
 - [`examples/mcp_server.py`](../examples/mcp_server.py) — a worked example exposing a Kestrion
   agent as an MCP server over stdio.
-- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising twenty-three agentic
-  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction, human input, secrets, custom context windows, OTel tracing, Code Sandbox, Structured Outputs, RAG, Data Loss Prevention, Episodic Memory, OS Desktop Automation, WebSockets, and Multi-Verse Execution)
+- [`examples/ops_demo`](../examples/ops_demo) — an integration demo exercising twenty-five agentic
+  features together (parallel tool calls, sub-agents, approval chains, timeouts, handoff, memory compaction, human input, secrets, custom context windows, OTel tracing, Code Sandbox, Structured Outputs, RAG, Data Loss Prevention, Episodic Memory, OS Desktop Automation, WebSockets, Multi-Verse Execution, Pydantic Tool Schemas, and Live Trace DAG Dashboard)
   against a real local model.
 - [`examples/rag_demo.py`](../examples/rag_demo.py) — an end-to-end example of initializing an in-memory vector store, chunking internal documentation, and using the `RAGToolkit` with an agent.
 - [`examples/ask_input_demo.py`](../examples/ask_input_demo.py) — interactive demo of the

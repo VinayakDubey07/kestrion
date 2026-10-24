@@ -28,6 +28,20 @@ def get_weather(city: str) -> dict:
 
 That's it — no schema to write by hand, no registration step.
 
+You can also pass strongly-typed **Pydantic models** directly:
+```python
+from pydantic import BaseModel, Field
+
+class WeatherQuery(BaseModel):
+    city: str = Field(description="Name of the city")
+    days: int = Field(default=1, ge=1, le=7, description="Forecast days")
+
+@tool
+def get_forecast(query: WeatherQuery) -> dict:
+    """Look up detailed forecast using a Pydantic model."""
+    return {"city": query.city, "forecast": [f"Day {i}: Sunny" for i in range(query.days)]}
+```
+
 ## Your first agent
 
 `Agent` wraps a model provider and a list of tools into something you can run with a single

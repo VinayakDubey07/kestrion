@@ -9,9 +9,9 @@ A durable-execution-first framework for building production AI agents.
 [![PyPI Downloads](https://img.shields.io/pypi/dm/kestrion.svg)](https://pypi.org/project/kestrion/)
 
 Status: **v0.7.1 — actively developed**. Published on PyPI. Core engine, the `Agent`/`@tool` decorator API,
-three LLM providers, a live-verified MCP client and server, a CLI, **twenty-three** agentic features
+three LLM providers, a live-verified MCP client and server, a CLI, **twenty-five** agentic features
 (vision/multi-modal support, multi-step approval chains, time-boxed approvals, parallel tool calls, sub-agents, multi-agent
-handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, Data Loss Prevention / PII Redaction, Cross-Run Episodic Memory, Computer-Use Desktop Automation, Real-Time Streaming Server, and **Multi-Verse Execution**), and a **DAG-based async scheduler** for multi-agent
+handoff, memory/context compaction, human-in-the-loop input, enterprise secret management, advanced context window management, swarm routing via supervisor nodes, dynamic tool discovery, visual playground builder, browser automation, Vercel Generative UI, secure code sandboxing, JSON mode / structured outputs, Retrieval-Augmented Generation / RAG, Data Loss Prevention / PII Redaction, Cross-Run Episodic Memory, Computer-Use Desktop Automation, Real-Time Streaming Server, **Multi-Verse Execution**, **First-Class Pydantic Tool Schemas**, and **Live WebSocket Dashboard with Interactive Trace DAG**), and a **DAG-based async scheduler** for multi-agent
 orchestration are built and tested. **Horizontally scalable, multi-worker Postgres support** and rate-limited scheduler are built.
 
 | Feature | Status | Proof |
@@ -21,10 +21,13 @@ orchestration are built and tested. **Horizontally scalable, multi-worker Postgr
 | Horizontal Scale (Multi-worker) | Proven | `postgres_store.py` + DAG Scheduler |
 | Security (Secret injection) | Proven | `SecretProvider` protocol |
 | Vision / Multi-modal Support | Proven | Native `TextBlock` / `ImageBlock` |
-| OpenTelemetry / Observability | Proven | `OpenTelemetryProvider` |
+| OpenTelemetry & GenAI Semantics | Proven | `OpenTelemetryProvider` (OTel GenAI conventions) |
+| Structured JSON Logging | Proven | `kestrion.observability` (NDJSON for Datadog/Splunk) |
 | Swarm Routing (Supervision) | Proven | `SupervisorNode` |
 | Dynamic Tool Discovery | Proven | `ToolRegistry` and `find_and_load_tool` |
 | Interactive Visual Builder | Proven | `kestrion dashboard` -> `/playground` |
+| Live WebSocket Trace DAG | Proven | `kestrion dashboard` (real-time SVG/DOM DAG) |
+| Pydantic Tool Schemas | Proven | Native `BaseModel` parameters in `@tool` |
 | Browser Automation Agent | Proven | `BrowserToolkit` with Playwright (`kestrion[browser]`) |
 | Generative UI Streaming | Proven | `kestrion.adapters.vercel.stream_to_vercel` |
 | Secure Code Sandbox | Proven | `CodeSandboxToolkit` |
@@ -206,6 +209,33 @@ caught and turned into a clean `ToolResult.error` rather than crashing the run, 
 other tool. What's **not** automatic: timeouts, retries, and secrets handling are on you to write
 explicitly. See [`examples/rest_api_tool`](examples/rest_api_tool) for the patterns that matter in
 practice. SOAP follows the identical shape with `zeep` instead of `httpx`.
+
+### First-class Pydantic model schemas for tools
+
+Tools can accept strongly-typed Pydantic `BaseModel` instances directly as arguments. Kestrion automatically extracts the nested JSON schema, exposes field descriptions and validation constraints to the model provider, and parses incoming JSON payloads directly into validated model instances:
+
+```python
+from pydantic import BaseModel, Field
+from kestrion.agent.decorators import tool
+
+class ClusterScaleRequest(BaseModel):
+    service_name: str = Field(description="Name of the deployment/service to scale")
+    target_replicas: int = Field(ge=1, le=20, description="Target number of pods (1-20)")
+    canary: bool = Field(default=False, description="Whether to scale as canary rollout")
+
+@tool(requires_approval=True)
+def scale_service(request: ClusterScaleRequest) -> dict:
+    """Scale a microservice deployment with strict validation rules."""
+    # request is automatically validated and injected as ClusterScaleRequest
+    return {
+        "status": "scaled",
+        "service": request.service_name,
+        "replicas": request.target_replicas,
+        "canary": request.canary,
+    }
+```
+
+If an LLM produces arguments failing Pydantic validation (e.g. `target_replicas=50`), `@tool` returns a clean `ToolResult.error` with the validation error message back to the LLM so it can correct its call automatically.
 
 ### Multi-step approval chains
 
@@ -453,6 +483,50 @@ kestrion dashboard agent.py --port 8000
 Deployment, PersistentVolumeClaim, Service) and a `Dockerfile`. It never puts a real API key
 in the output — only a clearly-labelled placeholder. See the generated files' inline comments
 for what to fill in before `kubectl apply`.
+
+## Live Trace DAG Dashboard
+
+The visual dashboard (`kestrion dashboard`) includes real-time WebSocket event streaming and an interactive SVG/DOM DAG visualization:
+
+```bash
+# Launch dashboard on any SQLite event store
+kestrion dashboard --port 8000 --store agent_runs.db
+```
+
+* **Interactive Trace DAG**: Visualizes the state-machine graph (`__entry__` ➔ `__llm__` ➔ `__tools__`), sub-agent handoffs, approval pauses, and branching multiverse universe executions in real-time.
+* **Live WebSocket Streaming**: As new events are logged to the store, the client automatically receives updates over WebSocket without page refreshes.
+* **Direct Inspection**: Click on any node or tool execution in the DAG to inspect full input payloads, model completion parameters, tool arguments, and cost/token breakdowns.
+
+## Enterprise Observability
+
+Kestrion provides dual-stack production telemetry:
+
+### 1. OpenTelemetry GenAI Semantic Conventions
+Connect to Datadog, Honeycomb, Dynatrace, or Jaeger using official OTel GenAI attributes:
+
+```python
+from kestrion.telemetry import OpenTelemetryProvider
+from kestrion.agent.agent import Agent
+
+agent = Agent(
+    provider=provider,
+    tools=tools,
+    telemetry=OpenTelemetryProvider(service_name="payment-agent"),
+)
+```
+Emits standard spans (`gen_ai.system`, `gen_ai.request.model`, `gen_ai.usage.input_tokens`, `gen_ai.usage.output_tokens`, `gen_ai.tool.name`).
+
+### 2. Structured JSON Logging (NDJSON)
+Zero external dependencies, ready for ingestion into CloudWatch, Datadog, Splunk, or Loki:
+
+```python
+from kestrion.observability import configure_structured_logging
+
+# Formats all standard logging into structured single-line JSON with duration_ms
+configure_structured_logging(level="INFO")
+```
+
+Multiple telemetry providers can be combined simultaneously using `CompositeTelemetryProvider` or passing a list: `Agent(telemetry=[otel_provider, logger_provider])`.
 
 ## Security & Compliance
 
